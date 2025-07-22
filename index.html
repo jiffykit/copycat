@@ -21,6 +21,7 @@
                 <button id="startBtn" class="btn primary">🎮 Start Game</button>
                 <button id="stopBtn" class="btn secondary" disabled>🛑 Stop</button>
                 <button id="resetBtn" class="btn secondary">🔄 Reset</button>
+                <button id="listenAgainBtn" class="btn special" disabled>👂 Listen Again</button>
             </div>
             <div class="rhythm-controls">
                 <h4>🎵 Rhythm Fun:</h4>
@@ -123,6 +124,7 @@
                 this.currentSequenceIndex = 0; // Track which item in sequence player is on
                 this.currentTapCount = 0; // Track taps for current item
                 this.tapStartTime = 0; // Track when player started tapping current item
+                this.currentItemStartTime = 0; // Track when current sequence item started
                 this.currentArrangement = 'chromatic'; // Current clock arrangement
                 this.usingCustomScale = false; // Track if using custom scale
                 this.customNotes = ['C', 'E', 'G']; // Default custom scale
@@ -138,6 +140,8 @@
                 this.rhythmAccuracy = 0;
                 this.perfectTimingCount = 0;
                 this.totalTimingAttempts = 0;
+                this.currentLevelRhythmBonus = 0; // Track rhythm bonus for current level only
+                this.listenAgainUsed = false; // Track if Listen Again has been used this level
 
                 // Level requirements: sequence length progression (3→4→4→5→5→6→6→7 etc.)
                 this.levelRequirements = {
@@ -236,6 +240,7 @@
                 document.getElementById('startBtn').addEventListener('click', () => this.startGame());
                 document.getElementById('stopBtn').addEventListener('click', () => this.stopGame());
                 document.getElementById('resetBtn').addEventListener('click', () => this.resetGame());
+                document.getElementById('listenAgainBtn').addEventListener('click', () => this.listenAgain());
 
                 // Rhythm toggle controls
                 document.getElementById('rhythmQuarter').addEventListener('change', () => this.updateEnabledRhythms());
@@ -646,6 +651,8 @@
                 this.levelScore = 0;
                 this.perfectTimingCount = 0;
                 this.totalTimingAttempts = 0;
+                this.currentLevelRhythmBonus = 0; // Reset rhythm bonus for new game
+                this.listenAgainUsed = false; // Reset Listen Again for new game
 
                 this.updateDisplay();
                 this.updateControls();
@@ -682,6 +689,7 @@
                 this.currentTapCount = 0;
                 this.updateDisplay();
                 this.updateClockArrangement(); // Refresh clock for level 1
+                this.updateControls(); // Update button states
             }
 
             // Play sequence - each round is exactly 1 beat duration
@@ -709,6 +717,7 @@
                     this.currentSequenceIndex = 0;
                     this.currentTapCount = 0;
                     this.updateDisplay();
+                    this.updateControls(); // Update button states including Listen Again
                 }, delay); // Removed the +200ms delay
             }
 
@@ -744,7 +753,27 @@
                         this.playTone(frequency, noteDuration); // Use noteDuration instead of subdivisionDuration
                     }, i * subdivisionDuration);
                 }
-            }            // Handle light press - simplified validation with timing tolerance
+            }
+
+            // Listen Again function - replay current sequence once per level
+            listenAgain() {
+                if (this.listenAgainUsed || this.gameState !== 'listening' || !this.isPlayerTurn) {
+                    return; // Can't use if already used, not in listening state, or not player turn
+                }
+
+                // Mark as used for this level
+                this.listenAgainUsed = true;
+                
+                // Temporarily disable player turn and replay sequence
+                this.isPlayerTurn = false;
+                this.gameState = 'playing';
+                this.updateControls(); // Update button states
+                
+                // Replay the current sequence
+                this.playSequence();
+            }
+
+            // Handle light press - simplified validation with timing tolerance
             onLightPress(lightIndex, event) {
                 if (!this.isPlayerTurn) return;
 
@@ -765,9 +794,10 @@
                 const frequency = this.notes[note];
                 this.playUserFeedbackTone(frequency, expectedItem.rhythmData);
 
-                // Track timing for validation
+                // Track timing for validation - start timing from first note press
                 if (this.currentTapCount === 0) {
                     this.tapStartTime = Date.now();
+                    this.currentItemStartTime = Date.now(); // Track when this item started
                 }
 
                 this.currentTapCount++;
@@ -775,38 +805,28 @@
                 // Check if we've got enough taps
                 const requiredTaps = expectedItem.rhythmData.taps;
                 if (this.currentTapCount >= requiredTaps) {
-                    // Timing validation with 50% tolerance - each round should be within one beat
-                    let timingAccurate = true;
+                    // Basic validation - ensure correct number of taps
                     if (this.currentTapCount > 1) {
                         const totalTime = Date.now() - this.tapStartTime;
                         const beatDuration = 60000 / this.bpm; // Duration of one beat in ms
                         const expectedTime = (requiredTaps - 1) * (beatDuration / requiredTaps); // Subdivisions within beat
-                        const tolerance = expectedTime * 0.6; // 60% tolerance
 
-                        if (totalTime > expectedTime + tolerance) {
+                        // Basic acceptance tolerance (50%) - too slow fails
+                        const basicTolerance = expectedTime * 0.5;
+                        if (totalTime > expectedTime + basicTolerance) {
                             this.loseLife();
                             return;
                         }
-
-                        // Track timing accuracy for scoring
-                        const strictTolerance = expectedTime * 0.3; // 30% tolerance for "perfect" timing
-                        if (totalTime <= expectedTime + strictTolerance) {
-                            this.perfectTimingCount++;
-                        }
-                        this.totalTimingAttempts++;
-                        timingAccurate = totalTime <= expectedTime + strictTolerance;
-                    } else {
-                        // Single tap is always considered accurate
-                        this.perfectTimingCount++;
-                        this.totalTimingAttempts++;
                     }
 
-                    // Success! Move to next item
+                    // No rhythm scoring here - only done at end of full sequence                    // Success! Move to next item
                     this.playerSequence.push({
                         lightIndex,
                         note: light.dataset.note,
                         rhythm: expectedItem.rhythm,
-                        tapCount: this.currentTapCount
+                        tapCount: this.currentTapCount,
+                        startTime: this.currentItemStartTime,
+                        endTime: Date.now()
                     });
 
                     this.currentSequenceIndex++;
@@ -814,6 +834,8 @@
 
                     // Check if sequence complete
                     if (this.currentSequenceIndex >= this.gameSequence.length) {
+                        // Calculate rhythm bonus for the ENTIRE sequence timing
+                        this.calculateSequenceRhythmBonus();
                         setTimeout(() => this.nextRound(), 500);
                     }
                 }
@@ -829,6 +851,103 @@
                 light.classList.remove('active');
 
                 this.playerPressedLight = null;
+            }
+
+            // Calculate rhythm bonus for the entire sequence timing
+            calculateSequenceRhythmBonus() {
+                if (this.playerSequence.length < 2) {
+                    // Single note sequences don't get rhythm bonus
+                    return;
+                }
+
+                // Calculate expected timing for the entire sequence: (n-1) beats total
+                const beatDuration = 60000 / this.bpm; // Duration of one beat in ms
+                const expectedTotalTime = (this.gameSequence.length - 1) * beatDuration;
+
+                // Get actual timing from player sequence
+                const firstItemTime = this.playerSequence[0].startTime || Date.now();
+                const lastItemTime = this.playerSequence[this.playerSequence.length - 1].endTime || Date.now();
+                const actualTotalTime = lastItemTime - firstItemTime;
+
+                // Check overall sequence timing first - much stricter validation
+                let overallTimingAccuracy = 0;
+                if (expectedTotalTime > 0) {
+                    // Calculate how far off the player was from perfect timing
+                    const timingError = Math.abs(actualTotalTime - expectedTotalTime);
+                    const maxAllowedError = expectedTotalTime * 0.15; // Only 15% tolerance for timing
+
+                    if (timingError <= maxAllowedError) {
+                        // Within acceptable range - calculate accuracy
+                        overallTimingAccuracy = 1 - (timingError / maxAllowedError);
+                    } else {
+                        // Too far off - no accuracy bonus
+                        overallTimingAccuracy = 0;
+                    }
+                }
+
+                // Now check individual rhythm accuracy for each note
+                let rhythmAccuracyCount = 0;
+                let totalRhythmChecks = 0;
+
+                for (let i = 0; i < this.playerSequence.length; i++) {
+                    const playerItem = this.playerSequence[i];
+                    const expectedItem = this.gameSequence[i];
+
+                    // Skip rhythm check for quarter notes (single tap)
+                    if (expectedItem.rhythmData.taps === 1) {
+                        rhythmAccuracyCount++; // Quarter notes are always "accurate"
+                        totalRhythmChecks++;
+                        continue;
+                    }
+
+                    // For multi-tap rhythms, check if player timing matches expected subdivisions
+                    const expectedSubdivisionTime = beatDuration / expectedItem.rhythmData.taps;
+
+                    // Calculate player's rhythm timing for this note
+                    const playerRhythmTime = playerItem.endTime - playerItem.startTime;
+                    const expectedRhythmTime = (expectedItem.rhythmData.taps - 1) * expectedSubdivisionTime;
+
+                    // Much stricter rhythm timing - only 10% tolerance for multi-tap rhythms
+                    const rhythmTolerance = expectedRhythmTime * 0.1;
+                    if (Math.abs(playerRhythmTime - expectedRhythmTime) <= rhythmTolerance) {
+                        rhythmAccuracyCount++;
+                    }
+                    totalRhythmChecks++;
+                }
+
+                // Calculate final rhythm accuracy percentage
+                const rhythmAccuracy = totalRhythmChecks > 0 ? rhythmAccuracyCount / totalRhythmChecks : 1;
+
+                // Combine overall timing and rhythm accuracy (both must be good)
+                const finalAccuracy = Math.min(overallTimingAccuracy, rhythmAccuracy);
+
+                console.log(`Overall Timing: ${(overallTimingAccuracy * 100).toFixed(1)}%, Rhythm Accuracy: ${(rhythmAccuracy * 100).toFixed(1)}%, Final: ${(finalAccuracy * 100).toFixed(1)}%`);
+                console.log(`Expected Total: ${expectedTotalTime}ms, Actual Total: ${actualTotalTime}ms`);
+
+                // Award rhythm bonus based on combined accuracy - much stricter thresholds
+                let rhythmBonus = 0;
+                if (this.currentLevelRhythmBonus < 250) {
+                    if (finalAccuracy >= 0.95) {
+                        // Within 95% = 250 bonus (was 90%)
+                        rhythmBonus = Math.min(250, 250 - this.currentLevelRhythmBonus);
+                        this.perfectTimingCount++;
+                    } else if (finalAccuracy >= 0.85) {
+                        // Within 85% = 100 bonus (was 75%)
+                        rhythmBonus = Math.min(100, 250 - this.currentLevelRhythmBonus);
+                    } else if (finalAccuracy >= 0.7) {
+                        // Within 70% = 50 bonus (was 50%)
+                        rhythmBonus = Math.min(50, 250 - this.currentLevelRhythmBonus);
+                    }
+                }
+
+                // Store bonus but DON'T add to total score yet - only add to level tracking
+                if (rhythmBonus > 0) {
+                    this.levelScore += rhythmBonus; // Track for level display only
+                    this.currentLevelRhythmBonus += rhythmBonus; // Track rhythm bonus for this level
+                    // DON'T add to totalScore here - only at end of level
+                }
+
+                this.totalTimingAttempts++;
             }
 
             // Detect rhythm based on duration
@@ -860,6 +979,7 @@
                     this.correctInRow = 0; // Reset counter for new level
                     this.bpm = Math.min(50 + (newLevel - 1) * 2, 85); // 2 BPM per level, max 85
                     this.lastNoteIndex = -1; // Reset note tracking for new level
+                    this.listenAgainUsed = false; // Reset Listen Again for new level
 
                     // Show level completion celebration
                     this.showLevelCelebration(newLevel);
@@ -943,13 +1063,14 @@
                 // Calculate level scores
                 const baseScore = 100; // 100 points for completing level
                 const noteBonus = this.gameSequence.length * 50; // 50 points per note
-                const rhythmAccuracy = this.totalTimingAttempts > 0 ? (this.perfectTimingCount / this.totalTimingAttempts) : 1;
-                const rhythmBonus = rhythmAccuracy >= 0.9 ? 250 : 0; // 250 bonus for 90%+ accuracy
+                // rhythmBonus is already added to levelScore in calculateSequenceRhythmBonus
 
-                this.levelScore = baseScore + noteBonus + rhythmBonus;
-                this.totalScore += this.levelScore;
+                // Base level score without rhythm bonus
+                const baseLevelScore = baseScore + noteBonus;
+                const rhythmBonus = this.currentLevelRhythmBonus; // Use the tracked rhythm bonus for this level
 
-                // Play kids cheering sound
+                this.levelScore = baseLevelScore + rhythmBonus; // Ensure correct total
+                this.totalScore += this.levelScore; // Add ENTIRE level score to total at end of level                // Play kids cheering sound
                 const cheeringAudio = new Audio('kids-cheering-sound-effect.mp3');
                 cheeringAudio.play().catch(e => console.log('Audio play failed:', e));
 
@@ -1000,7 +1121,7 @@
                 const scoreLines = [
                     { text: `Level Complete: +${baseScore}`, delay: 200 },
                     { text: `${this.gameSequence.length} Notes: +${noteBonus}`, delay: 600 },
-                    rhythmBonus > 0 ? { text: `Perfect Rhythm: +${rhythmBonus}`, delay: 1000 } : null,
+                    rhythmBonus > 0 ? { text: `Rhythm Accuracy Bonus: +${rhythmBonus}`, delay: 1000 } : null,
                     { text: `Total Level: ${this.levelScore}`, delay: rhythmBonus > 0 ? 1400 : 1000, isTotal: true },
                     { text: `Grand Total: ${this.totalScore.toLocaleString()}`, delay: rhythmBonus > 0 ? 1800 : 1400, isGrandTotal: true }
                 ].filter(Boolean);
@@ -1062,6 +1183,8 @@
                     this.levelScore = 0;
                     this.perfectTimingCount = 0;
                     this.totalTimingAttempts = 0;
+                    this.currentLevelRhythmBonus = 0; // Reset rhythm bonus for new level
+                    this.listenAgainUsed = false; // Reset Listen Again for new level
 
                     // Continue with level progression
                     this.gameSequence = [this.generateSequenceItem()];
@@ -1129,16 +1252,22 @@
             updateControls() {
                 const startBtn = document.getElementById('startBtn');
                 const stopBtn = document.getElementById('stopBtn');
+                const listenAgainBtn = document.getElementById('listenAgainBtn');
                 const scaleRadios = document.querySelectorAll('input[name="scaleType"]');
 
                 if (this.gameState === 'stopped') {
                     startBtn.disabled = false;
                     stopBtn.disabled = true;
+                    listenAgainBtn.disabled = true;
                     // Enable scale selection when game is stopped
                     scaleRadios.forEach(radio => radio.disabled = false);
                 } else {
                     startBtn.disabled = true;
                     stopBtn.disabled = false;
+                    
+                    // Listen Again button: enabled only during listening state, not used yet this level
+                    listenAgainBtn.disabled = !(this.gameState === 'listening' && this.isPlayerTurn && !this.listenAgainUsed);
+                    
                     // Disable scale selection during active game
                     scaleRadios.forEach(radio => radio.disabled = true);
                 }

@@ -13,9 +13,9 @@
         <header class="game-header">
             <h1>🎵 Music Match 🎵</h1>
             <div class="game-info">
+                <div class="score">Score: <span id="totalScore">0</span></div>
                 <div class="score">Round: <span id="round">1</span></div>
                 <div class="score">Lives: <span id="lives">3</span></div>
-                <div class="status">Status: <span id="status">Ready</span></div>
             </div>
             <div class="controls">
                 <button id="startBtn" class="btn primary">🎮 Start Game</button>
@@ -29,6 +29,9 @@
                     <label><input type="checkbox" id="rhythmEighth"> ♫ Eighth Notes</label>
                     <label><input type="checkbox" id="rhythmTriplet"> ³ Triplets</label>
                     <label><input type="checkbox" id="rhythmSixteenth"> ♬ Sixteenth Notes</label>
+                </div>
+                <div class="rhythm-toggles" style="margin-top: 15px;">
+                    <label><input type="checkbox" id="muteCheeringSound" checked> 🔊 Cheering Sound</label>
                 </div>
             </div>
             <div class="scale-controls">
@@ -99,8 +102,7 @@
         </main>
 
         <footer class="game-footer">
-            <p>🎵 Listen to the pattern, then tap the lights! 🎵</p>
-            <p>✨ Match the rhythm and have fun! ✨</p>
+            <!-- Footer content removed for cleaner interface -->
         </footer>
     </div>
 
@@ -114,7 +116,7 @@
                 this.playerSequence = [];
                 this.currentRound = 1;
                 this.gameState = 'stopped'; // 'stopped', 'playing', 'listening', 'waiting'
-                this.bpm = 60;
+                this.bpm = 50; // Start at 50 BPM, increases by 2 per level, max 85
                 this.sequenceTimeout = null;
                 this.playerTimeout = null;
                 this.isPlayerTurn = false;
@@ -130,32 +132,59 @@
                 this.lastNoteIndex = -1; // Track last note to avoid repetition
                 this.lives = 3; // Start with 3 lives
 
-                // Level requirements: how many correct in a row to advance
+                // Scoring system
+                this.totalScore = 0;
+                this.levelScore = 0;
+                this.rhythmAccuracy = 0;
+                this.perfectTimingCount = 0;
+                this.totalTimingAttempts = 0;
+
+                // Level requirements: sequence length progression (3→4→4→5→5→6→6→7 etc.)
                 this.levelRequirements = {
-                    1: 3, // 3 correct to reach level 2
-                    2: 4, // 4 correct to reach level 3  
-                    3: 5, // 5 correct to reach level 4
-                    4: 6, // 6 correct to reach level 5
-                    5: 7, // 7 correct to reach level 6
-                    6: 8, // 8 correct to reach level 7
-                    7: 9, // 9 correct to reach level 8
-                    8: 10, // 10 correct to reach level 9
-                    9: 11, // 11 correct to reach level 10
-                    10: 999 // Max level
+                    1: 3, // Level 1: 3 notes to complete
+                    2: 4, // Level 2: 4 notes to complete
+                    3: 4, // Level 3: 4 notes to complete (including A)
+                    4: 5, // Level 4: 5 notes to complete
+                    5: 5, // Level 5: 5 notes to complete
+                    6: 6, // Level 6: 6 notes to complete  
+                    7: 6, // Level 7: 6 notes to complete
+                    8: 7, // Level 8: 7 notes to complete
+                    9: 7, // Level 9: 7 notes to complete
+                    10: 8, // Level 10: 8 notes to complete
+                    11: 8, // Level 11: 8 notes to complete
+                    12: 9, // Level 12: 9 notes to complete
+                    13: 9, // Level 13: 9 notes to complete
+                    14: 10, // Level 14: 10 notes to complete
+                    15: 10, // Level 15: 10 notes to complete
+                    16: 11, // Level 16: 11 notes to complete
+                    17: 11, // Level 17: 11 notes to complete
+                    18: 12, // Level 18: 12 notes to complete (max)
+                    19: 12, // Level 19: 12 notes to complete
+                    20: 12 // Level 20: 12 notes to complete
                 };
 
-                // Progressive note system by level
+                // Progressive note system by level - slower progression
                 this.levelNotes = {
-                    1: ['C', 'E', 'G'], // Level 1: CEG
-                    2: ['C', 'D', 'E', 'G', 'A'], // Level 2: CDEGA
-                    3: ['C', 'D', 'E', 'F', 'G', 'A', 'B'], // Level 3: CDEFGAB
-                    4: ['C', 'D', 'D#', 'E', 'F', 'G', 'A', 'A#', 'B'], // Level 4: Add D# and A#
-                    5: ['C', 'D', 'D#', 'E', 'F', 'G', 'G#', 'A', 'A#', 'B'], // Level 5: Add G#
-                    6: ['C', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], // Level 6: Add F#
-                    7: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], // Level 7: Add C# (full chromatic)
-                    8: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], // Level 8: Full chromatic
-                    9: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], // Level 9: Full chromatic
-                    10: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] // Level 10: Full chromatic
+                    1: ['C', 'E', 'G'], // Level 1: CEG (3 notes)
+                    2: ['C', 'E', 'G'], // Level 2: CEG (3 notes) 
+                    3: ['C', 'E', 'G', 'A'], // Level 3: CEGA (4 notes)
+                    4: ['C', 'E', 'G', 'A'], // Level 4: CEGA (4 notes)
+                    5: ['C', 'E', 'G', 'A', 'D'], // Level 5: CEGAD (5 notes)
+                    6: ['C', 'E', 'G', 'A', 'D'], // Level 6: CEGAD (5 notes)
+                    7: ['C', 'D', 'E', 'G', 'A', 'F'], // Level 7: CDEGAF (6 notes)
+                    8: ['C', 'D', 'E', 'G', 'A', 'F'], // Level 8: CDEGAF (6 notes)
+                    9: ['C', 'D', 'E', 'F', 'G', 'A', 'B'], // Level 9: CDEFGAB (7 notes)
+                    10: ['C', 'D', 'E', 'F', 'G', 'A', 'B'], // Level 10: CDEFGAB (7 notes)
+                    11: ['C', 'D', 'D#', 'E', 'F', 'G', 'A', 'B'], // Level 11: Add D# (8 notes)
+                    12: ['C', 'D', 'D#', 'E', 'F', 'G', 'A', 'B'], // Level 12: Add D# (8 notes)
+                    13: ['C', 'D', 'D#', 'E', 'F', 'G', 'G#', 'A', 'B'], // Level 13: Add G# (9 notes)
+                    14: ['C', 'D', 'D#', 'E', 'F', 'G', 'G#', 'A', 'B'], // Level 14: Add G# (9 notes)
+                    15: ['C', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'B'], // Level 15: Add F# (10 notes)
+                    16: ['C', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'B'], // Level 16: Add F# (10 notes)
+                    17: ['C', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], // Level 17: Add A# (11 notes)
+                    18: ['C', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], // Level 18: Add A# (11 notes)
+                    19: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], // Level 19: Add C# (12 notes - full chromatic)
+                    20: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] // Level 20: Full chromatic
                 };
 
                 // Different clock arrangements
@@ -230,6 +259,22 @@
                     const checkbox = document.getElementById(`note${note}`);
                     if (checkbox) {
                         checkbox.addEventListener('change', () => this.updateCustomScale());
+                    }
+                });
+
+                // Hide custom scale container when clicking outside
+                document.addEventListener('click', (e) => {
+                    const customContainer = document.getElementById('customScaleContainer');
+                    const scaleControls = document.querySelector('.scale-controls');
+
+                    // Check if click is outside the scale controls area and custom container is visible
+                    if (this.usingCustomScale &&
+                        customContainer &&
+                        customContainer.style.display !== 'none' &&
+                        !scaleControls.contains(e.target)) {
+
+                        // Just hide the custom container, but keep custom mode active
+                        customContainer.style.display = 'none';
                     }
                 });
 
@@ -433,7 +478,7 @@
 
                 // Reset container styles for linear layout
                 container.style.width = 'auto';
-                container.style.height = '120px';
+                container.style.height = '180px';
 
                 let visibleIndex = 0;
                 lights.forEach((light, index) => {
@@ -589,12 +634,18 @@
                 this.currentRound = 1;
                 this.currentLevel = 1; // Reset to level 1
                 this.correctInRow = 0; // Reset progression counter
-                this.bpm = 60; // Reset BPM to starting value
+                this.bpm = 50; // Reset BPM to starting value (50 BPM)
                 this.lastNoteIndex = -1; // Reset note tracking
                 this.lives = 3; // Reset lives to 3
 
                 // Start with one simple item
                 this.gameSequence = [this.generateSequenceItem()];
+
+                // Reset scoring
+                this.totalScore = 0;
+                this.levelScore = 0;
+                this.perfectTimingCount = 0;
+                this.totalTimingAttempts = 0;
 
                 this.updateDisplay();
                 this.updateControls();
@@ -624,7 +675,7 @@
                 this.currentRound = 1;
                 this.currentLevel = 1; // Reset to level 1
                 this.correctInRow = 0; // Reset progression counter
-                this.bpm = 60; // Reset BPM to starting value
+                this.bpm = 50; // Reset BPM to starting value (50 BPM)
                 this.lastNoteIndex = -1; // Reset note tracking
                 this.lives = 3; // Reset lives to 3
                 this.currentSequenceIndex = 0;
@@ -725,6 +776,7 @@
                 const requiredTaps = expectedItem.rhythmData.taps;
                 if (this.currentTapCount >= requiredTaps) {
                     // Timing validation with 50% tolerance - each round should be within one beat
+                    let timingAccurate = true;
                     if (this.currentTapCount > 1) {
                         const totalTime = Date.now() - this.tapStartTime;
                         const beatDuration = 60000 / this.bpm; // Duration of one beat in ms
@@ -735,6 +787,18 @@
                             this.loseLife();
                             return;
                         }
+
+                        // Track timing accuracy for scoring
+                        const strictTolerance = expectedTime * 0.3; // 30% tolerance for "perfect" timing
+                        if (totalTime <= expectedTime + strictTolerance) {
+                            this.perfectTimingCount++;
+                        }
+                        this.totalTimingAttempts++;
+                        timingAccurate = totalTime <= expectedTime + strictTolerance;
+                    } else {
+                        // Single tap is always considered accurate
+                        this.perfectTimingCount++;
+                        this.totalTimingAttempts++;
                     }
 
                     // Success! Move to next item
@@ -786,23 +850,20 @@
                 return closestRhythm;
             }
 
-            // Advance to next round - Level progression based on consecutive correct answers
+            // Advance to next round - Level progression based on sequence length
             nextRound() {
-                this.correctInRow++;
-
-                // Check if we should advance to next level
-                const requiredCorrect = this.levelRequirements[this.currentLevel];
-                if (this.correctInRow >= requiredCorrect && this.currentLevel < 10) {
-                    this.currentLevel++;
+                // Check if we should advance to next level (based on sequence length)
+                const targetSequenceLength = this.levelRequirements[this.currentLevel];
+                if (this.gameSequence.length >= targetSequenceLength && this.currentLevel < 20) {
+                    const newLevel = this.currentLevel + 1;
+                    this.currentLevel = newLevel;
                     this.correctInRow = 0; // Reset counter for new level
-                    this.bpm += 10; // Increase BPM by 10 each level
+                    this.bpm = Math.min(50 + (newLevel - 1) * 2, 85); // 2 BPM per level, max 85
                     this.lastNoteIndex = -1; // Reset note tracking for new level
 
-                    // Start fresh sequence with new level's notes
-                    this.gameSequence = [this.generateSequenceItem()];
-                    this.currentRound = 1; // Reset round counter for new level
-
-                    this.updateClockArrangement(); // Update available notes for new level
+                    // Show level completion celebration
+                    this.showLevelCelebration(newLevel);
+                    return; // Exit early, celebration will continue the game
                 } else {
                     // Same level, continue building sequence
                     this.currentRound++;
@@ -832,16 +893,8 @@
                 if (this.lives <= 0) {
                     this.gameOver();
                 } else {
-                    // Restart from the same level
-                    this.correctInRow = 0; // Reset consecutive correct counter
-                    this.currentRound = 1; // Reset to round 1 of current level
-                    alert(`Wrong! Lives remaining: ${this.lives}. Restarting level ${this.currentLevel}.`);
-
-                    // Reset and start new sequence for current level
-                    this.gameSequence = [];
-                    setTimeout(() => {
-                        this.startRound();
-                    }, 1000);
+                    // Show "Try Again" modal and replay sequence
+                    this.showTryAgainModal();
                 }
             }
 
@@ -878,30 +931,216 @@
 
             // Update display elements
             updateDisplay() {
+                document.getElementById('totalScore').textContent = this.totalScore.toLocaleString();
                 document.getElementById('round').textContent = this.currentRound;
                 document.getElementById('lives').textContent = this.lives;
 
-                let status = 'Ready';
-                if (this.gameState === 'playing') status = 'Playing Sequence';
-                else if (this.gameState === 'listening') status = 'Your Turn';
-                else if (this.gameState === 'stopped') status = 'Stopped';
-
-                document.getElementById('status').textContent = status;
-
                 // Keep the footer simple and fun for kids - no complex info!
+            }
+
+            // Level completion celebration with sound and visual effects
+            showLevelCelebration(newLevel) {
+                // Calculate level scores
+                const baseScore = 100; // 100 points for completing level
+                const noteBonus = this.gameSequence.length * 50; // 50 points per note
+                const rhythmAccuracy = this.totalTimingAttempts > 0 ? (this.perfectTimingCount / this.totalTimingAttempts) : 1;
+                const rhythmBonus = rhythmAccuracy >= 0.9 ? 250 : 0; // 250 bonus for 90%+ accuracy
+
+                this.levelScore = baseScore + noteBonus + rhythmBonus;
+                this.totalScore += this.levelScore;
+
+                // Play kids cheering sound
+                const cheeringAudio = new Audio('kids-cheering-sound-effect.mp3');
+                cheeringAudio.play().catch(e => console.log('Audio play failed:', e));
+
+                // Create celebration overlay
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 1000;
+                    font-family: 'Comic Sans MS', 'Trebuchet MS', 'Lucida Grande', Arial, sans-serif;
+                `;
+
+                // Level title
+                const celebrationText = document.createElement('div');
+                celebrationText.textContent = `LEVEL ${newLevel}!`;
+                celebrationText.style.cssText = `
+                    font-size: 72px;
+                    font-weight: 900;
+                    color: white;
+                    text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.8);
+                    text-align: center;
+                    animation: colorCycle 0.5s ease-in-out infinite alternate;
+                    margin-bottom: 30px;
+                `;
+
+                // Score breakdown container
+                const scoreContainer = document.createElement('div');
+                scoreContainer.style.cssText = `
+                    background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57);
+                    background-size: 400% 400%;
+                    padding: 30px;
+                    border-radius: 20px;
+                    border: 4px solid white;
+                    text-align: center;
+                    animation: gradientShift 2s ease infinite;
+                    min-width: 400px;
+                `;
+
+                // Individual score lines
+                const scoreLines = [
+                    { text: `Level Complete: +${baseScore}`, delay: 200 },
+                    { text: `${this.gameSequence.length} Notes: +${noteBonus}`, delay: 600 },
+                    rhythmBonus > 0 ? { text: `Perfect Rhythm: +${rhythmBonus}`, delay: 1000 } : null,
+                    { text: `Total Level: ${this.levelScore}`, delay: rhythmBonus > 0 ? 1400 : 1000, isTotal: true },
+                    { text: `Grand Total: ${this.totalScore.toLocaleString()}`, delay: rhythmBonus > 0 ? 1800 : 1400, isGrandTotal: true }
+                ].filter(Boolean);
+
+                scoreLines.forEach((scoreData, index) => {
+                    const scoreLine = document.createElement('div');
+                    scoreLine.style.cssText = `
+                        font-size: ${scoreData.isGrandTotal ? '36px' : scoreData.isTotal ? '28px' : '24px'};
+                        font-weight: 900;
+                        color: ${scoreData.isGrandTotal ? '#ff1744' : scoreData.isTotal ? '#00e676' : 'white'};
+                        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+                        margin: 8px 0;
+                        opacity: 0;
+                        transform: translateY(20px);
+                        animation: scoreReveal 0.5s ease forwards;
+                        animation-delay: ${scoreData.delay}ms;
+                        ${scoreData.isGrandTotal ? 'border-top: 3px solid white; padding-top: 15px; margin-top: 20px;' : ''}
+                    `;
+                    scoreLine.textContent = scoreData.text;
+                    scoreContainer.appendChild(scoreLine);
+                });
+
+                // Add rainbow color cycling animation and score reveal animation
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes colorCycle {
+                        0% { color: #ff0000; }
+                        16.67% { color: #ff8000; }
+                        33.33% { color: #ffff00; }
+                        50% { color: #00ff00; }
+                        66.67% { color: #0080ff; }
+                        83.33% { color: #8000ff; }
+                        100% { color: #ff0080; }
+                    }
+                    @keyframes gradientShift {
+                        0% { background-position: 0% 50%; }
+                        50% { background-position: 100% 50%; }
+                        100% { background-position: 0% 50%; }
+                    }
+                    @keyframes scoreReveal {
+                        to {
+                            opacity: 1;
+                            transform: translateY(0);
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+
+                overlay.appendChild(celebrationText);
+                overlay.appendChild(scoreContainer);
+                document.body.appendChild(overlay);
+
+                // Remove celebration after 3.5 seconds and continue game
+                setTimeout(() => {
+                    document.body.removeChild(overlay);
+                    document.head.removeChild(style);
+
+                    // Reset level scoring for next level
+                    this.levelScore = 0;
+                    this.perfectTimingCount = 0;
+                    this.totalTimingAttempts = 0;
+
+                    // Continue with level progression
+                    this.gameSequence = [this.generateSequenceItem()];
+                    this.currentRound = 1; // Reset round counter for new level
+                    this.updateClockArrangement(); // Update available notes for new level
+                    this.updateDisplay();
+
+                    // Start the new level's sequence after a brief pause
+                    setTimeout(() => {
+                        this.playSequence();
+                    }, 500);
+                }, 3500);
+            }            // Show "Try Again" modal and replay sequence until correct
+            showTryAgainModal() {
+                // Create modal overlay
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 1000;
+                    font-family: 'Comic Sans MS', 'Trebuchet MS', 'Lucida Grande', Arial, sans-serif;
+                `;
+
+                const modalText = document.createElement('div');
+                modalText.textContent = 'Try Again';
+                modalText.style.cssText = `
+                    font-size: 48px;
+                    font-weight: 900;
+                    color: #ff6b6b;
+                    text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.8);
+                    text-align: center;
+                    background: white;
+                    padding: 40px 60px;
+                    border-radius: 20px;
+                    border: 4px solid #ff6b6b;
+                `;
+
+                overlay.appendChild(modalText);
+                document.body.appendChild(overlay);
+
+                // Remove modal after 1 second and replay sequence
+                setTimeout(() => {
+                    document.body.removeChild(overlay);
+
+                    // Reset player input position but keep same sequence
+                    this.playerIndex = 0;
+                    this.isPlayerTurn = false;
+                    this.gameState = 'playing';
+
+                    // Replay the same sequence after brief pause
+                    setTimeout(() => {
+                        this.playSequence();
+                    }, 500);
+                }, 1000);
             }
 
             // Update control buttons
             updateControls() {
                 const startBtn = document.getElementById('startBtn');
                 const stopBtn = document.getElementById('stopBtn');
+                const scaleRadios = document.querySelectorAll('input[name="scaleType"]');
 
                 if (this.gameState === 'stopped') {
                     startBtn.disabled = false;
                     stopBtn.disabled = true;
+                    // Enable scale selection when game is stopped
+                    scaleRadios.forEach(radio => radio.disabled = false);
                 } else {
                     startBtn.disabled = true;
                     stopBtn.disabled = false;
+                    // Disable scale selection during active game
+                    scaleRadios.forEach(radio => radio.disabled = true);
                 }
             }
 

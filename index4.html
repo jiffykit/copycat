@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Match</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1>🎵 Music Match 🎵</h1>
+            <div class="game-info">
+                <div class="score">Round: <span id="round">1</span></div>
+                <div class="score">Lives: <span id="lives">3</span></div>
+                <div class="status">Status: <span id="status">Ready</span></div>
+            </div>
+            <div class="controls">
+                <button id="startBtn" class="btn primary">🎮 Start Game</button>
+                <button id="stopBtn" class="btn secondary" disabled>🛑 Stop</button>
+                <button id="resetBtn" class="btn secondary">🔄 Reset</button>
+            </div>
+            <div class="rhythm-controls">
+                <h4>🎵 Rhythm Fun:</h4>
+                <div class="rhythm-toggles">
+                    <label><input type="checkbox" id="rhythmQuarter" checked> ♩ Quarter Notes</label>
+                    <label><input type="checkbox" id="rhythmEighth"> ♫ Eighth Notes</label>
+                    <label><input type="checkbox" id="rhythmTriplet"> ³ Triplets</label>
+                    <label><input type="checkbox" id="rhythmSixteenth"> ♬ Sixteenth Notes</label>
+                </div>
+            </div>
+            <div class="scale-controls">
+                <h4>🎹 Note Options:</h4>
+                <div class="scale-options">
+                    <label><input type="radio" name="scaleType" value="progressive" checked> 🌟 Fun Levels</label>
+                    <label><input type="radio" name="scaleType" value="custom"> 🎨 My Own Notes</label>
+                </div>
+                <div class="custom-scale" id="customScaleContainer" style="display: none;">
+                    <div class="note-toggles">
+                        <label><input type="checkbox" id="noteC" checked> C</label>
+                        <label><input type="checkbox" id="noteCsharp"> C#</label>
+                        <label><input type="checkbox" id="noteD"> D</label>
+                        <label><input type="checkbox" id="noteDsharp"> D#</label>
+                        <label><input type="checkbox" id="noteE" checked> E</label>
+                        <label><input type="checkbox" id="noteF"> F</label>
+                        <label><input type="checkbox" id="noteFsharp"> F#</label>
+                        <label><input type="checkbox" id="noteG" checked> G</label>
+                        <label><input type="checkbox" id="noteGsharp"> G#</label>
+                        <label><input type="checkbox" id="noteA"> A</label>
+                        <label><input type="checkbox" id="noteAsharp"> A#</label>
+                        <label><input type="checkbox" id="noteB"> B</label>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="game-board">
+            <div class="clock-container">
+                <!-- 12 Colored lights arranged in clock positions -->
+                <div class="light" id="light-0" data-position="0" data-note="C" style="--angle: 0deg;">
+                    <span class="light-number">C</span>
+                </div>
+                <div class="light" id="light-1" data-position="1" data-note="C#" style="--angle: 30deg;">
+                    <span class="light-number">C#</span>
+                </div>
+                <div class="light" id="light-2" data-position="2" data-note="D" style="--angle: 60deg;">
+                    <span class="light-number">D</span>
+                </div>
+                <div class="light" id="light-3" data-position="3" data-note="D#" style="--angle: 90deg;">
+                    <span class="light-number">D#</span>
+                </div>
+                <div class="light" id="light-4" data-position="4" data-note="E" style="--angle: 120deg;">
+                    <span class="light-number">E</span>
+                </div>
+                <div class="light" id="light-5" data-position="5" data-note="F" style="--angle: 150deg;">
+                    <span class="light-number">F</span>
+                </div>
+                <div class="light" id="light-6" data-position="6" data-note="F#" style="--angle: 180deg;">
+                    <span class="light-number">F#</span>
+                </div>
+                <div class="light" id="light-7" data-position="7" data-note="G" style="--angle: 210deg;">
+                    <span class="light-number">G</span>
+                </div>
+                <div class="light" id="light-8" data-position="8" data-note="G#" style="--angle: 240deg;">
+                    <span class="light-number">G#</span>
+                </div>
+                <div class="light" id="light-9" data-position="9" data-note="A" style="--angle: 270deg;">
+                    <span class="light-number">A</span>
+                </div>
+                <div class="light" id="light-10" data-position="10" data-note="A#" style="--angle: 300deg;">
+                    <span class="light-number">A#</span>
+                </div>
+                <div class="light" id="light-11" data-position="11" data-note="B" style="--angle: 330deg;">
+                    <span class="light-number">B</span>
+                </div>
+            </div>
+        </main>
+
+        <footer class="game-footer">
+            <p>🎵 Listen to the pattern, then tap the lights! 🎵</p>
+            <p>✨ Match the rhythm and have fun! ✨</p>
+        </footer>
+    </div>
+
+    <script>// Memory Rhythm Game - Main JavaScript File
+
+        class MemoryRhythmGame {
+            constructor() {
+                this.audioContext = null;
+                this.masterGain = null;
+                this.gameSequence = [];
+                this.playerSequence = [];
+                this.currentRound = 1;
+                this.gameState = 'stopped'; // 'stopped', 'playing', 'listening', 'waiting'
+                this.bpm = 60;
+                this.sequenceTimeout = null;
+                this.playerTimeout = null;
+                this.isPlayerTurn = false;
+                this.currentSequenceIndex = 0; // Track which item in sequence player is on
+                this.currentTapCount = 0; // Track taps for current item
+                this.tapStartTime = 0; // Track when player started tapping current item
+                this.currentArrangement = 'chromatic'; // Current clock arrangement
+                this.usingCustomScale = false; // Track if using custom scale
+                this.customNotes = ['C', 'E', 'G']; // Default custom scale
+                this.enabledRhythms = ['quarter']; // Start with only quarters - super simple
+                this.currentLevel = 1; // Current level (affects available notes)
+                this.correctInRow = 0; // Track consecutive correct answers
+                this.lastNoteIndex = -1; // Track last note to avoid repetition
+                this.lives = 3; // Start with 3 lives
+
+                // Level requirements: how many correct in a row to advance
+                this.levelRequirements = {
+                    1: 3, // 3 correct to reach level 2
+                    2: 4, // 4 correct to reach level 3  
+                    3: 5, // 5 correct to reach level 4
+                    4: 6, // 6 correct to reach level 5
+                    5: 7, // 7 correct to reach level 6
+                    6: 8, // 8 correct to reach level 7
+                    7: 9, // 9 correct to reach level 8
+                    8: 10, // 10 correct to reach level 9
+                    9: 11, // 11 correct to reach level 10
+                    10: 999 // Max level
+                };
+
+                // Progressive note system by level
+                this.levelNotes = {
+                    1: ['C', 'E', 'G'], // Level 1: CEG
+                    2: ['C', 'D', 'E', 'G', 'A'], // Level 2: CDEGA
+                    3: ['C', 'D', 'E', 'F', 'G', 'A', 'B'], // Level 3: CDEFGAB
+                    4: ['C', 'D', 'D#', 'E', 'F', 'G', 'A', 'A#', 'B'], // Level 4: Add D# and A#
+                    5: ['C', 'D', 'D#', 'E', 'F', 'G', 'G#', 'A', 'A#', 'B'], // Level 5: Add G#
+                    6: ['C', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], // Level 6: Add F#
+                    7: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], // Level 7: Add C# (full chromatic)
+                    8: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], // Level 8: Full chromatic
+                    9: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], // Level 9: Full chromatic
+                    10: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] // Level 10: Full chromatic
+                };
+
+                // Different clock arrangements
+                this.arrangements = {
+                    chromatic: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'],
+                    fourths: ['C', 'F', 'A#', 'D#', 'G#', 'C#', 'F#', 'B', 'E', 'A', 'D', 'G'],
+                    thirds: ['C', 'E', 'G#', 'C#', 'F', 'A', 'D', 'F#', 'A#', 'D#', 'G', 'B']
+                };
+
+                // Rhythm definitions - simplified
+                this.rhythms = {
+                    quarter: { taps: 1, symbol: '♩', name: 'Quarter' },
+                    eighth: { taps: 2, symbol: '♫', name: 'Eighth' },
+                    triplet: { taps: 3, symbol: '³', name: 'Triplet' },
+                    sixteenth: { taps: 4, symbol: '♬', name: 'Sixteenth' }
+                };
+
+                // Shepard tone frequencies for one octave
+                this.notes = {
+                    'C': 261.63, 'C#': 277.18, 'D': 293.66, 'D#': 311.13,
+                    'E': 329.63, 'F': 349.23, 'F#': 369.99, 'G': 392.00,
+                    'G#': 415.30, 'A': 440.00, 'A#': 466.16, 'B': 493.88
+                };
+
+                this.initializeAudio();
+                this.initializeEventListeners();
+                this.updateEnabledRhythms(); // Initialize rhythm settings
+                this.updateDisplay();
+                this.updateClockArrangement();
+
+                // Track active oscillators for cleanup
+                this.activeOscillators = [];
+            }
+
+            async initializeAudio() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    this.masterGain = this.audioContext.createGain();
+                    this.masterGain.connect(this.audioContext.destination);
+                    this.masterGain.gain.setValueAtTime(0.8, this.audioContext.currentTime); // Increased volume
+                } catch (error) {
+                    console.error('Error initializing audio:', error);
+                    alert('Audio initialization failed. Please try refreshing the page.');
+                }
+            }
+
+            initializeEventListeners() {
+                // Control buttons
+                document.getElementById('startBtn').addEventListener('click', () => this.startGame());
+                document.getElementById('stopBtn').addEventListener('click', () => this.stopGame());
+                document.getElementById('resetBtn').addEventListener('click', () => this.resetGame());
+
+                // Rhythm toggle controls
+                document.getElementById('rhythmQuarter').addEventListener('change', () => this.updateEnabledRhythms());
+                document.getElementById('rhythmEighth').addEventListener('change', () => this.updateEnabledRhythms());
+                document.getElementById('rhythmTriplet').addEventListener('change', () => this.updateEnabledRhythms());
+                document.getElementById('rhythmSixteenth').addEventListener('change', () => this.updateEnabledRhythms());
+
+                // Scale type controls
+                document.querySelectorAll('input[name="scaleType"]').forEach(radio => {
+                    radio.addEventListener('change', (e) => {
+                        this.usingCustomScale = e.target.value === 'custom';
+                        const customContainer = document.getElementById('customScaleContainer');
+                        customContainer.style.display = this.usingCustomScale ? 'block' : 'none';
+                        this.updateClockArrangement();
+                    });
+                });
+
+                // Custom note controls
+                const noteCheckboxes = ['C', 'Csharp', 'D', 'Dsharp', 'E', 'F', 'Fsharp', 'G', 'Gsharp', 'A', 'Asharp', 'B'];
+                noteCheckboxes.forEach(note => {
+                    const checkbox = document.getElementById(`note${note}`);
+                    if (checkbox) {
+                        checkbox.addEventListener('change', () => this.updateCustomScale());
+                    }
+                });
+
+                // Light click events
+                document.querySelectorAll('.light').forEach((light, index) => {
+                    light.addEventListener('mousedown', (e) => this.onLightPress(index, e));
+                    light.addEventListener('mouseup', (e) => this.onLightRelease(index, e));
+                    light.addEventListener('mouseleave', (e) => this.onLightRelease(index, e));
+
+                    // Touch events for mobile
+                    light.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        this.onLightPress(index, e);
+                    });
+                    light.addEventListener('touchend', (e) => {
+                        e.preventDefault();
+                        this.onLightRelease(index, e);
+                    });
+                });
+            }
+
+            // Stop all active audio
+            stopAllAudio() {
+                this.activeOscillators.forEach(osc => {
+                    try {
+                        if (osc && osc.stop) {
+                            osc.stop();
+                        }
+                    } catch (e) {
+                        // Oscillator may already be stopped
+                    }
+                });
+                this.activeOscillators = [];
+            }
+
+            // User feedback tone with proper duration matching the rhythm
+            playUserFeedbackTone(frequency, rhythmData) {
+                if (!this.audioContext) return;
+
+                try {
+                    // Calculate the full duration this rhythm should have
+                    const beatDuration = (60000 / this.bpm); // Keep in milliseconds
+                    let subdivisionDuration = beatDuration / rhythmData.taps;
+
+                    // Set minimum subdivision duration to prevent overlapping
+                    const minSubdivisionDuration = 150; // Minimum 150ms between notes
+                    if (subdivisionDuration < minSubdivisionDuration) {
+                        subdivisionDuration = minSubdivisionDuration;
+                    }
+
+                    const noteDuration = (subdivisionDuration * 0.6) / 1000; // Convert to seconds, 60% for note
+
+                    // Create Shepard tone with multiple octaves - same as sequence playback
+                    const octaves = [1, 2, 4, 8]; // Four octaves
+                    const gains = [0.3, 0.4, 0.4, 0.3]; // Bell curve weighting
+                    const currentTime = this.audioContext.currentTime;
+
+                    octaves.forEach((octaveMultiplier, index) => {
+                        const osc = this.audioContext.createOscillator();
+                        const gain = this.audioContext.createGain();
+
+                        // Set frequency for this octave
+                        const octaveFreq = frequency * octaveMultiplier;
+                        osc.frequency.setValueAtTime(octaveFreq, currentTime);
+                        osc.type = 'sine';
+
+                        // Envelope with proper decay length matching the rhythm
+                        const maxGain = gains[index] * 0.18; // Slightly louder for user feedback
+                        gain.gain.setValueAtTime(0, currentTime);
+                        gain.gain.linearRampToValueAtTime(maxGain, currentTime + 0.01);
+                        gain.gain.exponentialRampToValueAtTime(maxGain * 0.4, currentTime + noteDuration * 0.5);
+                        gain.gain.exponentialRampToValueAtTime(0.001, currentTime + noteDuration);
+
+                        osc.connect(gain);
+                        gain.connect(this.masterGain);
+
+                        // Schedule start and stop
+                        osc.start(currentTime);
+                        osc.stop(currentTime + noteDuration);
+
+                        // Track for cleanup
+                        this.activeOscillators.push(osc);
+
+                        // Remove from tracking when it naturally ends
+                        osc.onended = () => {
+                            const index = this.activeOscillators.indexOf(osc);
+                            if (index > -1) {
+                                this.activeOscillators.splice(index, 1);
+                            }
+                        };
+                    });
+
+                } catch (e) {
+                    console.warn('Audio error:', e);
+                }
+            }
+
+            // Shepard tone generator with proper note durations
+            playTone(frequency, noteDurationMs) {
+                if (!this.audioContext) return;
+
+                try {
+                    // Convert milliseconds to seconds
+                    const noteDuration = noteDurationMs / 1000;
+
+                    // Create Shepard tone with multiple octaves
+                    const octaves = [1, 2, 4, 8]; // Four octaves
+                    const gains = [0.3, 0.4, 0.4, 0.3]; // Bell curve weighting
+                    const currentTime = this.audioContext.currentTime;
+
+                    octaves.forEach((octaveMultiplier, index) => {
+                        const osc = this.audioContext.createOscillator();
+                        const gain = this.audioContext.createGain();
+
+                        // Set frequency for this octave
+                        const octaveFreq = frequency * octaveMultiplier;
+                        osc.frequency.setValueAtTime(octaveFreq, currentTime);
+                        osc.type = 'sine';
+
+                        // Envelope with decay
+                        const maxGain = gains[index] * 0.12; // Reduced volume further
+                        gain.gain.setValueAtTime(0, currentTime);
+                        gain.gain.linearRampToValueAtTime(maxGain, currentTime + 0.01);
+                        gain.gain.exponentialRampToValueAtTime(maxGain * 0.4, currentTime + noteDuration * 0.5);
+                        gain.gain.exponentialRampToValueAtTime(0.001, currentTime + noteDuration);
+
+                        osc.connect(gain);
+                        gain.connect(this.masterGain);
+
+                        // Schedule start and stop
+                        osc.start(currentTime);
+                        osc.stop(currentTime + noteDuration);
+
+                        // Track for cleanup
+                        this.activeOscillators.push(osc);
+
+                        // Remove from tracking when it naturally ends
+                        osc.onended = () => {
+                            const index = this.activeOscillators.indexOf(osc);
+                            if (index > -1) {
+                                this.activeOscillators.splice(index, 1);
+                            }
+                        };
+                    });
+
+                } catch (e) {
+                    console.warn('Audio error:', e);
+                }
+            }
+
+            // Update enabled rhythms based on checkboxes
+            updateEnabledRhythms() {
+                this.enabledRhythms = [];
+                if (document.getElementById('rhythmQuarter').checked) this.enabledRhythms.push('quarter');
+                if (document.getElementById('rhythmEighth').checked) this.enabledRhythms.push('eighth');
+                if (document.getElementById('rhythmTriplet').checked) this.enabledRhythms.push('triplet');
+                if (document.getElementById('rhythmSixteenth').checked) this.enabledRhythms.push('sixteenth');
+
+                // Ensure at least one rhythm is enabled
+                if (this.enabledRhythms.length === 0) {
+                    this.enabledRhythms.push('quarter');
+                    document.getElementById('rhythmQuarter').checked = true;
+                }
+            }
+
+            // Update custom scale based on note checkboxes
+            updateCustomScale() {
+                this.customNotes = [];
+                const noteMap = {
+                    'C': 'C', 'Csharp': 'C#', 'D': 'D', 'Dsharp': 'D#',
+                    'E': 'E', 'F': 'F', 'Fsharp': 'F#', 'G': 'G',
+                    'Gsharp': 'G#', 'A': 'A', 'Asharp': 'A#', 'B': 'B'
+                };
+
+                Object.keys(noteMap).forEach(checkboxId => {
+                    const checkbox = document.getElementById(`note${checkboxId}`);
+                    if (checkbox && checkbox.checked) {
+                        this.customNotes.push(noteMap[checkboxId]);
+                    }
+                });
+
+                // Ensure at least one note is selected
+                if (this.customNotes.length === 0) {
+                    this.customNotes.push('C');
+                    document.getElementById('noteC').checked = true;
+                }
+
+                this.updateClockArrangement();
+            }
+
+            // Update clock arrangement based on selected pattern
+            updateClockArrangement() {
+                const arrangement = this.arrangements[this.currentArrangement];
+                const lights = document.querySelectorAll('.light');
+                const availableNotes = this.getAvailableNotesForLevel(this.currentLevel);
+
+                // Always use linear layout for a cleaner, more kid-friendly look
+                const container = document.querySelector('.clock-container');
+                container.classList.add('linear-layout');
+                container.classList.remove('circular-layout');
+
+                // Reset container styles for linear layout
+                container.style.width = 'auto';
+                container.style.height = '120px';
+
+                let visibleIndex = 0;
+                lights.forEach((light, index) => {
+                    const noteForPosition = arrangement[index];
+                    light.dataset.note = noteForPosition;
+                    light.querySelector('.light-number').textContent = noteForPosition;
+
+                    if (availableNotes.includes(noteForPosition)) {
+                        light.style.display = 'flex';
+                        light.style.opacity = '1';
+                        light.style.pointerEvents = 'auto';
+
+                        // Remove any inline positioning for linear layout
+                        light.style.left = '';
+                        light.style.top = '';
+                        light.style.transform = '';
+
+                        visibleIndex++;
+                    } else {
+                        light.style.display = 'none';
+                    }
+                });
+            }            // Get available notes for current level
+            getAvailableNotesForLevel(level = null) {
+                if (this.usingCustomScale) {
+                    return this.customNotes;
+                }
+                // Use current level, not round
+                const currentLevel = level || this.currentLevel;
+                const clampedLevel = Math.min(currentLevel, 10);
+                return this.levelNotes[clampedLevel] || this.levelNotes[10];
+            }
+
+            // Generate random sequence item - only from available notes and enabled rhythms
+            generateSequenceItem() {
+                const availableNotes = this.getAvailableNotesForLevel(this.currentLevel);
+                const arrangement = this.arrangements[this.currentArrangement];
+
+                // Find positions that have available notes
+                const availablePositions = [];
+                arrangement.forEach((note, index) => {
+                    if (availableNotes.includes(note)) {
+                        availablePositions.push(index);
+                    }
+                });
+
+                if (availablePositions.length === 0) {
+                    // Fallback to position 0 if no notes available
+                    availablePositions.push(0);
+                }
+
+                let lightIndex;
+
+                // Improved randomization to avoid repetitive patterns
+                if (this.lastNoteIndex === -1 || availablePositions.length <= 2) {
+                    // First note or very few options - pick randomly
+                    lightIndex = availablePositions[Math.floor(Math.random() * availablePositions.length)];
+                } else {
+                    // Create weighted selection to encourage variety
+                    const weights = [];
+                    const recentNotes = this.gameSequence.slice(-3).map(item => item.lightIndex); // Last 3 notes
+
+                    for (const pos of availablePositions) {
+                        if (pos === this.lastNoteIndex) {
+                            // Never repeat the immediate previous note
+                            continue;
+                        }
+
+                        let weight = 1.0;
+
+                        // Reduce weight if note was used recently (within last 3)
+                        const recentCount = recentNotes.filter(recent => recent === pos).length;
+                        if (recentCount > 0) {
+                            weight = 0.3; // Much lower weight for recently used notes
+                        }
+
+                        // Slightly favor notes that haven't been used at all yet
+                        const usedInSequence = this.gameSequence.some(item => item.lightIndex === pos);
+                        if (!usedInSequence) {
+                            weight += 0.5; // Bonus for unused notes
+                        }
+
+                        weights.push({ pos, weight });
+                    }
+
+                    // If all notes are heavily weighted down, reset to equal weights
+                    if (weights.length === 0 || weights.every(w => w.weight < 0.5)) {
+                        lightIndex = availablePositions.filter(pos => pos !== this.lastNoteIndex)[0] ||
+                            availablePositions[Math.floor(Math.random() * availablePositions.length)];
+                    } else {
+                        // Weighted random selection
+                        const totalWeight = weights.reduce((sum, w) => sum + w.weight, 0);
+                        let random = Math.random() * totalWeight;
+
+                        for (const w of weights) {
+                            random -= w.weight;
+                            if (random <= 0) {
+                                lightIndex = w.pos;
+                                break;
+                            }
+                        }
+
+                        // Fallback if something went wrong
+                        if (lightIndex === undefined) {
+                            lightIndex = weights[0].pos;
+                        }
+                    }
+                }
+
+                // Store this position for next time
+                this.lastNoteIndex = lightIndex;
+
+                // Improved rhythm randomization - favor variety
+                const enabledRhythmKeys = this.enabledRhythms;
+                let rhythmKey;
+
+                if (this.gameSequence.length === 0) {
+                    // First item - any rhythm is fine
+                    rhythmKey = enabledRhythmKeys[Math.floor(Math.random() * enabledRhythmKeys.length)];
+                } else {
+                    // Check last few rhythms to encourage variety
+                    const recentRhythms = this.gameSequence.slice(-2).map(item => item.rhythm);
+                    const availableRhythms = enabledRhythmKeys.filter(r => !recentRhythms.includes(r));
+
+                    if (availableRhythms.length > 0 && Math.random() < 0.7) {
+                        // 70% chance to use a rhythm that wasn't used recently
+                        rhythmKey = availableRhythms[Math.floor(Math.random() * availableRhythms.length)];
+                    } else {
+                        // 30% chance to use any rhythm (allows some repetition)
+                        rhythmKey = enabledRhythmKeys[Math.floor(Math.random() * enabledRhythmKeys.length)];
+                    }
+                }
+
+                const light = document.getElementById(`light-${lightIndex}`);
+                const note = light.dataset.note;
+
+                return {
+                    lightIndex,
+                    note,
+                    rhythm: rhythmKey,
+                    rhythmData: this.rhythms[rhythmKey]
+                };
+            }
+
+            // Start new game - faster setup
+            async startGame() {
+                if (this.audioContext.state === 'suspended') {
+                    await this.audioContext.resume();
+                }
+
+                this.gameState = 'playing';
+                this.playerSequence = [];
+                this.currentRound = 1;
+                this.currentLevel = 1; // Reset to level 1
+                this.correctInRow = 0; // Reset progression counter
+                this.bpm = 60; // Reset BPM to starting value
+                this.lastNoteIndex = -1; // Reset note tracking
+                this.lives = 3; // Reset lives to 3
+
+                // Start with one simple item
+                this.gameSequence = [this.generateSequenceItem()];
+
+                this.updateDisplay();
+                this.updateControls();
+                this.updateClockArrangement(); // Ensure proper arrangement for level 1
+
+                // Start playing with minimal delay
+                setTimeout(() => {
+                    this.playSequence();
+                }, 300); // Reduced from 500ms to 300ms
+            }
+
+            // Stop game
+            stopGame() {
+                this.gameState = 'stopped';
+                this.stopAllAudio(); // Stop any playing audio
+                this.clearAllTimeouts();
+                this.clearAllLights();
+                this.updateDisplay();
+                this.updateControls();
+            }
+
+            // Reset game
+            resetGame() {
+                this.stopGame();
+                this.gameSequence = [];
+                this.playerSequence = [];
+                this.currentRound = 1;
+                this.currentLevel = 1; // Reset to level 1
+                this.correctInRow = 0; // Reset progression counter
+                this.bpm = 60; // Reset BPM to starting value
+                this.lastNoteIndex = -1; // Reset note tracking
+                this.lives = 3; // Reset lives to 3
+                this.currentSequenceIndex = 0;
+                this.currentTapCount = 0;
+                this.updateDisplay();
+                this.updateClockArrangement(); // Refresh clock for level 1
+            }
+
+            // Play sequence - each round is exactly 1 beat duration
+            playSequence() {
+                this.gameState = 'playing';
+                this.updateDisplay();
+
+                let delay = 0;
+                const beatDuration = 60000 / this.bpm; // Duration of one beat in ms
+
+                this.gameSequence.forEach((item, index) => {
+                    setTimeout(() => {
+                        this.playSequenceItem(item);
+                    }, delay);
+
+                    // Each round takes exactly one beat duration, regardless of subdivisions
+                    delay += beatDuration; // No gaps - each round is exactly 1 beat
+                });
+
+                // Switch to player turn after sequence completes - no extra delay
+                setTimeout(() => {
+                    this.gameState = 'listening';
+                    this.isPlayerTurn = true;
+                    this.playerSequence = [];
+                    this.currentSequenceIndex = 0;
+                    this.currentTapCount = 0;
+                    this.updateDisplay();
+                }, delay); // Removed the +200ms delay
+            }
+
+            // Play individual sequence item - subdivisions within one beat with proper timing
+            playSequenceItem(item) {
+                const light = document.getElementById(`light-${item.lightIndex}`);
+                const frequency = this.notes[item.note];
+                const tapsToPlay = item.rhythmData.taps;
+                const beatDuration = 60000 / this.bpm; // Duration of one beat in ms
+
+                // Calculate subdivision timing within the beat
+                let subdivisionDuration = beatDuration / tapsToPlay; // Each tap gets equal share of the beat
+
+                // Set minimum subdivision duration to prevent overlapping (especially for 16th notes)
+                const minSubdivisionDuration = 150; // Minimum 150ms between notes
+                if (subdivisionDuration < minSubdivisionDuration) {
+                    subdivisionDuration = minSubdivisionDuration;
+                }
+
+                const noteDuration = subdivisionDuration * 0.6; // 60% of subdivision for note (reduced to prevent overlap)
+                const gapDuration = subdivisionDuration * 0.4; // 40% gap (increased for cleaner separation)
+
+                // Visual and audio for each subdivision
+                for (let i = 0; i < tapsToPlay; i++) {
+                    setTimeout(() => {
+                        // Visual flash - duration matches note duration
+                        light.classList.add('active', 'playing');
+                        setTimeout(() => {
+                            light.classList.remove('active', 'playing');
+                        }, noteDuration);
+
+                        // Audio with Shepard tone and proper duration
+                        this.playTone(frequency, noteDuration); // Use noteDuration instead of subdivisionDuration
+                    }, i * subdivisionDuration);
+                }
+            }            // Handle light press - simplified validation with timing tolerance
+            onLightPress(lightIndex, event) {
+                if (!this.isPlayerTurn) return;
+
+                const expectedItem = this.gameSequence[this.currentSequenceIndex];
+                if (!expectedItem) return;
+
+                // Check correct light
+                if (lightIndex !== expectedItem.lightIndex) {
+                    this.loseLife();
+                    return;
+                }
+
+                const light = document.getElementById(`light-${lightIndex}`);
+                light.classList.add('active');
+
+                // PLAY AUDIO FEEDBACK with proper duration matching the expected rhythm
+                const note = light.dataset.note;
+                const frequency = this.notes[note];
+                this.playUserFeedbackTone(frequency, expectedItem.rhythmData);
+
+                // Track timing for validation
+                if (this.currentTapCount === 0) {
+                    this.tapStartTime = Date.now();
+                }
+
+                this.currentTapCount++;
+
+                // Check if we've got enough taps
+                const requiredTaps = expectedItem.rhythmData.taps;
+                if (this.currentTapCount >= requiredTaps) {
+                    // Timing validation with 50% tolerance - each round should be within one beat
+                    if (this.currentTapCount > 1) {
+                        const totalTime = Date.now() - this.tapStartTime;
+                        const beatDuration = 60000 / this.bpm; // Duration of one beat in ms
+                        const expectedTime = (requiredTaps - 1) * (beatDuration / requiredTaps); // Subdivisions within beat
+                        const tolerance = expectedTime * 0.6; // 60% tolerance
+
+                        if (totalTime > expectedTime + tolerance) {
+                            this.loseLife();
+                            return;
+                        }
+                    }
+
+                    // Success! Move to next item
+                    this.playerSequence.push({
+                        lightIndex,
+                        note: light.dataset.note,
+                        rhythm: expectedItem.rhythm,
+                        tapCount: this.currentTapCount
+                    });
+
+                    this.currentSequenceIndex++;
+                    this.currentTapCount = 0;
+
+                    // Check if sequence complete
+                    if (this.currentSequenceIndex >= this.gameSequence.length) {
+                        setTimeout(() => this.nextRound(), 500);
+                    }
+                }
+
+                this.playerPressedLight = lightIndex;
+            }
+
+            // Handle light release - No beeping
+            onLightRelease(lightIndex, event) {
+                if (!this.isPlayerTurn || this.playerPressedLight !== lightIndex) return;
+
+                const light = document.getElementById(`light-${lightIndex}`);
+                light.classList.remove('active');
+
+                this.playerPressedLight = null;
+            }
+
+            // Detect rhythm based on duration
+            detectRhythm(beats) {
+                const rhythmEntries = Object.entries(this.rhythms);
+                let closestRhythm = 'quarter';
+                let smallestDiff = Infinity;
+
+                // Don't auto-detect triplets, they're handled separately
+                rhythmEntries.forEach(([key, data]) => {
+                    if (key === 'triplet') return;
+                    const diff = Math.abs(beats - data.beats);
+                    if (diff < smallestDiff) {
+                        smallestDiff = diff;
+                        closestRhythm = key;
+                    }
+                });
+
+                return closestRhythm;
+            }
+
+            // Advance to next round - Level progression based on consecutive correct answers
+            nextRound() {
+                this.correctInRow++;
+
+                // Check if we should advance to next level
+                const requiredCorrect = this.levelRequirements[this.currentLevel];
+                if (this.correctInRow >= requiredCorrect && this.currentLevel < 10) {
+                    this.currentLevel++;
+                    this.correctInRow = 0; // Reset counter for new level
+                    this.bpm += 10; // Increase BPM by 10 each level
+                    this.lastNoteIndex = -1; // Reset note tracking for new level
+
+                    // Start fresh sequence with new level's notes
+                    this.gameSequence = [this.generateSequenceItem()];
+                    this.currentRound = 1; // Reset round counter for new level
+
+                    this.updateClockArrangement(); // Update available notes for new level
+                } else {
+                    // Same level, continue building sequence
+                    this.currentRound++;
+                    // Add ONE new item to the existing sequence (Simon Says behavior)
+                    this.gameSequence.push(this.generateSequenceItem());
+                }
+
+                // Reset player sequence for the new round
+                this.playerSequence = [];
+                this.currentSequenceIndex = 0;
+                this.currentTapCount = 0;
+                this.isPlayerTurn = false;
+
+                this.updateDisplay();
+
+                // Reduced pause before playing the ENTIRE sequence again
+                setTimeout(() => {
+                    this.playSequence();
+                }, 800); // Reduced from 1500ms to 800ms
+            }
+
+            // Lose a life - restart the same level
+            loseLife() {
+                this.lives--;
+                this.updateDisplay();
+
+                if (this.lives <= 0) {
+                    this.gameOver();
+                } else {
+                    // Restart from the same level
+                    this.correctInRow = 0; // Reset consecutive correct counter
+                    this.currentRound = 1; // Reset to round 1 of current level
+                    alert(`Wrong! Lives remaining: ${this.lives}. Restarting level ${this.currentLevel}.`);
+
+                    // Reset and start new sequence for current level
+                    this.gameSequence = [];
+                    setTimeout(() => {
+                        this.startRound();
+                    }, 1000);
+                }
+            }
+
+            // Game over
+            gameOver() {
+                this.gameState = 'stopped';
+                this.isPlayerTurn = false;
+                this.correctInRow = 0; // Reset on game over
+                this.lives = 3; // Reset lives for next game
+                // No metronome to stop
+                this.updateDisplay();
+                this.updateControls();
+
+                alert(`Game Over! You reached round ${this.currentRound}, Level ${this.currentLevel}`);
+            }
+
+            // Start a new round with a fresh sequence for the current level
+            startRound() {
+                // Generate a new single-item sequence for the current level
+                this.gameSequence = [this.generateSequenceItem()];
+                this.playerSequence = [];
+                this.currentSequenceIndex = 0;
+                this.currentTapCount = 0;
+                this.isPlayerTurn = false;
+
+                this.updateDisplay();
+                this.updateClockArrangement();
+
+                // Start playing the sequence
+                setTimeout(() => {
+                    this.playSequence();
+                }, 300);
+            }
+
+            // Update display elements
+            updateDisplay() {
+                document.getElementById('round').textContent = this.currentRound;
+                document.getElementById('lives').textContent = this.lives;
+
+                let status = 'Ready';
+                if (this.gameState === 'playing') status = 'Playing Sequence';
+                else if (this.gameState === 'listening') status = 'Your Turn';
+                else if (this.gameState === 'stopped') status = 'Stopped';
+
+                document.getElementById('status').textContent = status;
+
+                // Keep the footer simple and fun for kids - no complex info!
+            }
+
+            // Update control buttons
+            updateControls() {
+                const startBtn = document.getElementById('startBtn');
+                const stopBtn = document.getElementById('stopBtn');
+
+                if (this.gameState === 'stopped') {
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
+                } else {
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                }
+            }
+
+            // Clear all timeouts
+            clearAllTimeouts() {
+                if (this.sequenceTimeout) {
+                    clearTimeout(this.sequenceTimeout);
+                    this.sequenceTimeout = null;
+                }
+                if (this.playerTimeout) {
+                    clearTimeout(this.playerTimeout);
+                    this.playerTimeout = null;
+                }
+            }
+
+            // Clear all light effects
+            clearAllLights() {
+                document.querySelectorAll('.light').forEach(light => {
+                    light.classList.remove('active', 'playing');
+                });
+            }
+        }
+
+        // Initialize game when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.game = new MemoryRhythmGame();
+        });
+    </script>
+</body>
+
+</html>

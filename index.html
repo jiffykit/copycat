@@ -41,6 +41,10 @@
                     <label><input type="radio" name="scaleType" value="custom"> 🎨 My Own Notes</label>
                     <label><input type="checkbox" id="muteCheeringSound" checked> 🔊 Sound FX</label>
                 </div>
+                <div class="game-mode-options" style="margin-top: 10px;">
+                    <label><input type="checkbox" id="callResponseMode"> 👥 Call & Response (2 Players)</label>
+                    <label><input type="checkbox" id="pitchTrainingMode"> 🎯 Pitch Training</label>
+                </div>
                 <div class="custom-scale" id="customScaleContainer" style="display: none;">
                     <div class="note-toggles">
                         <label><input type="checkbox" id="noteC" checked> C</label>
@@ -61,50 +65,46 @@
         </header>
 
         <main class="game-board">
-            <div class="clock-container">
-                <!-- 12 Colored lights arranged in clock positions -->
-                <div class="light" id="light-0" data-position="0" data-note="C" style="--angle: 0deg;">
+            <div class="notes-container">
+                <!-- 12 Colored lights for chromatic scale notes -->
+                <div class="light" id="light-0" data-note="C">
                     <span class="light-number">C</span>
                 </div>
-                <div class="light" id="light-1" data-position="1" data-note="C#" style="--angle: 30deg;">
+                <div class="light" id="light-1" data-note="C#">
                     <span class="light-number">C#</span>
                 </div>
-                <div class="light" id="light-2" data-position="2" data-note="D" style="--angle: 60deg;">
+                <div class="light" id="light-2" data-note="D">
                     <span class="light-number">D</span>
                 </div>
-                <div class="light" id="light-3" data-position="3" data-note="D#" style="--angle: 90deg;">
+                <div class="light" id="light-3" data-note="D#">
                     <span class="light-number">D#</span>
                 </div>
-                <div class="light" id="light-4" data-position="4" data-note="E" style="--angle: 120deg;">
+                <div class="light" id="light-4" data-note="E">
                     <span class="light-number">E</span>
                 </div>
-                <div class="light" id="light-5" data-position="5" data-note="F" style="--angle: 150deg;">
+                <div class="light" id="light-5" data-note="F">
                     <span class="light-number">F</span>
                 </div>
-                <div class="light" id="light-6" data-position="6" data-note="F#" style="--angle: 180deg;">
+                <div class="light" id="light-6" data-note="F#">
                     <span class="light-number">F#</span>
                 </div>
-                <div class="light" id="light-7" data-position="7" data-note="G" style="--angle: 210deg;">
+                <div class="light" id="light-7" data-note="G">
                     <span class="light-number">G</span>
                 </div>
-                <div class="light" id="light-8" data-position="8" data-note="G#" style="--angle: 240deg;">
+                <div class="light" id="light-8" data-note="G#">
                     <span class="light-number">G#</span>
                 </div>
-                <div class="light" id="light-9" data-position="9" data-note="A" style="--angle: 270deg;">
+                <div class="light" id="light-9" data-note="A">
                     <span class="light-number">A</span>
                 </div>
-                <div class="light" id="light-10" data-position="10" data-note="A#" style="--angle: 300deg;">
+                <div class="light" id="light-10" data-note="A#">
                     <span class="light-number">A#</span>
                 </div>
-                <div class="light" id="light-11" data-position="11" data-note="B" style="--angle: 330deg;">
+                <div class="light" id="light-11" data-note="B">
                     <span class="light-number">B</span>
                 </div>
             </div>
         </main>
-
-        <footer class="game-footer">
-            <!-- Footer content removed for cleaner interface -->
-        </footer>
     </div>
 
     <script>// Memory Rhythm Game - Main JavaScript File
@@ -125,7 +125,6 @@
                 this.currentTapCount = 0; // Track taps for current item
                 this.tapStartTime = 0; // Track when player started tapping current item
                 this.currentItemStartTime = 0; // Track when current sequence item started
-                this.currentArrangement = 'chromatic'; // Current clock arrangement
                 this.usingCustomScale = false; // Track if using custom scale
                 this.customNotes = ['C', 'E', 'G']; // Default custom scale
                 this.enabledRhythms = ['quarter']; // Start with only quarters - super simple
@@ -133,6 +132,14 @@
                 this.correctInRow = 0; // Track consecutive correct answers
                 this.lastNoteIndex = -1; // Track last note to avoid repetition
                 this.lives = 3; // Start with 3 lives
+
+                // Game mode settings
+                this.callResponseMode = false; // 2-player call and response mode
+                this.pitchTrainingMode = false; // Pitch training mode
+                this.isPlayer1Turn = true; // Track whose turn in call and response
+                this.player1Sequence = []; // Store player 1's performance for comparison
+                this.pitchTrainingListenCount = 0; // Track Listen Again uses in pitch training
+                this.callResponseRound = 1; // Track round number for call & response mode
 
                 // Scoring system
                 this.totalScore = 0;
@@ -191,13 +198,6 @@
                     20: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] // Level 20: Full chromatic
                 };
 
-                // Different clock arrangements
-                this.arrangements = {
-                    chromatic: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'],
-                    fourths: ['C', 'F', 'A#', 'D#', 'G#', 'C#', 'F#', 'B', 'E', 'A', 'D', 'G'],
-                    thirds: ['C', 'E', 'G#', 'C#', 'F', 'A', 'D', 'F#', 'A#', 'D#', 'G', 'B']
-                };
-
                 // Rhythm definitions - simplified
                 this.rhythms = {
                     quarter: { taps: 1, symbol: '♩', name: 'Quarter' },
@@ -217,7 +217,7 @@
                 this.initializeEventListeners();
                 this.updateEnabledRhythms(); // Initialize rhythm settings
                 this.updateDisplay();
-                this.updateClockArrangement();
+                this.updateNoteDisplay();
 
                 // Track active oscillators for cleanup
                 this.activeOscillators = [];
@@ -254,8 +254,32 @@
                         this.usingCustomScale = e.target.value === 'custom';
                         const customContainer = document.getElementById('customScaleContainer');
                         customContainer.style.display = this.usingCustomScale ? 'block' : 'none';
-                        this.updateClockArrangement();
+                        this.updateNoteDisplay();
                     });
+                });
+
+                // Game mode controls
+                document.getElementById('callResponseMode').addEventListener('change', (e) => {
+                    this.callResponseMode = e.target.checked;
+                    if (this.callResponseMode && this.pitchTrainingMode) {
+                        // Can't have both modes active
+                        document.getElementById('pitchTrainingMode').checked = false;
+                        this.pitchTrainingMode = false;
+                    }
+                    this.updateDisplay();
+                    this.updateControls();
+                });
+
+                document.getElementById('pitchTrainingMode').addEventListener('change', (e) => {
+                    this.pitchTrainingMode = e.target.checked;
+                    if (this.pitchTrainingMode && this.callResponseMode) {
+                        // Can't have both modes active
+                        document.getElementById('callResponseMode').checked = false;
+                        this.callResponseMode = false;
+                    }
+                    this.pitchTrainingListenCount = 0; // Reset listen count
+                    this.updateDisplay();
+                    this.updateControls();
                 });
 
                 // Custom note controls
@@ -467,36 +491,33 @@
                     document.getElementById('noteC').checked = true;
                 }
 
-                this.updateClockArrangement();
+                this.updateNoteDisplay();
             }
 
-            // Update clock arrangement based on selected pattern
-            updateClockArrangement() {
-                const arrangement = this.arrangements[this.currentArrangement];
+            // Update note display based on available notes
+            updateNoteDisplay() {
                 const lights = document.querySelectorAll('.light');
                 const availableNotes = this.getAvailableNotesForLevel(this.currentLevel);
-
-                // Always use linear layout for a cleaner, more kid-friendly look
-                const container = document.querySelector('.clock-container');
-                container.classList.add('linear-layout');
-                container.classList.remove('circular-layout');
+                const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
                 // Reset container styles for linear layout
+                const container = document.querySelector('.notes-container');
+                container.classList.add('linear-layout');
                 container.style.width = 'auto';
                 container.style.height = '180px';
 
                 let visibleIndex = 0;
                 lights.forEach((light, index) => {
-                    const noteForPosition = arrangement[index];
-                    light.dataset.note = noteForPosition;
-                    light.querySelector('.light-number').textContent = noteForPosition;
+                    const note = chromaticScale[index];
+                    light.dataset.note = note;
+                    light.querySelector('.light-number').textContent = note;
 
-                    if (availableNotes.includes(noteForPosition)) {
+                    if (availableNotes.includes(note)) {
                         light.style.display = 'flex';
                         light.style.opacity = '1';
                         light.style.pointerEvents = 'auto';
 
-                        // Remove any inline positioning for linear layout
+                        // Clear any inline positioning styles
                         light.style.left = '';
                         light.style.top = '';
                         light.style.transform = '';
@@ -520,11 +541,11 @@
             // Generate random sequence item - only from available notes and enabled rhythms
             generateSequenceItem() {
                 const availableNotes = this.getAvailableNotesForLevel(this.currentLevel);
-                const arrangement = this.arrangements[this.currentArrangement];
+                const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
                 // Find positions that have available notes
                 const availablePositions = [];
-                arrangement.forEach((note, index) => {
+                chromaticScale.forEach((note, index) => {
                     if (availableNotes.includes(note)) {
                         availablePositions.push(index);
                     }
@@ -643,6 +664,19 @@
                 this.lastNoteIndex = -1; // Reset note tracking
                 this.lives = 3; // Reset lives to 3
 
+                // Reset game mode specific variables
+                if (this.callResponseMode) {
+                    this.isPlayer1Turn = true; // Start with Player 1 in call & response
+                    this.player1Sequence = [];
+                    this.callResponseRound = 1; // Reset to round 1
+                } else {
+                    this.isPlayer1Turn = false; // Not relevant for other modes
+                }
+
+                if (this.pitchTrainingMode) {
+                    this.pitchTrainingListenCount = 0; // Reset listen count for pitch training
+                }
+
                 // Start with one simple item
                 this.gameSequence = [this.generateSequenceItem()];
 
@@ -656,12 +690,224 @@
 
                 this.updateDisplay();
                 this.updateControls();
-                this.updateClockArrangement(); // Ensure proper arrangement for level 1
+                this.updateNoteDisplay(); // Ensure proper note display for level 1
 
-                // Start playing with minimal delay
+                // Handle different game modes
+                if (this.callResponseMode) {
+                    // In call & response mode, start with Player 1's turn
+                    this.startCallResponseTurn();
+                } else {
+                    // Normal mode or pitch training - start playing sequence
+                    setTimeout(() => {
+                        // Play start round sound only if Sound FX is enabled
+                        const soundFxEnabled = document.getElementById('muteCheeringSound').checked;
+                        if (soundFxEnabled) {
+                            const startRoundAudio = new Audio('startround.mp3');
+                            startRoundAudio.play().catch(e => console.log('Audio play failed:', e));
+                        }
+
+                        // Show "Get Ready!" modal for 3 seconds, then start sequence
+                        this.showGetReadyModal(() => {
+                            if (this.pitchTrainingMode) {
+                                this.playSequenceWithPitchTraining();
+                            } else {
+                                this.playSequence();
+                            }
+                        });
+                    }, 300);
+                }
+            }
+
+            // Start a turn in Call & Response mode
+            async startCallResponseTurn() {
+                // Ensure audio context is ready to prevent glitches
+                if (this.audioContext && this.audioContext.state === 'suspended') {
+                    await this.audioContext.resume();
+                }
+
+                if (this.isPlayer1Turn) {
+                    // Player 1's turn - they create the call
+                    this.gameState = 'listening';
+                    this.isPlayerTurn = true;
+                    this.playerSequence = [];
+                    this.currentSequenceIndex = 0;
+                    this.currentTapCount = 0;
+                    this.updateDisplay();
+                    this.updateControls();
+
+                    // Only show instruction modal for the first round
+                    if (this.callResponseRound === 1) {
+                        this.showCallResponseInstruction("Player 1: Create your call!", "Start playing notes to create a pattern for Player 2 to copy.");
+                    } else {
+                        // Directly start Player 1's input for subsequent rounds
+                        this.startPlayer1Input();
+                    }
+                } else {
+                    // Player 2's turn - they respond to Player 1's call
+                    this.gameState = 'listening';
+                    this.isPlayerTurn = true;
+                    this.playerSequence = [];
+                    this.currentSequenceIndex = 0;
+                    this.currentTapCount = 0;
+                    this.updateDisplay();
+                    this.updateControls();
+
+                    // Only show instruction modal for the first round
+                    if (this.callResponseRound === 1) {
+                        this.showCallResponseInstruction("Player 2: Match the call!", "Copy the pattern that Player 1 just played.");
+                    } else {
+                        // Directly start Player 2's input for subsequent rounds
+                        this.startPlayer2Input();
+                    }
+                }
+            }
+
+            // Show instruction modal for call and response mode
+            showCallResponseInstruction(title, message) {
+                // Create instruction overlay
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10000;
+                    backdrop-filter: blur(5px);
+                `;
+
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border-radius: 20px;
+                    padding: 30px;
+                    text-align: center;
+                    color: white;
+                    border: 3px solid white;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                    max-width: 400px;
+                    width: 90%;
+                `;
+
+                const titleElement = document.createElement('div');
+                titleElement.textContent = title;
+                titleElement.style.cssText = `
+                    font-size: 1.8rem;
+                    font-weight: bold;
+                    margin-bottom: 15px;
+                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+                `;
+
+                const messageElement = document.createElement('div');
+                messageElement.textContent = message;
+                messageElement.style.cssText = `
+                    font-size: 1.2rem;
+                    margin-bottom: 20px;
+                    line-height: 1.4;
+                `;
+
+                const readyButton = document.createElement('button');
+                readyButton.textContent = 'Ready!';
+                readyButton.style.cssText = `
+                    background: linear-gradient(45deg, #28a745, #20c997);
+                    color: white;
+                    border: none;
+                    padding: 12px 25px;
+                    border-radius: 25px;
+                    font-size: 1.1rem;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: transform 0.2s, box-shadow 0.2s;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+                `;
+
+                readyButton.onmouseover = () => {
+                    readyButton.style.transform = 'translateY(-2px)';
+                    readyButton.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4)';
+                };
+                readyButton.onmouseout = () => {
+                    readyButton.style.transform = 'translateY(0)';
+                    readyButton.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
+                };
+
+                readyButton.onclick = () => {
+                    document.body.removeChild(overlay);
+                    // Start the actual turn after instruction is dismissed
+                    if (this.isPlayer1Turn) {
+                        this.startPlayer1Input();
+                    } else {
+                        this.startPlayer2Input();
+                    }
+                };
+
+                // Auto-dismiss after 1.5 seconds
                 setTimeout(() => {
-                    this.playSequence();
-                }, 300); // Reduced from 500ms to 300ms
+                    if (document.body.contains(overlay)) {
+                        document.body.removeChild(overlay);
+                        // Start the actual turn after auto-dismiss
+                        if (this.isPlayer1Turn) {
+                            this.startPlayer1Input();
+                        } else {
+                            this.startPlayer2Input();
+                        }
+                    }
+                }, 1500);
+
+                modal.appendChild(titleElement);
+                modal.appendChild(messageElement);
+                modal.appendChild(readyButton);
+                overlay.appendChild(modal);
+                document.body.appendChild(overlay);
+            }
+
+            // Start Player 1's input phase
+            async startPlayer1Input() {
+                // Ensure audio context is ready to prevent glitches
+                if (this.audioContext && this.audioContext.state === 'suspended') {
+                    await this.audioContext.resume();
+                }
+
+                this.player1Sequence = [];
+                this.lastPlayer1InputTime = Date.now();
+
+                // Start monitoring for 1.5 seconds of silence to end Player 1's turn
+                this.checkPlayer1Silence();
+            }
+
+            // Check if Player 1 has been silent for 1.5 seconds
+            checkPlayer1Silence() {
+                const checkInterval = 100; // Check every 100ms
+                const silenceThreshold = 1500; // 1.5 seconds of silence
+
+                this.silenceCheckInterval = setInterval(() => {
+                    const now = Date.now();
+                    const timeSinceLastInput = now - this.lastPlayer1InputTime;
+
+                    if (this.player1Sequence.length > 0 && timeSinceLastInput >= silenceThreshold) {
+                        // Player 1 has been silent for 1.5 seconds and has played at least one note
+                        clearInterval(this.silenceCheckInterval);
+                        this.endPlayer1Call();
+                    }
+                }, checkInterval);
+            }
+
+            // Start Player 2's input phase
+            async startPlayer2Input() {
+                // Ensure audio context is ready to prevent glitches
+                if (this.audioContext && this.audioContext.state === 'suspended') {
+                    await this.audioContext.resume();
+                }
+
+                this.playerSequence = [];
+
+                // Set timeout for Player 2's entire response (10 seconds)
+                this.callResponseTimeout = setTimeout(() => {
+                    this.compareCallResponse();
+                }, 10000);
             }
 
             // Stop game
@@ -670,6 +916,17 @@
                 this.stopAllAudio(); // Stop any playing audio
                 this.clearAllTimeouts();
                 this.clearAllLights();
+
+                // Clear call and response specific timers
+                if (this.silenceCheckInterval) {
+                    clearInterval(this.silenceCheckInterval);
+                    this.silenceCheckInterval = null;
+                }
+                if (this.callResponseTimeout) {
+                    clearTimeout(this.callResponseTimeout);
+                    this.callResponseTimeout = null;
+                }
+
                 this.updateDisplay();
                 this.updateControls();
             }
@@ -688,8 +945,43 @@
                 this.currentSequenceIndex = 0;
                 this.currentTapCount = 0;
                 this.updateDisplay();
-                this.updateClockArrangement(); // Refresh clock for level 1
+                this.updateNoteDisplay(); // Refresh notes for level 1
                 this.updateControls(); // Update button states
+            }
+
+            // Special sequence playback for pitch training mode - only shows first note visually
+            playSequenceWithPitchTraining() {
+                this.gameState = 'playing';
+                this.updateDisplay();
+
+                let delay = 0;
+                const beatDuration = 60000 / this.bpm; // Duration of one beat in ms
+
+                this.gameSequence.forEach((item, index) => {
+                    setTimeout(() => {
+                        if (index === 0) {
+                            // Only animate the first note of the entire sequence visually
+                            this.playSequenceItem(item, true);
+                        } else {
+                            // Play audio only for all other notes (no visual animation)
+                            this.playSequenceItem(item, false);
+                        }
+                    }, delay);
+
+                    // Each round takes exactly one beat duration, regardless of subdivisions
+                    delay += beatDuration; // No gaps - each round is exactly 1 beat
+                });
+
+                // Switch to player turn after sequence completes - no extra delay
+                setTimeout(() => {
+                    this.gameState = 'listening';
+                    this.isPlayerTurn = true;
+                    this.playerSequence = [];
+                    this.currentSequenceIndex = 0;
+                    this.currentTapCount = 0;
+                    this.updateDisplay();
+                    this.updateControls(); // Update button states including Listen Again
+                }, delay);
             }
 
             // Play sequence - each round is exactly 1 beat duration
@@ -722,7 +1014,7 @@
             }
 
             // Play individual sequence item - subdivisions within one beat with proper timing
-            playSequenceItem(item) {
+            playSequenceItem(item, visual = true) {
                 const light = document.getElementById(`light-${item.lightIndex}`);
                 const frequency = this.notes[item.note];
                 const tapsToPlay = item.rhythmData.taps;
@@ -744,39 +1036,72 @@
                 for (let i = 0; i < tapsToPlay; i++) {
                     setTimeout(() => {
                         // Visual flash - duration matches note duration (only 'playing' class for sequence)
-                        light.classList.add('playing');
-                        setTimeout(() => {
-                            light.classList.remove('playing');
-                        }, noteDuration);
-
+                        if (visual) {
+                            light.classList.add('playing');
+                            setTimeout(() => {
+                                light.classList.remove('playing');
+                            }, noteDuration);
+                        }
                         // Audio with Shepard tone and proper duration
                         this.playTone(frequency, noteDuration); // Use noteDuration instead of subdivisionDuration
                     }, i * subdivisionDuration);
                 }
             }
 
+            // Play sequence item audio only (no visual animation) - for pitch training mode
+            playSequenceItemAudioOnly(item) {
+                // Call playSequenceItem with visual = false
+                this.playSequenceItem(item, false);
+            }
+
             // Listen Again function - replay current sequence once per level
             listenAgain() {
-                if (this.listenAgainUsed || this.gameState !== 'listening' || !this.isPlayerTurn) {
-                    return; // Can't use if already used, not in listening state, or not player turn
+                if (this.gameState !== 'listening' || !this.isPlayerTurn) {
+                    return; // Can't use if not in listening state or not player turn
                 }
 
-                // Mark as used for this level
-                this.listenAgainUsed = true;
+                if (this.pitchTrainingMode) {
+                    // In pitch training mode, allow 2 Listen Again uses
+                    if (this.pitchTrainingListenCount >= 2) {
+                        return; // Already used both listens
+                    }
+                    this.pitchTrainingListenCount++;
+                } else {
+                    // Normal mode - only one use per level
+                    if (this.listenAgainUsed) {
+                        return; // Already used
+                    }
+                    this.listenAgainUsed = true;
+                }
 
                 // Temporarily disable player turn and replay sequence
                 this.isPlayerTurn = false;
                 this.gameState = 'playing';
+                this.updateDisplay(); // Update display to show remaining listens
                 this.updateControls(); // Update button states
 
                 // Replay the current sequence
-                this.playSequence();
+                if (this.pitchTrainingMode) {
+                    this.playSequenceWithPitchTraining();
+                } else {
+                    this.playSequence();
+                }
             }
 
             // Handle light press - simplified validation with timing tolerance
             onLightPress(lightIndex, event) {
                 if (!this.isPlayerTurn) return;
 
+                // Handle different game modes
+                if (this.callResponseMode) {
+                    this.handleCallResponsePress(lightIndex);
+                } else {
+                    this.handleNormalGamePress(lightIndex);
+                }
+            }
+
+            // Handle input for normal game mode (including pitch training)
+            handleNormalGamePress(lightIndex) {
                 const expectedItem = this.gameSequence[this.currentSequenceIndex];
                 if (!expectedItem) return;
 
@@ -819,7 +1144,7 @@
                         }
                     }
 
-                    // No rhythm scoring here - only done at end of full sequence                    // Success! Move to next item
+                    // Success! Move to next item
                     this.playerSequence.push({
                         lightIndex,
                         note: light.dataset.note,
@@ -841,6 +1166,232 @@
                 }
 
                 this.playerPressedLight = lightIndex;
+            }
+
+            // Handle input for call and response mode
+            handleCallResponsePress(lightIndex) {
+                const light = document.getElementById(`light-${lightIndex}`);
+                light.classList.add('active');
+
+                // PLAY AUDIO FEEDBACK
+                const note = light.dataset.note;
+                const frequency = this.notes[note];
+
+                // For call and response, we need to record the actual performance
+                if (this.isPlayer1Turn) {
+                    // Player 1 is making the call - record everything they do
+                    this.recordCallResponseInput(lightIndex, note, true); // true = is Player 1
+                } else {
+                    // Player 2 is responding - record and compare
+                    this.recordCallResponseInput(lightIndex, note, false); // false = is Player 2
+                }
+
+                // Play audio feedback (no specific rhythm expected in call/response)
+                this.playUserFeedbackTone(frequency, { taps: 1 }); // Single tap feedback
+
+                this.playerPressedLight = lightIndex;
+            }
+
+            // Record input for call and response mode
+            recordCallResponseInput(lightIndex, note, isPlayer1) {
+                const timestamp = Date.now();
+
+                const inputData = {
+                    lightIndex,
+                    note,
+                    timestamp,
+                    isPlayer1
+                };
+
+                if (isPlayer1) {
+                    // Player 1 is creating the call
+                    if (this.player1Sequence.length === 0) {
+                        // First input - start timing
+                        this.callResponseStartTime = timestamp;
+                    }
+                    this.player1Sequence.push(inputData);
+
+                    // Update the last input time for silence detection
+                    this.lastPlayer1InputTime = timestamp;
+                } else {
+                    // Player 2 is responding
+                    if (this.playerSequence.length === 0) {
+                        // First response - start timing
+                        this.responseStartTime = timestamp;
+                    }
+                    this.playerSequence.push(inputData);
+
+                    // Check if Player 2 has matched the length of Player 1's sequence
+                    if (this.playerSequence.length >= this.player1Sequence.length) {
+                        clearTimeout(this.callResponseTimeout);
+                        this.compareCallResponse();
+                    }
+                }
+            }
+
+            // End Player 1's call and switch to Player 2
+            endPlayer1Call() {
+                if (this.player1Sequence.length === 0) {
+                    // Player 1 didn't play anything, restart their turn
+                    this.showCallResponseInstruction("Player 1: Try again!", "You need to play at least one note to create a call.");
+                    return;
+                }
+
+                // Clear the silence checking interval
+                clearInterval(this.silenceCheckInterval);
+
+                this.isPlayer1Turn = false;
+                this.isPlayerTurn = true;
+                this.playerSequence = [];
+                this.updateDisplay();
+
+                // Show instruction for Player 2, then start their input
+                this.showCallResponseInstruction("Player 2: Your turn!", `Match the ${this.player1Sequence.length} note${this.player1Sequence.length > 1 ? 's' : ''} that Player 1 just played.`);
+            }
+
+            // Compare Player 2's response to Player 1's call
+            compareCallResponse() {
+                clearTimeout(this.callResponseTimeout);
+
+                if (this.playerSequence.length === 0) {
+                    // Player 2 didn't respond
+                    this.callResponseFeedback("Player 2 didn't respond!", false);
+                    return;
+                }
+
+                // Compare pitch accuracy (100% required)
+                let pitchMatch = true;
+                let rhythmAccuracy = 0;
+
+                const minLength = Math.min(this.player1Sequence.length, this.playerSequence.length);
+
+                // Check pitch accuracy
+                for (let i = 0; i < minLength; i++) {
+                    if (this.player1Sequence[i].note !== this.playerSequence[i].note) {
+                        pitchMatch = false;
+                        break;
+                    }
+                }
+
+                // Check sequence length
+                if (this.player1Sequence.length !== this.playerSequence.length) {
+                    pitchMatch = false;
+                }
+
+                // Calculate rhythm accuracy (timing comparison)
+                if (pitchMatch && this.player1Sequence.length > 1) {
+                    const player1Intervals = [];
+                    const player2Intervals = [];
+
+                    // Calculate intervals between notes
+                    for (let i = 1; i < this.player1Sequence.length; i++) {
+                        player1Intervals.push(this.player1Sequence[i].timestamp - this.player1Sequence[i - 1].timestamp);
+                    }
+                    for (let i = 1; i < this.playerSequence.length; i++) {
+                        player2Intervals.push(this.playerSequence[i].timestamp - this.playerSequence[i - 1].timestamp);
+                    }
+
+                    // Compare intervals with 75% tolerance
+                    let matchingIntervals = 0;
+                    for (let i = 0; i < player1Intervals.length; i++) {
+                        const expected = player1Intervals[i];
+                        const actual = player2Intervals[i];
+                        const tolerance = expected * 0.25; // 25% tolerance (so 75% accuracy required)
+
+                        if (Math.abs(actual - expected) <= tolerance) {
+                            matchingIntervals++;
+                        }
+                    }
+
+                    rhythmAccuracy = matchingIntervals / player1Intervals.length;
+                } else if (pitchMatch && this.player1Sequence.length === 1) {
+                    // Single note - rhythm doesn't matter
+                    rhythmAccuracy = 1.0;
+                }
+
+                // Determine success
+                const success = pitchMatch && rhythmAccuracy >= 0.75;
+
+                // Calculate pitch accuracy stats
+                let correctNotes = 0;
+                for (let i = 0; i < minLength; i++) {
+                    if (this.player1Sequence[i].note === this.playerSequence[i].note) {
+                        correctNotes++;
+                    }
+                }
+                const totalNotes = this.player1Sequence.length;
+                const pitchPercentage = totalNotes > 0 ? Math.round((correctNotes / totalNotes) * 100) : 0;
+
+                if (success) {
+                    // Calculate multipliers for call & response
+                    const rhythmMultiplier = this.enabledRhythms.length; // 1-4x based on number of rhythms
+                    const availableNotes = this.getAvailableNotesForLevel(this.currentLevel);
+                    const noteMultiplier = Math.max(1, availableNotes.length - 2); // 3 notes = x1, 4 notes = x2, etc.
+                    const totalMultiplier = rhythmMultiplier * noteMultiplier;
+
+                    const basePoints = 100;
+                    const multipliedPoints = basePoints * totalMultiplier;
+                    this.totalScore += multipliedPoints;
+
+                    this.callResponseFeedback(`Excellent! Notes: ${correctNotes}/${totalNotes}, Rhythm: ${Math.round(rhythmAccuracy * 100)}% (+${multipliedPoints} pts)`, true);
+                } else if (!pitchMatch) {
+                    // Notes are wrong - focus on note feedback
+                    this.callResponseFeedback(`Nearly there! Notes: ${correctNotes}/${totalNotes} (${pitchPercentage}%) - try the melody again!`, false);
+                } else {
+                    // Notes are correct but rhythm is wrong - focus on rhythm feedback  
+                    this.callResponseFeedback(`Good notes! Rhythm: ${Math.round(rhythmAccuracy * 100)}% - try matching the timing!`, false);
+                }
+            }
+
+            // Show feedback for call and response
+            callResponseFeedback(message, success) {
+                // Create feedback overlay similar to level celebration
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10000;
+                `;
+
+                const feedbackText = document.createElement('div');
+                feedbackText.textContent = message;
+                feedbackText.style.cssText = `
+                    color: ${success ? '#4CAF50' : '#F44336'};
+                    font-size: 2rem;
+                    font-weight: bold;
+                    text-align: center;
+                    background: white;
+                    padding: 30px;
+                    border-radius: 20px;
+                    border: 3px solid ${success ? '#4CAF50' : '#F44336'};
+                `;
+
+                overlay.appendChild(feedbackText);
+                document.body.appendChild(overlay);
+
+                // Remove after 3 seconds and start new round
+                setTimeout(() => {
+                    document.body.removeChild(overlay);
+                    this.startNewCallResponseRound();
+                }, 3000);
+            }
+
+            // Start a new round in call and response mode
+            startNewCallResponseRound() {
+                this.currentRound++;
+                this.callResponseRound++; // Increment call & response round
+                this.isPlayer1Turn = true;
+                this.player1Sequence = [];
+                this.playerSequence = [];
+                this.updateDisplay();
+                this.startCallResponseTurn();
             }
 
             // Handle light release - No beeping
@@ -1001,7 +1552,11 @@
 
                 // Reduced pause before playing the ENTIRE sequence again
                 setTimeout(() => {
-                    this.playSequence();
+                    if (this.pitchTrainingMode) {
+                        this.playSequenceWithPitchTraining();
+                    } else {
+                        this.playSequence();
+                    }
                 }, 800); // Reduced from 1500ms to 800ms
             }
 
@@ -1028,11 +1583,293 @@
                 this.updateDisplay();
                 this.updateControls();
 
-                alert(`Game Over! You reached round ${this.currentRound}, Level ${this.currentLevel}`);
+                this.showGameOverModal();
+            }
+
+            // Show "Get Ready!" modal for 3 seconds then start sequence
+            showGetReadyModal(callback) {
+                // Create modal overlay
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.7);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10000;
+                    backdrop-filter: blur(5px);
+                `;
+
+                // Create modal content
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+                    border-radius: 20px;
+                    padding: 40px;
+                    text-align: center;
+                    color: white;
+                    border: 3px solid white;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                    max-width: 300px;
+                    width: 90%;
+                `;
+
+                // "Get Ready!" title
+                const title = document.createElement('div');
+                title.textContent = 'Get Ready!';
+                title.style.cssText = `
+                    font-size: 2.5rem;
+                    font-weight: bold;
+                    margin-bottom: 10px;
+                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+                    animation: pulse 1s ease-in-out infinite alternate;
+                `;
+
+                // Add pulse animation
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes pulse {
+                        from { transform: scale(1); }
+                        to { transform: scale(1.05); }
+                    }
+                `;
+                document.head.appendChild(style);
+
+                modal.appendChild(title);
+                overlay.appendChild(modal);
+                document.body.appendChild(overlay);
+
+                // Remove modal after 3 seconds and call the callback
+                setTimeout(() => {
+                    document.body.removeChild(overlay);
+                    document.head.removeChild(style);
+                    if (callback) callback();
+                }, 3000);
+            }
+
+            showGameOverModal() {
+                // Play fail sound only if Sound FX is enabled
+                const soundFxEnabled = document.getElementById('muteCheeringSound').checked;
+                if (soundFxEnabled) {
+                    const failAudio = new Audio('fail.mp3');
+                    failAudio.play().catch(e => console.log('Audio play failed:', e));
+                }
+
+                // Create modal overlay
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10000;
+                    backdrop-filter: blur(10px);
+                `;
+
+                // Create modal content
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border-radius: 20px;
+                    padding: 30px;
+                    text-align: center;
+                    color: white;
+                    border: 3px solid white;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                    max-width: 400px;
+                    width: 90%;
+                `;
+
+                // Game Over title
+                const title = document.createElement('div');
+                title.textContent = 'GAME OVER';
+                title.style.cssText = `
+                    font-size: 2.5rem;
+                    font-weight: bold;
+                    margin-bottom: 20px;
+                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+                `;
+
+                // Score breakdown
+                const scoreBreakdown = document.createElement('div');
+                scoreBreakdown.style.cssText = `
+                    background: rgba(255, 255, 255, 0.2);
+                    border-radius: 15px;
+                    padding: 20px;
+                    margin-bottom: 25px;
+                    border: 2px solid rgba(255, 255, 255, 0.3);
+                `;
+
+                const finalRound = document.createElement('div');
+                finalRound.textContent = `Final Round: ${this.currentRound}`;
+                finalRound.style.cssText = `
+                    font-size: 1.2rem;
+                    margin-bottom: 8px;
+                    font-weight: bold;
+                `;
+
+                const finalLevel = document.createElement('div');
+                finalLevel.textContent = `Final Level: ${this.currentLevel}`;
+                finalLevel.style.cssText = `
+                    font-size: 1.2rem;
+                    margin-bottom: 8px;
+                    font-weight: bold;
+                `;
+
+                const finalScore = document.createElement('div');
+                finalScore.textContent = `Total Score: ${this.score}`;
+                finalScore.style.cssText = `
+                    font-size: 1.4rem;
+                    font-weight: bold;
+                    color: #ffeb3b;
+                    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+                `;
+
+                scoreBreakdown.appendChild(finalRound);
+                scoreBreakdown.appendChild(finalLevel);
+                scoreBreakdown.appendChild(finalScore);
+
+                // Button container
+                const buttonContainer = document.createElement('div');
+                buttonContainer.style.cssText = `
+                    display: flex;
+                    gap: 10px;
+                    justify-content: center;
+                    flex-wrap: wrap;
+                `;
+
+                // Start Again button (reset to level 1)
+                const startAgainBtn = document.createElement('button');
+                startAgainBtn.textContent = 'Start Again';
+                startAgainBtn.style.cssText = `
+                    background: linear-gradient(45deg, #28a745, #20c997);
+                    color: white;
+                    border: none;
+                    padding: 12px 20px;
+                    border-radius: 25px;
+                    font-size: 1rem;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: transform 0.2s, box-shadow 0.2s;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+                `;
+                startAgainBtn.onmouseover = () => {
+                    startAgainBtn.style.transform = 'translateY(-2px)';
+                    startAgainBtn.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4)';
+                };
+                startAgainBtn.onmouseout = () => {
+                    startAgainBtn.style.transform = 'translateY(0)';
+                    startAgainBtn.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
+                };
+                startAgainBtn.onclick = () => {
+                    document.body.removeChild(overlay);
+                    this.currentLevel = 1;
+                    this.currentRound = 1;
+                    this.score = 0;
+                    this.lives = 3;
+                    this.correctInRow = 0;
+                    this.sequence = [];
+                    this.playerSequence = [];
+                    this.gameState = 'stopped';
+                    this.updateDisplay();
+                    this.updateControls();
+                    this.updateNoteDisplay();
+                };
+
+                // Continue button (same level, reset score)
+                const continueBtn = document.createElement('button');
+                continueBtn.textContent = 'Continue';
+                continueBtn.style.cssText = `
+                    background: linear-gradient(45deg, #007bff, #6f42c1);
+                    color: white;
+                    border: none;
+                    padding: 12px 20px;
+                    border-radius: 25px;
+                    font-size: 1rem;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: transform 0.2s, box-shadow 0.2s;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+                `;
+                continueBtn.onmouseover = () => {
+                    continueBtn.style.transform = 'translateY(-2px)';
+                    continueBtn.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4)';
+                };
+                continueBtn.onmouseout = () => {
+                    continueBtn.style.transform = 'translateY(0)';
+                    continueBtn.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
+                };
+                continueBtn.onclick = () => {
+                    document.body.removeChild(overlay);
+                    this.currentRound = 1;
+                    this.score = 0;
+                    this.lives = 3;
+                    this.correctInRow = 0;
+                    this.sequence = [];
+                    this.playerSequence = [];
+                    this.gameState = 'stopped';
+                    this.updateDisplay();
+                    this.updateControls();
+                    this.updateNoteDisplay();
+                };
+
+                // Quit button
+                const quitBtn = document.createElement('button');
+                quitBtn.textContent = 'Quit';
+                quitBtn.style.cssText = `
+                    background: linear-gradient(45deg, #dc3545, #c82333);
+                    color: white;
+                    border: none;
+                    padding: 12px 20px;
+                    border-radius: 25px;
+                    font-size: 1rem;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: transform 0.2s, box-shadow 0.2s;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+                `;
+                quitBtn.onmouseover = () => {
+                    quitBtn.style.transform = 'translateY(-2px)';
+                    quitBtn.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4)';
+                };
+                quitBtn.onmouseout = () => {
+                    quitBtn.style.transform = 'translateY(0)';
+                    quitBtn.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
+                };
+                quitBtn.onclick = () => {
+                    document.body.removeChild(overlay);
+                    // Just close modal, leave game state as stopped
+                };
+
+                buttonContainer.appendChild(startAgainBtn);
+                buttonContainer.appendChild(continueBtn);
+                buttonContainer.appendChild(quitBtn);
+
+                modal.appendChild(title);
+                modal.appendChild(scoreBreakdown);
+                modal.appendChild(buttonContainer);
+                overlay.appendChild(modal);
+                document.body.appendChild(overlay);
             }
 
             // Start a new round with a fresh sequence for the current level
             startRound() {
+                // Play start round sound only if Sound FX is enabled
+                const soundFxEnabled = document.getElementById('muteCheeringSound').checked;
+                if (soundFxEnabled) {
+                    const startRoundAudio = new Audio('startround.mp3');
+                    startRoundAudio.play().catch(e => console.log('Audio play failed:', e));
+                }
+
                 // Generate a new single-item sequence for the current level
                 this.gameSequence = [this.generateSequenceItem()];
                 this.playerSequence = [];
@@ -1041,25 +1878,67 @@
                 this.isPlayerTurn = false;
 
                 this.updateDisplay();
-                this.updateClockArrangement();
+                this.updateNoteDisplay();
 
                 // Start playing the sequence
                 setTimeout(() => {
-                    this.playSequence();
+                    // Play start round sound only if Sound FX is enabled
+                    const soundFxEnabled = document.getElementById('muteCheeringSound').checked;
+                    if (soundFxEnabled) {
+                        const startRoundAudio = new Audio('startround.mp3');
+                        startRoundAudio.play().catch(e => console.log('Audio play failed:', e));
+                    }
+
+                    // Show "Get Ready!" modal for 3 seconds, then start sequence
+                    this.showGetReadyModal(() => {
+                        if (this.pitchTrainingMode) {
+                            this.playSequenceWithPitchTraining();
+                        } else {
+                            this.playSequence();
+                        }
+                    });
                 }, 300);
             }
 
             // Update display elements
             updateDisplay() {
                 document.getElementById('totalScore').textContent = this.totalScore.toLocaleString();
-                document.getElementById('round').textContent = this.currentRound;
-                document.getElementById('lives').textContent = this.lives;
+
+                if (this.callResponseMode) {
+                    // Show current player with their role in Call & Response mode
+                    if (this.isPlayer1Turn) {
+                        document.getElementById('round').textContent = 'Player 1 - Call';
+                    } else {
+                        document.getElementById('round').textContent = 'Player 2 - Response';
+                    }
+                } else {
+                    document.getElementById('round').textContent = this.currentRound;
+                }
+
+                if (this.pitchTrainingMode) {
+                    // Show remaining Listen Again uses in Pitch Training mode
+                    const remainingListens = 2 - this.pitchTrainingListenCount;
+                    document.getElementById('lives').textContent = `Listens: ${remainingListens}`;
+                } else {
+                    document.getElementById('lives').textContent = this.lives;
+                }
 
                 // Keep the footer simple and fun for kids - no complex info!
             }
 
             // Level completion celebration with sound and visual effects
             showLevelCelebration(newLevel) {
+                // Calculate score multipliers
+                const rhythmMultiplier = this.enabledRhythms.length; // 1-4x based on number of rhythms
+
+                const availableNotes = this.getAvailableNotesForLevel(this.currentLevel);
+                const noteMultiplier = Math.max(1, availableNotes.length - 2); // 3 notes = x1, 4 notes = x2, etc.
+
+                let pitchTrainingMultiplier = 1;
+                if (this.pitchTrainingMode) {
+                    pitchTrainingMultiplier = this.gameSequence.length; // x number of notes in sequence
+                }
+
                 // Calculate level scores
                 const baseScore = 100; // 100 points for completing level
                 const noteBonus = this.gameSequence.length * 50; // 50 points per note
@@ -1069,7 +1948,9 @@
                 const baseLevelScore = baseScore + noteBonus;
                 const rhythmBonus = this.currentLevelRhythmBonus; // Use the tracked rhythm bonus for this level
 
-                this.levelScore = baseLevelScore + rhythmBonus; // Ensure correct total
+                // Apply all multipliers
+                const totalMultiplier = rhythmMultiplier * noteMultiplier * pitchTrainingMultiplier;
+                this.levelScore = (baseLevelScore + rhythmBonus) * totalMultiplier;
                 this.totalScore += this.levelScore; // Add ENTIRE level score to total at end of level
 
                 // Play kids cheering sound only if Sound FX is enabled
@@ -1123,20 +2004,26 @@
                 `;
 
                 // Individual score lines
+                const baseScoreBeforeMultiplier = baseLevelScore + rhythmBonus;
                 const scoreLines = [
                     { text: `Level Complete: +${baseScore}`, delay: 200 },
                     { text: `${this.gameSequence.length} Notes: +${noteBonus}`, delay: 600 },
                     rhythmBonus > 0 ? { text: `Rhythm Accuracy Bonus: +${rhythmBonus}`, delay: 1000 } : null,
-                    { text: `Total Level: ${this.levelScore}`, delay: rhythmBonus > 0 ? 1400 : 1000, isTotal: true },
-                    { text: `Grand Total: ${this.totalScore.toLocaleString()}`, delay: rhythmBonus > 0 ? 1800 : 1400, isGrandTotal: true }
+                    { text: `Base Score: ${baseScoreBeforeMultiplier}`, delay: rhythmBonus > 0 ? 1200 : 1000 },
+                    { text: `${this.enabledRhythms.length} Rhythms: x${rhythmMultiplier}`, delay: rhythmBonus > 0 ? 1400 : 1200, isMultiplier: true },
+                    { text: `${availableNotes.length} Notes: x${noteMultiplier}`, delay: rhythmBonus > 0 ? 1600 : 1400, isMultiplier: true },
+                    this.pitchTrainingMode ? { text: `Pitch Training: x${pitchTrainingMultiplier}`, delay: rhythmBonus > 0 ? 1800 : 1600, isMultiplier: true } : null,
+                    { text: `Final Multiplier: x${totalMultiplier}`, delay: rhythmBonus > 0 ? 2000 : 1800, isMultiplier: true, isFinalMultiplier: true },
+                    { text: `Level Total: ${this.levelScore}`, delay: rhythmBonus > 0 ? 2200 : 2000, isTotal: true },
+                    { text: `Grand Total: ${this.totalScore.toLocaleString()}`, delay: rhythmBonus > 0 ? 2400 : 2200, isGrandTotal: true }
                 ].filter(Boolean);
 
                 scoreLines.forEach((scoreData, index) => {
                     const scoreLine = document.createElement('div');
                     scoreLine.style.cssText = `
-                        font-size: ${scoreData.isGrandTotal ? '36px' : scoreData.isTotal ? '28px' : '24px'};
+                        font-size: ${scoreData.isGrandTotal ? '36px' : scoreData.isTotal ? '28px' : scoreData.isFinalMultiplier ? '26px' : scoreData.isMultiplier ? '22px' : '24px'};
                         font-weight: 900;
-                        color: ${scoreData.isGrandTotal ? '#ff1744' : scoreData.isTotal ? '#00e676' : 'white'};
+                        color: ${scoreData.isGrandTotal ? '#ff1744' : scoreData.isTotal ? '#00e676' : scoreData.isFinalMultiplier ? '#ffd700' : scoreData.isMultiplier ? '#ff9800' : 'white'};
                         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
                         margin: 8px 0;
                         opacity: 0;
@@ -1144,6 +2031,7 @@
                         animation: scoreReveal 0.5s ease forwards;
                         animation-delay: ${scoreData.delay}ms;
                         ${scoreData.isGrandTotal ? 'border-top: 3px solid white; padding-top: 15px; margin-top: 20px;' : ''}
+                        ${scoreData.isFinalMultiplier ? 'border-top: 2px solid #ffd700; padding-top: 10px; margin-top: 15px;' : ''}
                     `;
                     scoreLine.textContent = scoreData.text;
                     scoreContainer.appendChild(scoreLine);
@@ -1194,12 +2082,26 @@
                     // Continue with level progression
                     this.gameSequence = [this.generateSequenceItem()];
                     this.currentRound = 1; // Reset round counter for new level
-                    this.updateClockArrangement(); // Update available notes for new level
+                    this.updateNoteDisplay(); // Update available notes for new level
                     this.updateDisplay();
 
                     // Start the new level's sequence after a brief pause
                     setTimeout(() => {
-                        this.playSequence();
+                        // Play start round sound only if Sound FX is enabled
+                        const soundFxEnabled = document.getElementById('muteCheeringSound').checked;
+                        if (soundFxEnabled) {
+                            const startRoundAudio = new Audio('startround.mp3');
+                            startRoundAudio.play().catch(e => console.log('Audio play failed:', e));
+                        }
+
+                        // Show "Get Ready!" modal for 3 seconds, then start sequence
+                        this.showGetReadyModal(() => {
+                            if (this.pitchTrainingMode) {
+                                this.playSequenceWithPitchTraining();
+                            } else {
+                                this.playSequence();
+                            }
+                        });
                     }, 500);
                 }, 3500);
             }            // Show "Try Again" modal and replay sequence until correct
@@ -1237,7 +2139,7 @@
                 overlay.appendChild(modalText);
                 document.body.appendChild(overlay);
 
-                // Remove modal after 1 second and replay sequence
+                // Remove modal after 1.5 seconds and replay sequence
                 setTimeout(() => {
                     document.body.removeChild(overlay);
 
@@ -1248,9 +2150,13 @@
 
                     // Replay the same sequence after brief pause
                     setTimeout(() => {
-                        this.playSequence();
+                        if (this.pitchTrainingMode) {
+                            this.playSequenceWithPitchTraining();
+                        } else {
+                            this.playSequence();
+                        }
                     }, 500);
-                }, 1000);
+                }, 1500);
             }
 
             // Update control buttons
@@ -1270,8 +2176,17 @@
                     startBtn.disabled = true;
                     stopBtn.disabled = false;
 
-                    // Listen Again button: enabled only during listening state, not used yet this level
-                    listenAgainBtn.disabled = !(this.gameState === 'listening' && this.isPlayerTurn && !this.listenAgainUsed);
+                    // Listen Again button logic depends on game mode
+                    if (this.callResponseMode) {
+                        // No Listen Again in call & response mode
+                        listenAgainBtn.disabled = true;
+                    } else if (this.pitchTrainingMode) {
+                        // In pitch training, allow 2 Listen Again uses
+                        listenAgainBtn.disabled = !(this.gameState === 'listening' && this.isPlayerTurn && this.pitchTrainingListenCount < 2);
+                    } else {
+                        // Normal mode - enabled only during listening state, not used yet this level
+                        listenAgainBtn.disabled = !(this.gameState === 'listening' && this.isPlayerTurn && !this.listenAgainUsed);
+                    }
 
                     // Disable scale selection during active game
                     scaleRadios.forEach(radio => radio.disabled = true);

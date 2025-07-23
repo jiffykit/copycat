@@ -17,13 +17,25 @@
                 <div class="score">Round: <span id="round">1</span></div>
                 <div class="score">Lives: <span id="lives">3</span></div>
             </div>
+
+            <!-- Options indicator -->
+            <div class="options-indicator" id="optionsIndicator">
+                <div class="option-tag">Rhythms: ♩</div>
+                <div class="option-tag">Notes: 😎 Fun Levels</div>
+                <div class="option-tag">🔊 Sound FX</div>
+            </div>
+
             <div class="controls">
                 <button id="startBtn" class="btn primary">🎮 Start Game</button>
                 <button id="stopBtn" class="btn secondary" disabled>🛑 Stop</button>
                 <button id="resetBtn" class="btn secondary">🔄 Reset</button>
                 <button id="listenAgainBtn" class="btn special" disabled>👂 Listen Again</button>
+                <button id="optionsBtn" class="btn special">⚙️ Options</button>
+                <button id="helpBtn" class="btn info">❓ Help</button>
             </div>
-            <div class="rhythm-controls">
+
+            <!-- Hidden options (moved to modal) -->
+            <div class="rhythm-controls" style="display: none;">
                 <h4>🎵 Rhythm Options:</h4>
                 <div class="rhythm-toggles">
                     <label><input type="checkbox" id="rhythmQuarter" checked> ♩ - ¹⁄₄ notes (🟣 PLUM) </label>
@@ -34,7 +46,7 @@
                     <label><input type="checkbox" id="rhythmSixteenth"> ♬ - ¹⁄₁₆ notes (🍉WATERMELON) </label>
                 </div>
             </div>
-            <div class="scale-controls">
+            <div class="scale-controls" style="display: none;">
                 <h4>🎹 Note Options:</h4>
                 <div class="scale-options">
                     <label><input type="radio" name="scaleType" value="progressive" checked> 😎 Fun Levels</label>
@@ -42,8 +54,7 @@
                     <label><input type="checkbox" id="muteCheeringSound" checked> 🔊 Sound FX</label>
                 </div>
                 <div class="game-mode-options" style="margin-top: 10px;">
-                    <label><input type="checkbox" id="callResponseMode"> 👥 Call & Response (2 Players)</label>
-                    <label><input type="checkbox" id="pitchTrainingMode"> 🎯 Pitch Training</label>
+                    <button class="game-mode-toggle" id="gameModeToggle">� Normal Mode</button>
                 </div>
                 <div class="custom-scale" id="customScaleContainer" style="display: none;">
                     <div class="note-toggles">
@@ -127,6 +138,7 @@
                 this.currentItemStartTime = 0; // Track when current sequence item started
                 this.usingCustomScale = false; // Track if using custom scale
                 this.customNotes = ['C', 'E', 'G']; // Default custom scale
+                this.customNoteSelectionMode = false; // Track if in interactive note selection mode
                 this.enabledRhythms = ['quarter']; // Start with only quarters - super simple
                 this.currentLevel = 1; // Current level (affects available notes)
                 this.correctInRow = 0; // Track consecutive correct answers
@@ -134,12 +146,41 @@
                 this.lives = 3; // Start with 3 lives
 
                 // Game mode settings
+                this.gameMode = 'normal'; // 'normal', 'pitch-training', 'call-response', 'both'
                 this.callResponseMode = false; // 2-player call and response mode
                 this.pitchTrainingMode = false; // Pitch training mode
                 this.isPlayer1Turn = true; // Track whose turn in call and response
                 this.player1Sequence = []; // Store player 1's performance for comparison
                 this.pitchTrainingListenCount = 0; // Track Listen Again uses in pitch training
                 this.callResponseRound = 1; // Track round number for call & response mode
+
+                // Listen Again bonus system
+                this.normalListenAgainCount = 1; // Normal mode gets 1 Listen Again per level
+                this.bonusListenAgainAwarded = false; // Track if bonus was awarded this level
+
+                // Quick access rhythm cycling system
+                this.rhythmCombinations = [
+                    ['quarter'],
+                    ['eighth'],
+                    ['triplet'],
+                    ['sixteenth'],
+                    ['quarter', 'eighth'],
+                    ['quarter', 'sixteenth'],
+                    ['eighth', 'sixteenth'],
+                    ['sixteenth', 'triplet'],
+                    ['quarter', 'eighth', 'sixteenth'],
+                    ['eighth', 'triplet', 'sixteenth'],
+                    ['quarter', 'eighth', 'triplet'],
+                    ['quarter', 'eighth', 'triplet', 'sixteenth']
+                ];
+                this.currentRhythmComboIndex = 0; // Start with just quarter notes
+
+                // Note cycling system for quick access
+                this.noteOptions = [
+                    'progression', // Fun Levels progression
+                    'custom'       // Custom notes
+                ];
+                this.currentNoteOptionIndex = 0; // Start with progression
 
                 // Scoring system
                 this.totalScore = 0;
@@ -218,9 +259,83 @@
                 this.updateEnabledRhythms(); // Initialize rhythm settings
                 this.updateDisplay();
                 this.updateNoteDisplay();
+                this.updateOptionsIndicator(); // Initialize options indicator
+
+                // Add interactive styles for option tags
+                this.addInteractiveOptionStyles();
 
                 // Track active oscillators for cleanup
                 this.activeOscillators = [];
+            }
+
+            // Add interactive styles for option tags
+            addInteractiveOptionStyles() {
+                const style = document.createElement('style');
+                style.textContent = `
+                    .option-tag {
+                        cursor: pointer;
+                        transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+                        user-select: none;
+                    }
+                    
+                    .option-tag:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                        background-color: rgba(255, 255, 255, 0.1);
+                    }
+                    
+                    .option-tag:active {
+                        transform: translateY(0);
+                        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+                    }
+                    
+                    .rhythm-tag:hover {
+                        background-color: rgba(102, 126, 234, 0.2);
+                    }
+                    
+                    .note-tag:hover {
+                        background-color: rgba(0, 184, 148, 0.2);
+                    }
+                    
+                    .sound-tag:hover {
+                        background-color: rgba(253, 121, 168, 0.2);
+                    }
+                    
+                    .game-mode-tag:hover {
+                        background-color: rgba(108, 92, 231, 0.2);
+                    }
+
+                    @keyframes rhythmPulse {
+                        0% { 
+                            transform: scale(1);
+                            box-shadow: 0 2px 6px rgba(139, 92, 246, 0.2);
+                        }
+                        50% { 
+                            transform: scale(1.1);
+                            box-shadow: 0 6px 16px rgba(139, 92, 246, 0.6);
+                        }
+                        100% { 
+                            transform: scale(1);
+                            box-shadow: 0 2px 6px rgba(139, 92, 246, 0.2);
+                        }
+                    }
+
+                    .rhythm-tag.pulse {
+                        animation: rhythmPulse 0.6s ease-in-out;
+                    }
+
+                    @keyframes slideInRight {
+                        from {
+                            transform: translateX(100%);
+                            opacity: 0;
+                        }
+                        to {
+                            transform: translateX(0);
+                            opacity: 1;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
             }
 
             async initializeAudio() {
@@ -242,6 +357,16 @@
                 document.getElementById('resetBtn').addEventListener('click', () => this.resetGame());
                 document.getElementById('listenAgainBtn').addEventListener('click', () => this.listenAgain());
 
+                // Options button - only works when stopped
+                document.getElementById('optionsBtn').addEventListener('click', () => {
+                    if (this.gameState === 'stopped') {
+                        this.showOptionsModal();
+                    }
+                    // Do nothing during gameplay
+                });
+
+                document.getElementById('helpBtn').addEventListener('click', () => this.showHelpModal());
+
                 // Rhythm toggle controls
                 document.getElementById('rhythmQuarter').addEventListener('change', () => this.updateEnabledRhythms());
                 document.getElementById('rhythmEighth').addEventListener('change', () => this.updateEnabledRhythms());
@@ -253,33 +378,25 @@
                     radio.addEventListener('change', (e) => {
                         this.usingCustomScale = e.target.value === 'custom';
                         const customContainer = document.getElementById('customScaleContainer');
-                        customContainer.style.display = this.usingCustomScale ? 'block' : 'none';
+
+                        if (this.usingCustomScale) {
+                            // Enter custom note selection mode
+                            this.customNoteSelectionMode = true;
+                            customContainer.style.display = 'none'; // Hide the checkboxes
+                        } else {
+                            // Exit custom note selection mode
+                            this.customNoteSelectionMode = false;
+                            customContainer.style.display = 'none';
+                        }
+
                         this.updateNoteDisplay();
+                        this.updateOptionsIndicator();
                     });
                 });
 
-                // Game mode controls
-                document.getElementById('callResponseMode').addEventListener('change', (e) => {
-                    this.callResponseMode = e.target.checked;
-                    if (this.callResponseMode && this.pitchTrainingMode) {
-                        // Can't have both modes active
-                        document.getElementById('pitchTrainingMode').checked = false;
-                        this.pitchTrainingMode = false;
-                    }
-                    this.updateDisplay();
-                    this.updateControls();
-                });
-
-                document.getElementById('pitchTrainingMode').addEventListener('change', (e) => {
-                    this.pitchTrainingMode = e.target.checked;
-                    if (this.pitchTrainingMode && this.callResponseMode) {
-                        // Can't have both modes active
-                        document.getElementById('callResponseMode').checked = false;
-                        this.callResponseMode = false;
-                    }
-                    this.pitchTrainingListenCount = 0; // Reset listen count
-                    this.updateDisplay();
-                    this.updateControls();
+                // Sound FX control
+                document.getElementById('muteCheeringSound').addEventListener('change', () => {
+                    this.updateOptionsIndicator();
                 });
 
                 // Custom note controls
@@ -467,6 +584,9 @@
                     this.enabledRhythms.push('quarter');
                     document.getElementById('rhythmQuarter').checked = true;
                 }
+
+                // Update the options indicator
+                this.updateOptionsIndicator();
             }
 
             // Update custom scale based on note checkboxes
@@ -497,22 +617,22 @@
             // Update note display based on available notes
             updateNoteDisplay() {
                 const lights = document.querySelectorAll('.light');
-                const availableNotes = this.getAvailableNotesForLevel(this.currentLevel);
+                const container = document.querySelector('.notes-container');
                 const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
                 // Reset container styles for linear layout
-                const container = document.querySelector('.notes-container');
                 container.classList.add('linear-layout');
                 container.style.width = 'auto';
                 container.style.height = '180px';
 
-                let visibleIndex = 0;
-                lights.forEach((light, index) => {
-                    const note = chromaticScale[index];
-                    light.dataset.note = note;
-                    light.querySelector('.light-number').textContent = note;
+                if (this.customNoteSelectionMode) {
+                    // Custom note selection mode - show all notes, some ghosted
+                    container.classList.add('custom-note-selection-mode');
 
-                    if (availableNotes.includes(note)) {
+                    lights.forEach((light, index) => {
+                        const note = chromaticScale[index];
+                        light.dataset.note = note;
+                        light.querySelector('.light-number').textContent = note;
                         light.style.display = 'flex';
                         light.style.opacity = '1';
                         light.style.pointerEvents = 'auto';
@@ -522,11 +642,51 @@
                         light.style.top = '';
                         light.style.transform = '';
 
-                        visibleIndex++;
-                    } else {
-                        light.style.display = 'none';
-                    }
-                });
+                        // Add classes based on selection state
+                        if (this.customNotes.includes(note)) {
+                            light.classList.add('selected');
+                            light.classList.remove('ghosted');
+                        } else {
+                            light.classList.add('ghosted');
+                            light.classList.remove('selected');
+                        }
+                    });
+
+                    // Show save button
+                    this.showSaveCustomNotesButton();
+                } else {
+                    // Normal mode - show only available notes
+                    container.classList.remove('custom-note-selection-mode');
+                    const availableNotes = this.getAvailableNotesForLevel(this.currentLevel);
+
+                    let visibleIndex = 0;
+                    lights.forEach((light, index) => {
+                        const note = chromaticScale[index];
+                        light.dataset.note = note;
+                        light.querySelector('.light-number').textContent = note;
+
+                        // Remove custom selection classes
+                        light.classList.remove('selected', 'ghosted');
+
+                        if (availableNotes.includes(note)) {
+                            light.style.display = 'flex';
+                            light.style.opacity = '1';
+                            light.style.pointerEvents = 'auto';
+
+                            // Clear any inline positioning styles
+                            light.style.left = '';
+                            light.style.top = '';
+                            light.style.transform = '';
+
+                            visibleIndex++;
+                        } else {
+                            light.style.display = 'none';
+                        }
+                    });
+
+                    // Hide save button
+                    this.hideSaveCustomNotesButton();
+                }
             }            // Get available notes for current level
             getAvailableNotesForLevel(level = null) {
                 if (this.usingCustomScale) {
@@ -536,6 +696,119 @@
                 const currentLevel = level || this.currentLevel;
                 const clampedLevel = Math.min(currentLevel, 10);
                 return this.levelNotes[clampedLevel] || this.levelNotes[10];
+            }
+
+            // Show save button for custom note selection
+            showSaveCustomNotesButton() {
+                // Remove existing button if present
+                const existingBtn = document.getElementById('saveCustomNotesBtn');
+                if (existingBtn) {
+                    existingBtn.remove();
+                }
+
+                const saveBtn = document.createElement('button');
+                saveBtn.id = 'saveCustomNotesBtn';
+                saveBtn.className = 'save-custom-notes-btn';
+                saveBtn.innerHTML = '💾 Save My Notes';
+                saveBtn.onclick = () => this.saveCustomNotes();
+                document.body.appendChild(saveBtn);
+            }
+
+            // Hide save button
+            hideSaveCustomNotesButton() {
+                const saveBtn = document.getElementById('saveCustomNotesBtn');
+                if (saveBtn) {
+                    saveBtn.remove();
+                }
+            }
+
+            // Handle note light click in custom selection mode
+            handleCustomNoteSelection(noteIndex) {
+                if (!this.customNoteSelectionMode) return;
+
+                const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+                const note = chromaticScale[noteIndex];
+                const light = document.getElementById(`light-${noteIndex}`);
+
+                if (this.customNotes.includes(note)) {
+                    // Remove note
+                    this.customNotes = this.customNotes.filter(n => n !== note);
+                    light.classList.remove('selected');
+                    light.classList.add('ghosted');
+                } else {
+                    // Add note
+                    this.customNotes.push(note);
+                    light.classList.remove('ghosted');
+                    light.classList.add('selected');
+                }
+
+                // Ensure at least one note is selected
+                if (this.customNotes.length === 0) {
+                    this.customNotes.push('C');
+                    const cLight = document.getElementById('light-0');
+                    cLight.classList.remove('ghosted');
+                    cLight.classList.add('selected');
+                }
+
+                // Update the custom scale checkboxes to match
+                this.syncCustomNotesToCheckboxes();
+            }
+
+            // Save custom notes and exit selection mode
+            saveCustomNotes() {
+                this.customNoteSelectionMode = false;
+                this.updateNoteDisplay();
+                this.updateOptionsIndicator();
+
+                // Update the custom scale container visibility
+                const customContainer = document.getElementById('customScaleContainer');
+                customContainer.style.display = 'none';
+
+                // Show success message
+                this.showCustomNotesSavedMessage();
+            }
+
+            // Show success message for saved notes
+            showCustomNotesSavedMessage() {
+                const message = document.createElement('div');
+                message.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: linear-gradient(135deg, #00b894, #00cec9);
+                    color: white;
+                    padding: 20px 40px;
+                    border-radius: 20px;
+                    font-size: 1.2rem;
+                    font-weight: bold;
+                    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+                    z-index: 10001;
+                    border: 3px solid white;
+                    font-family: 'Comic Sans MS', sans-serif;
+                `;
+                message.textContent = `✅ Saved ${this.customNotes.length} notes: ${this.customNotes.join(', ')}`;
+                document.body.appendChild(message);
+
+                setTimeout(() => {
+                    message.remove();
+                }, 2000);
+            }
+
+            // Sync custom notes to the checkboxes in the options
+            syncCustomNotesToCheckboxes() {
+                const noteMap = {
+                    'C': 'noteC', 'C#': 'noteCsharp', 'D': 'noteD', 'D#': 'noteDsharp',
+                    'E': 'noteE', 'F': 'noteF', 'F#': 'noteFsharp', 'G': 'noteG',
+                    'G#': 'noteGsharp', 'A': 'noteA', 'A#': 'noteAsharp', 'B': 'noteB'
+                };
+
+                Object.entries(noteMap).forEach(([note, checkboxId]) => {
+                    const checkbox = document.getElementById(checkboxId);
+                    if (checkbox) {
+                        checkbox.checked = this.customNotes.includes(note);
+                    }
+                });
             }
 
             // Generate random sequence item - only from available notes and enabled rhythms
@@ -663,6 +936,10 @@
                 this.bpm = 50; // Reset BPM to starting value (50 BPM)
                 this.lastNoteIndex = -1; // Reset note tracking
                 this.lives = 3; // Reset lives to 3
+
+                // Reset Listen Again bonus system
+                this.normalListenAgainCount = 1; // Reset to normal
+                this.bonusListenAgainAwarded = false; // Reset bonus tracking
 
                 // Reset game mode specific variables
                 if (this.callResponseMode) {
@@ -944,6 +1221,12 @@
                 this.lives = 3; // Reset lives to 3
                 this.currentSequenceIndex = 0;
                 this.currentTapCount = 0;
+
+                // Reset Listen Again bonus system
+                this.normalListenAgainCount = 1; // Reset to normal
+                this.bonusListenAgainAwarded = false; // Reset bonus tracking
+                this.listenAgainUsed = false; // Reset Listen Again usage
+
                 this.updateDisplay();
                 this.updateNoteDisplay(); // Refresh notes for level 1
                 this.updateControls(); // Update button states
@@ -1054,7 +1337,7 @@
                 this.playSequenceItem(item, false);
             }
 
-            // Listen Again function - replay current sequence once per level
+            // Listen Again function - replay current sequence
             listenAgain() {
                 if (this.gameState !== 'listening' || !this.isPlayerTurn) {
                     return; // Can't use if not in listening state or not player turn
@@ -1067,9 +1350,10 @@
                     }
                     this.pitchTrainingListenCount++;
                 } else {
-                    // Normal mode - only one use per level
-                    if (this.listenAgainUsed) {
-                        return; // Already used
+                    // Normal mode - check if any listens remain
+                    const remainingListens = this.normalListenAgainCount - (this.listenAgainUsed ? 1 : 0);
+                    if (remainingListens <= 0) {
+                        return; // No listens remaining
                     }
                     this.listenAgainUsed = true;
                 }
@@ -1090,6 +1374,12 @@
 
             // Handle light press - simplified validation with timing tolerance
             onLightPress(lightIndex, event) {
+                // Handle custom note selection mode
+                if (this.customNoteSelectionMode) {
+                    this.handleCustomNoteSelection(lightIndex);
+                    return;
+                }
+
                 if (!this.isPlayerTurn) return;
 
                 // Handle different game modes
@@ -1336,10 +1626,10 @@
                     this.callResponseFeedback(`Excellent! Notes: ${correctNotes}/${totalNotes}, Rhythm: ${Math.round(rhythmAccuracy * 100)}% (+${multipliedPoints} pts)`, true);
                 } else if (!pitchMatch) {
                     // Notes are wrong - focus on note feedback
-                    this.callResponseFeedback(`Nearly there! Notes: ${correctNotes}/${totalNotes} (${pitchPercentage}%) - try the melody again!`, false);
+                    this.callResponseFeedback(`Nearly there! Notes: ${correctNotes}/${totalNotes} (${pitchPercentage}%) - Almost!`, false);
                 } else {
-                    // Notes are correct but rhythm is wrong - focus on rhythm feedback  
-                    this.callResponseFeedback(`Good notes! Rhythm: ${Math.round(rhythmAccuracy * 100)}% - try matching the timing!`, false);
+                    // Notes are correct but rhythm is wrong - focus on rhythm feedback
+                    this.callResponseFeedback(`Good notes! Rhythm: ${Math.round(rhythmAccuracy * 100)}% - Almost!`, false);
                 }
             }
 
@@ -1525,12 +1815,24 @@
                 // Check if we should advance to next level (based on sequence length)
                 const targetSequenceLength = this.levelRequirements[this.currentLevel];
                 if (this.gameSequence.length >= targetSequenceLength && this.currentLevel < 20) {
+                    // Check for perfect accuracy bonus BEFORE advancing level
+                    const perfectAccuracy = !this.listenAgainUsed && this.currentLevel >= 5;
+
                     const newLevel = this.currentLevel + 1;
                     this.currentLevel = newLevel;
                     this.correctInRow = 0; // Reset counter for new level
                     this.bpm = Math.min(50 + (newLevel - 1) * 2, 85); // 2 BPM per level, max 85
                     this.lastNoteIndex = -1; // Reset note tracking for new level
                     this.listenAgainUsed = false; // Reset Listen Again for new level
+                    this.bonusListenAgainAwarded = false; // Reset bonus tracking for new level
+
+                    // Award bonus Listen Again for next level if perfect accuracy achieved
+                    if (perfectAccuracy && !this.bonusListenAgainAwarded) {
+                        this.normalListenAgainCount = 2; // Award bonus Listen Again for next level
+                        this.showBonusListenAgainMessage();
+                    } else {
+                        this.normalListenAgainCount = 1; // Reset to normal for new level
+                    }
 
                     // Show level completion celebration
                     this.showLevelCelebration(newLevel);
@@ -1558,6 +1860,37 @@
                         this.playSequence();
                     }
                 }, 800); // Reduced from 1500ms to 800ms
+            }
+
+            // Show bonus Listen Again message
+            showBonusListenAgainMessage() {
+                const message = document.createElement('div');
+                message.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: linear-gradient(135deg, #f093fb, #f5576c);
+                    color: white;
+                    padding: 25px 35px;
+                    border-radius: 20px;
+                    font-size: 1.3rem;
+                    font-weight: bold;
+                    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+                    z-index: 10001;
+                    border: 3px solid white;
+                    font-family: 'Comic Sans MS', sans-serif;
+                    text-align: center;
+                    animation: bonusPulse 0.6s ease-out;
+                `;
+                message.innerHTML = `🎉 BONUS LISTEN AGAIN! 🎉<br><span style="font-size: 1rem;">Perfect accuracy unlocked an extra listen!</span>`;
+                document.body.appendChild(message);
+
+                setTimeout(() => {
+                    if (document.body.contains(message)) {
+                        message.remove();
+                    }
+                }, 3000);
             }
 
             // Lose a life - restart the same level
@@ -1726,7 +2059,7 @@
                 `;
 
                 const finalScore = document.createElement('div');
-                finalScore.textContent = `Total Score: ${this.score}`;
+                finalScore.textContent = `Total Score: ${this.totalScore.toLocaleString()}`;
                 finalScore.style.cssText = `
                     font-size: 1.4rem;
                     font-weight: bold;
@@ -1861,7 +2194,1025 @@
                 document.body.appendChild(overlay);
             }
 
-            // Start a new round with a fresh sequence for the current level
+            // Show options modal
+            showOptionsModal() {
+                // Create modal overlay
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    display: flex;
+                    justify-content: center;
+                    align-items: flex-start;
+                    padding: 20px 0;
+                    z-index: 10000;
+                    backdrop-filter: blur(10px);
+                    overflow-y: auto;
+                `;
+
+                // Create modal content
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+                    border-radius: 20px;
+                    padding: 20px;
+                    text-align: center;
+                    color: #2d3436;
+                    border: 3px solid white;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                    max-width: 500px;
+                    width: 90%;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                    overflow-x: hidden;
+                    scrollbar-width: thin;
+                    scrollbar-color: #8b5cf6 #f1f5f9;
+                `;
+
+                // Add scrollbar styles for webkit browsers
+                const scrollbarStyle = document.createElement('style');
+                scrollbarStyle.textContent = `
+                    .modal-with-scroll::-webkit-scrollbar {
+                        width: 8px;
+                    }
+                    .modal-with-scroll::-webkit-scrollbar-track {
+                        background: #f1f5f9;
+                        border-radius: 4px;
+                    }
+                    .modal-with-scroll::-webkit-scrollbar-thumb {
+                        background: #8b5cf6;
+                        border-radius: 4px;
+                    }
+                    .modal-with-scroll::-webkit-scrollbar-thumb:hover {
+                        background: #7c3aed;
+                    }
+                `;
+                document.head.appendChild(scrollbarStyle);
+                modal.classList.add('modal-with-scroll');
+
+                // Title
+                const title = document.createElement('div');
+                title.textContent = '⚙️ Game Options';
+                title.style.cssText = `
+                    font-size: 2rem;
+                    font-weight: bold;
+                    margin-bottom: 20px;
+                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+                `;
+
+                // Copy the hidden rhythm controls
+                const rhythmSection = document.querySelector('.rhythm-controls').cloneNode(true);
+                rhythmSection.style.display = 'block';
+                rhythmSection.style.margin = '20px 0';
+                rhythmSection.style.background = 'rgba(255, 255, 255, 0.7)';
+
+                // Create sound FX section (extracted from scale controls)
+                const soundFxSection = document.createElement('div');
+                soundFxSection.style.cssText = `
+                    display: block;
+                    margin: 20px 0;
+                    background: rgba(255, 255, 255, 0.7);
+                    border-radius: 10px;
+                    padding: 15px;
+                `;
+                soundFxSection.innerHTML = `
+                    <h4 style="margin-bottom: 15px; color: #2d3436;">🔊 Audio Options:</h4>
+                    <div style="display: flex; justify-content: center;">
+                        <label style="display: flex; align-items: center; background: rgba(255,255,255,0.8); padding: 10px 15px; border-radius: 10px; cursor: pointer; transition: all 0.2s;">
+                            <input type="checkbox" id="modalMuteCheeringSound" ${document.getElementById('muteCheeringSound').checked ? 'checked' : ''} style="margin-right: 8px;">
+                            <span>🔊 Sound FX</span>
+                        </label>
+                    </div>
+                `;
+
+                // Add game mode section
+                const gameModeSection = document.createElement('div');
+                gameModeSection.style.cssText = `
+                    display: block;
+                    margin: 20px 0;
+                    background: rgba(255, 255, 255, 0.7);
+                    border-radius: 10px;
+                    padding: 15px;
+                `;
+                const progressiveChecked = document.querySelector('input[name="scaleType"][value="progressive"]').checked;
+                const customChecked = document.querySelector('input[name="scaleType"][value="custom"]').checked;
+                gameModeSection.innerHTML = `
+                    <h4 style="margin-bottom: 15px; color: #2d3436;">🎮 Game Modes:</h4>
+                    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                        <label style="display: flex; align-items: center; background: rgba(255,255,255,0.8); padding: 10px 15px; border-radius: 10px; cursor: pointer; transition: all 0.2s;">
+                            <input type="radio" name="gameMode" value="normal" ${this.gameMode === 'normal' && progressiveChecked ? 'checked' : ''} style="margin-right: 8px;">
+                            <span>😎 Fun Levels</span>
+                        </label>
+                        <label style="display: flex; align-items: center; background: rgba(255,255,255,0.8); padding: 10px 15px; border-radius: 10px; cursor: pointer; transition: all 0.2s;">
+                            <input type="radio" name="gameMode" value="custom" ${this.gameMode === 'normal' && customChecked ? 'checked' : ''} style="margin-right: 8px;">
+                            <span>🎨 Own Notes</span>
+                        </label>
+                        <label style="display: flex; align-items: center; background: rgba(255,255,255,0.8); padding: 10px 15px; border-radius: 10px; cursor: pointer; transition: all 0.2s;">
+                            <input type="radio" name="gameMode" value="pitch-training" ${this.gameMode === 'pitch-training' ? 'checked' : ''} style="margin-right: 8px;">
+                            <span>🎯 Pitch Training</span>
+                        </label>
+                        <label style="display: flex; align-items: center; background: rgba(255,255,255,0.8); padding: 10px 15px; border-radius: 10px; cursor: pointer; transition: all 0.2s;">
+                            <input type="radio" name="gameMode" value="call-response" ${this.gameMode === 'call-response' ? 'checked' : ''} style="margin-right: 8px;">
+                            <span>👥 2 Player</span>
+                        </label>
+                    </div>
+                    <div id="modalCustomNotes" style="display: ${this.gameMode === 'normal' && customChecked ? 'block' : 'none'}; margin-top: 15px;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; margin-top: 10px;">
+                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                                <input type="checkbox" id="modalNoteC" ${document.getElementById('noteC').checked ? 'checked' : ''} style="margin-right: 6px;">
+                                <span>C</span>
+                            </label>
+                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                                <input type="checkbox" id="modalNoteCsharp" ${document.getElementById('noteCsharp').checked ? 'checked' : ''} style="margin-right: 6px;">
+                                <span>C#</span>
+                            </label>
+                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                                <input type="checkbox" id="modalNoteD" ${document.getElementById('noteD').checked ? 'checked' : ''} style="margin-right: 6px;">
+                                <span>D</span>
+                            </label>
+                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                                <input type="checkbox" id="modalNoteDsharp" ${document.getElementById('noteDsharp').checked ? 'checked' : ''} style="margin-right: 6px;">
+                                <span>D#</span>
+                            </label>
+                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                                <input type="checkbox" id="modalNoteE" ${document.getElementById('noteE').checked ? 'checked' : ''} style="margin-right: 6px;">
+                                <span>E</span>
+                            </label>
+                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                                <input type="checkbox" id="modalNoteF" ${document.getElementById('noteF').checked ? 'checked' : ''} style="margin-right: 6px;">
+                                <span>F</span>
+                            </label>
+                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                                <input type="checkbox" id="modalNoteFsharp" ${document.getElementById('noteFsharp').checked ? 'checked' : ''} style="margin-right: 6px;">
+                                <span>F#</span>
+                            </label>
+                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                                <input type="checkbox" id="modalNoteG" ${document.getElementById('noteG').checked ? 'checked' : ''} style="margin-right: 6px;">
+                                <span>G</span>
+                            </label>
+                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                                <input type="checkbox" id="modalNoteGsharp" ${document.getElementById('noteGsharp').checked ? 'checked' : ''} style="margin-right: 6px;">
+                                <span>G#</span>
+                            </label>
+                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                                <input type="checkbox" id="modalNoteA" ${document.getElementById('noteA').checked ? 'checked' : ''} style="margin-right: 6px;">
+                                <span>A</span>
+                            </label>
+                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                                <input type="checkbox" id="modalNoteAsharp" ${document.getElementById('noteAsharp').checked ? 'checked' : ''} style="margin-right: 6px;">
+                                <span>A#</span>
+                            </label>
+                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                                <input type="checkbox" id="modalNoteB" ${document.getElementById('noteB').checked ? 'checked' : ''} style="margin-right: 6px;">
+                                <span>B</span>
+                            </label>
+                        </div>
+                    </div>
+                `;
+
+                // Add event listeners to toggle custom notes visibility
+                const modalGameModeRadios = gameModeSection.querySelectorAll('input[name="gameMode"]');
+                modalGameModeRadios.forEach(radio => {
+                    radio.addEventListener('change', () => {
+                        const customNotesDiv = gameModeSection.querySelector('#modalCustomNotes');
+                        customNotesDiv.style.display = radio.value === 'custom' ? 'block' : 'none';
+                    });
+                });
+
+                // Close button
+                const closeBtn = document.createElement('button');
+                closeBtn.textContent = '✅ Save & Close';
+                closeBtn.style.cssText = `
+                    background: linear-gradient(45deg, #00b894, #55a3ff);
+                    color: white;
+                    border: none;
+                    padding: 15px 30px;
+                    border-radius: 25px;
+                    font-size: 1.1rem;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: transform 0.2s;
+                    margin-top: 20px;
+                `;
+
+                closeBtn.onclick = () => {
+                    // Copy values back to original inputs
+                    this.syncOptionsFromModal(modal);
+                    document.body.removeChild(overlay);
+                    this.updateOptionsIndicator();
+                };
+
+                modal.appendChild(title);
+                modal.appendChild(rhythmSection);
+                modal.appendChild(soundFxSection);
+                modal.appendChild(gameModeSection);
+                modal.appendChild(closeBtn);
+                overlay.appendChild(modal);
+                document.body.appendChild(overlay);
+
+                // Sync current values to modal
+                this.syncOptionsToModal(modal);
+            }
+
+            // Show help modal
+            showHelpModal() {
+                // Create modal overlay
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    display: flex;
+                    justify-content: center;
+                    align-items: flex-start;
+                    padding: 20px 0;
+                    z-index: 10000;
+                    backdrop-filter: blur(10px);
+                    overflow-y: auto;
+                `;
+
+                // Create modal content
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    background: linear-gradient(135deg, #a8e6cf, #88d8c0);
+                    border-radius: 20px;
+                    padding: 20px;
+                    text-align: left;
+                    color: #2d3436;
+                    border: 3px solid white;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                    max-width: 600px;
+                    width: 90%;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                    overflow-x: hidden;
+                    scrollbar-width: thin;
+                    scrollbar-color: #10b981 #f1f5f9;
+                `;
+                modal.classList.add('modal-with-scroll');
+
+                modal.innerHTML = `
+                    <h2 style="text-align: center; margin-bottom: 20px; color: #2d3436;">🎵 How to Play Music Match! 🎵</h2>
+                    
+                    <div style="background: rgba(255,255,255,0.8); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                        <h3>🎯 Goal</h3>
+                        <p>Listen to the musical patterns and copy them back perfectly! Match both the <strong>notes</strong> and the <strong>rhythm</strong>.</p>
+                    </div>
+
+                    <div style="background: rgba(255,255,255,0.8); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                        <h3>🎮 How to Play</h3>
+                        <p>1. Press <strong>Start Game</strong></p>
+                        <p>2. Listen carefully to the musical pattern</p>
+                        <p>3. Click the colored lights to copy the pattern</p>
+                        <p>4. Match the timing too - not just the notes!</p>
+                        <p>5. Get it right to advance to longer patterns</p>
+                    </div>
+
+                    <div style="background: rgba(255,255,255,0.8); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                        <h3>🎵 Rhythm Guide</h3>
+                        <p><strong>♩ Quarter Notes (🟣 Plum):</strong> One tap per note</p>
+                        <p><strong>♫ Eighth Notes (🍎 Apple):</strong> Two quick taps</p>
+                        <p><strong>³ Triplets (🍍 Pineapple):</strong> Three taps in a beat</p>
+                        <p><strong>♬ Sixteenth Notes (🍉 Watermelon):</strong> Four super-fast taps</p>
+                    </div>
+
+                    <div style="background: rgba(255,255,255,0.8); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                        <h3>🎯 Special Modes</h3>
+                        <p><strong>🎯 Pitch Training:</strong> Only the first note lights up - train your ear!</p>
+                        <p><strong>👥 Call & Response:</strong> Two players take turns creating and copying patterns</p>
+                    </div>
+
+                    <div style="background: rgba(255,255,255,0.8); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                        <h3>💡 Tips</h3>
+                        <p>• Use <strong>Listen Again</strong> if you need to hear it once more</p>
+                        <p>• Watch the rhythm colors to know what pattern to play</p>
+                        <p>• Perfect timing gives bonus points!</p>
+                        <p>• You have 3 lives - use them wisely!</p>
+                    </div>
+
+                    <div style="text-align: center; font-size: 0.9rem; color: #636e72; margin-top: 20px;">
+                        <em>Written by James Mulvale 2025</em>
+                    </div>
+
+                    <button id="helpCloseBtn" style="
+                        background: linear-gradient(45deg, #fd79a8, #e84393);
+                        color: white;
+                        border: none;
+                        padding: 15px 30px;
+                        border-radius: 25px;
+                        font-size: 1.1rem;
+                        font-weight: bold;
+                        cursor: pointer;
+                        transition: transform 0.2s;
+                        margin: 20px auto 0;
+                        display: block;
+                    ">✨ Got it! Let's Play! ✨</button>
+                `;
+
+                modal.querySelector('#helpCloseBtn').onclick = () => {
+                    document.body.removeChild(overlay);
+                };
+
+                overlay.appendChild(modal);
+                document.body.appendChild(overlay);
+            }
+
+            // Sync options from modal back to original inputs
+            syncOptionsFromModal(modal) {
+                // Rhythm options
+                const modalRhythms = modal.querySelectorAll('.rhythm-controls input[type="checkbox"]');
+                modalRhythms.forEach(checkbox => {
+                    const originalCheckbox = document.getElementById(checkbox.id);
+                    if (originalCheckbox) {
+                        originalCheckbox.checked = checkbox.checked;
+                    }
+                });
+
+                // Sound FX option
+                const modalSoundFx = modal.querySelector('#modalMuteCheeringSound');
+                if (modalSoundFx) {
+                    const originalSoundFx = document.getElementById('muteCheeringSound');
+                    if (originalSoundFx) {
+                        originalSoundFx.checked = modalSoundFx.checked;
+                    }
+                }
+
+                // Note selection options
+                const modalScaleRadios = modal.querySelectorAll('input[name="modalScaleType"]');
+                modalScaleRadios.forEach(radio => {
+                    if (radio.checked) {
+                        const originalRadio = document.querySelector(`input[name="scaleType"][value="${radio.value}"]`);
+                        if (originalRadio) {
+                            originalRadio.checked = true;
+                        }
+                    }
+                });
+
+                // Custom note checkboxes
+                const modalNoteCheckboxes = modal.querySelectorAll('#modalCustomNotes input[type="checkbox"]');
+                modalNoteCheckboxes.forEach(checkbox => {
+                    const noteId = checkbox.id.replace('modal', ''); // Remove 'modal' prefix
+                    const originalCheckbox = document.getElementById(noteId);
+                    if (originalCheckbox) {
+                        originalCheckbox.checked = checkbox.checked;
+                    }
+                });
+
+                // Update game mode from modal radio buttons
+                const modalGameModeRadios = modal.querySelectorAll('input[name="gameMode"]');
+                modalGameModeRadios.forEach(radio => {
+                    if (radio.checked) {
+                        if (radio.value === 'custom') {
+                            // Custom notes mode
+                            this.gameMode = 'normal';
+                            this.pitchTrainingMode = false;
+                            this.callResponseMode = false;
+                            // Set scale type to custom
+                            const customRadio = document.querySelector('input[name="scaleType"][value="custom"]');
+                            if (customRadio) customRadio.checked = true;
+                            const progressiveRadio = document.querySelector('input[name="scaleType"][value="progressive"]');
+                            if (progressiveRadio) progressiveRadio.checked = false;
+                        } else {
+                            // Other game modes
+                            this.gameMode = radio.value;
+                            switch (radio.value) {
+                                case 'normal':
+                                    this.pitchTrainingMode = false;
+                                    this.callResponseMode = false;
+                                    // Set scale type to progressive
+                                    const progressiveRadio = document.querySelector('input[name="scaleType"][value="progressive"]');
+                                    if (progressiveRadio) progressiveRadio.checked = true;
+                                    const customRadio = document.querySelector('input[name="scaleType"][value="custom"]');
+                                    if (customRadio) customRadio.checked = false;
+                                    break;
+                                case 'pitch-training':
+                                    this.pitchTrainingMode = true;
+                                    this.callResponseMode = false;
+                                    break;
+                                case 'call-response':
+                                    this.pitchTrainingMode = false;
+                                    this.callResponseMode = true;
+                                    break;
+                            }
+                        }
+                    }
+                });
+
+                // Reset pitch training count
+                this.pitchTrainingListenCount = 0;
+
+                // Trigger change events to update game state
+                this.updateEnabledRhythms();
+                const scaleRadios = document.querySelectorAll('input[name="scaleType"]');
+                scaleRadios.forEach(radio => {
+                    if (radio.checked) {
+                        this.usingCustomScale = radio.value === 'custom';
+                        const customContainer = document.getElementById('customScaleContainer');
+
+                        if (this.usingCustomScale) {
+                            // Enter custom note selection mode
+                            this.customNoteSelectionMode = true;
+                            customContainer.style.display = 'none'; // Hide checkboxes, show interactive keyboard
+                        } else {
+                            // Exit custom note selection mode
+                            this.customNoteSelectionMode = false;
+                            customContainer.style.display = 'none';
+                        }
+
+                        this.updateNoteDisplay();
+                    }
+                });
+
+                // Update display and controls to reflect game mode changes
+                this.updateDisplay();
+                this.updateControls();
+            }
+
+            // Sync current values to modal inputs
+            syncOptionsToModal(modal) {
+                // Rhythm options
+                const originalRhythms = document.querySelectorAll('.rhythm-controls input[type="checkbox"]');
+                originalRhythms.forEach(checkbox => {
+                    const modalCheckbox = modal.querySelector(`#${checkbox.id}`);
+                    if (modalCheckbox) {
+                        modalCheckbox.checked = checkbox.checked;
+                    }
+                });
+
+                // Sound FX option
+                const originalSoundFx = document.getElementById('muteCheeringSound');
+                const modalSoundFx = modal.querySelector('#modalMuteCheeringSound');
+                if (originalSoundFx && modalSoundFx) {
+                    modalSoundFx.checked = originalSoundFx.checked;
+                }
+
+                // Note selection options
+                const originalScaleRadios = document.querySelectorAll('input[name="scaleType"]');
+                originalScaleRadios.forEach(radio => {
+                    const modalRadio = modal.querySelector(`input[name="modalScaleType"][value="${radio.value}"]`);
+                    if (modalRadio) {
+                        modalRadio.checked = radio.checked;
+                    }
+                });
+
+                // Custom note checkboxes
+                const originalNoteCheckboxes = document.querySelectorAll('#customScaleContainer input[type="checkbox"]');
+                originalNoteCheckboxes.forEach(checkbox => {
+                    const modalCheckbox = modal.querySelector(`#modal${checkbox.id}`);
+                    if (modalCheckbox) {
+                        modalCheckbox.checked = checkbox.checked;
+                    }
+                });
+
+                // Sync current game mode to modal
+                const modalGameModeRadios = modal.querySelectorAll('input[name="gameMode"]');
+                const currentScaleType = document.querySelector('input[name="scaleType"]:checked')?.value;
+                modalGameModeRadios.forEach(radio => {
+                    if (radio.value === 'custom') {
+                        radio.checked = (this.gameMode === 'normal' && currentScaleType === 'custom');
+                    } else if (radio.value === 'normal') {
+                        radio.checked = (this.gameMode === 'normal' && currentScaleType === 'progressive');
+                    } else {
+                        radio.checked = (radio.value === this.gameMode);
+                    }
+                });
+
+                // Update custom notes visibility in modal
+                const modalCustomNotesDiv = modal.querySelector('#modalCustomNotes');
+                if (modalCustomNotesDiv) {
+                    const customSelected = modal.querySelector('input[name="gameMode"][value="custom"]')?.checked;
+                    modalCustomNotesDiv.style.display = customSelected ? 'block' : 'none';
+                }
+            }
+
+            // Update the options indicator display
+            // Cycle through rhythm combinations during gameplay
+            cycleRhythms() {
+                this.currentRhythmComboIndex = (this.currentRhythmComboIndex + 1) % this.rhythmCombinations.length;
+                const newCombination = this.rhythmCombinations[this.currentRhythmComboIndex];
+
+                // Update enabled rhythms
+                this.enabledRhythms = [...newCombination];
+
+                // Update checkboxes to match
+                document.getElementById('rhythmQuarter').checked = newCombination.includes('quarter');
+                document.getElementById('rhythmEighth').checked = newCombination.includes('eighth');
+                document.getElementById('rhythmTriplet').checked = newCombination.includes('triplet');
+                document.getElementById('rhythmSixteenth').checked = newCombination.includes('sixteenth');
+
+                // Update options indicator
+                this.updateOptionsIndicator();
+
+                // Add pulse animation to rhythm tag
+                setTimeout(() => {
+                    const rhythmTag = document.querySelector('.rhythm-tag');
+                    if (rhythmTag) {
+                        rhythmTag.classList.add('pulse');
+                        setTimeout(() => rhythmTag.classList.remove('pulse'), 600);
+                    }
+                }, 50);
+
+                // Show feedback
+                this.showRhythmChangeMessage(newCombination);
+            }
+
+            // Reset to quarter notes only (long press)
+            resetToQuarterNotes() {
+                this.currentRhythmComboIndex = 0; // First combination is just quarter
+                this.enabledRhythms = ['quarter'];
+
+                // Update checkboxes
+                document.getElementById('rhythmQuarter').checked = true;
+                document.getElementById('rhythmEighth').checked = false;
+                document.getElementById('rhythmTriplet').checked = false;
+                document.getElementById('rhythmSixteenth').checked = false;
+
+                // Update options indicator
+                this.updateOptionsIndicator();
+
+                // Add pulse animation to rhythm tag
+                setTimeout(() => {
+                    const rhythmTag = document.querySelector('.rhythm-tag');
+                    if (rhythmTag) {
+                        rhythmTag.classList.add('pulse');
+                        setTimeout(() => rhythmTag.classList.remove('pulse'), 600);
+                    }
+                }, 50);
+
+                // Show feedback
+                this.showRhythmResetMessage();
+            }
+
+            // Show rhythm selection menu
+            showRhythmMenu() {
+                // Create modal overlay
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10000;
+                    backdrop-filter: blur(10px);
+                `;
+
+                // Create modal content
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    background: linear-gradient(135deg, #667eea, #764ba2);
+                    border-radius: 20px;
+                    padding: 30px;
+                    text-align: center;
+                    color: white;
+                    border: 3px solid white;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                    max-width: 400px;
+                    width: 90%;
+                `;
+
+                // Title
+                const title = document.createElement('div');
+                title.textContent = '🎵 Select Rhythms 🎵';
+                title.style.cssText = `
+                    font-size: 2rem;
+                    font-weight: bold;
+                    margin-bottom: 25px;
+                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+                    font-family: 'Comic Sans MS', sans-serif;
+                `;
+
+                // Rhythm options container
+                const rhythmContainer = document.createElement('div');
+                rhythmContainer.style.cssText = `
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 15px;
+                    margin-bottom: 25px;
+                `;
+
+                // Define rhythm options
+                const rhythmOptions = [
+                    { id: 'rhythmQuarter', symbol: '♩', name: 'Quarter', description: 'Steady beat' },
+                    { id: 'rhythmEighth', symbol: '♫', name: 'Eighth', description: 'Twice as fast' },
+                    { id: 'rhythmTriplet', symbol: '³', name: 'Triplet', description: 'Three per beat' },
+                    { id: 'rhythmSixteenth', symbol: '♬', name: 'Sixteenth', description: 'Very fast' }
+                ];
+
+                // Create rhythm option buttons
+                rhythmOptions.forEach(rhythm => {
+                    const rhythmButton = document.createElement('div');
+                    const isSelected = document.getElementById(rhythm.id).checked;
+
+                    rhythmButton.style.cssText = `
+                        background: ${isSelected ? 'linear-gradient(45deg, #00b894, #00cec9)' : 'rgba(255, 255, 255, 0.2)'};
+                        border: 2px solid ${isSelected ? '#00b894' : 'rgba(255, 255, 255, 0.5)'};
+                        border-radius: 15px;
+                        padding: 20px 10px;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                        font-family: 'Comic Sans MS', sans-serif;
+                        color: white;
+                        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+                    `;
+
+                    rhythmButton.innerHTML = `
+                        <div style="font-size: 2.5rem; margin-bottom: 8px;">${rhythm.symbol}</div>
+                        <div style="font-size: 1.1rem; font-weight: bold; margin-bottom: 5px;">${rhythm.name}</div>
+                        <div style="font-size: 0.9rem; opacity: 0.9;">${rhythm.description}</div>
+                    `;
+
+                    // Add hover effects
+                    rhythmButton.onmouseover = () => {
+                        rhythmButton.style.transform = 'scale(1.05)';
+                        rhythmButton.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.3)';
+                    };
+                    rhythmButton.onmouseout = () => {
+                        rhythmButton.style.transform = 'scale(1)';
+                        rhythmButton.style.boxShadow = 'none';
+                    };
+
+                    // Toggle rhythm on click
+                    rhythmButton.onclick = () => {
+                        const checkbox = document.getElementById(rhythm.id);
+                        checkbox.checked = !checkbox.checked;
+
+                        // Update visual state
+                        const newSelected = checkbox.checked;
+                        rhythmButton.style.background = newSelected ? 'linear-gradient(45deg, #00b894, #00cec9)' : 'rgba(255, 255, 255, 0.2)';
+                        rhythmButton.style.borderColor = newSelected ? '#00b894' : 'rgba(255, 255, 255, 0.5)';
+
+                        // Update enabled rhythms and options indicator
+                        this.updateEnabledRhythms();
+                        this.updateOptionsIndicator();
+                    };
+
+                    rhythmContainer.appendChild(rhythmButton);
+                });
+
+                // Close button
+                const closeBtn = document.createElement('button');
+                closeBtn.textContent = '✅ Done';
+                closeBtn.style.cssText = `
+                    background: linear-gradient(45deg, #fd79a8, #e84393);
+                    color: white;
+                    border: none;
+                    padding: 15px 30px;
+                    border-radius: 25px;
+                    font-size: 1.1rem;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: transform 0.2s;
+                    font-family: 'Comic Sans MS', sans-serif;
+                `;
+
+                closeBtn.onmouseover = () => {
+                    closeBtn.style.transform = 'scale(1.05)';
+                };
+                closeBtn.onmouseout = () => {
+                    closeBtn.style.transform = 'scale(1)';
+                };
+
+                closeBtn.onclick = () => {
+                    document.body.removeChild(overlay);
+                };
+
+                modal.appendChild(title);
+                modal.appendChild(rhythmContainer);
+                modal.appendChild(closeBtn);
+                overlay.appendChild(modal);
+                document.body.appendChild(overlay);
+
+                // Close on overlay click
+                overlay.onclick = (e) => {
+                    if (e.target === overlay) {
+                        document.body.removeChild(overlay);
+                    }
+                };
+            }
+
+            // Cycle through note options and game modes: Fun Levels → Own Notes → Pitch Training → 2 Player
+            cycleNoteAndGameModes() {
+                // Define the cycle order
+                if (!this.pitchTrainingMode && !this.callResponseMode) {
+                    // Currently Fun Levels or Own Notes
+                    const funLevels = document.querySelector('input[name="scaleType"][value="progressive"]').checked;
+                    if (funLevels) {
+                        // Fun Levels → Own Notes
+                        document.querySelector('input[name="scaleType"][value="custom"]').checked = true;
+                        this.usingCustomScale = true;
+                        this.customNoteSelectionMode = true;
+                        const customContainer = document.getElementById('customScaleContainer');
+                        customContainer.style.display = 'none';
+                        this.updateNoteDisplay();
+                        this.showNoteAndGameModeChangeMessage('🎨 Own Notes');
+                    } else {
+                        // Own Notes → Pitch Training
+                        this.pitchTrainingMode = true;
+                        this.callResponseMode = false;
+                        this.gameMode = 'pitch-training';
+                        this.showNoteAndGameModeChangeMessage('🎯 Pitch Training');
+                    }
+                } else if (this.pitchTrainingMode && !this.callResponseMode) {
+                    // Pitch Training → 2 Player
+                    this.pitchTrainingMode = false;
+                    this.callResponseMode = true;
+                    this.gameMode = 'call-response';
+                    this.showNoteAndGameModeChangeMessage('👥 2 Player');
+                } else if (this.callResponseMode) {
+                    // 2 Player → Fun Levels
+                    this.pitchTrainingMode = false;
+                    this.callResponseMode = false;
+                    this.gameMode = 'normal';
+                    document.querySelector('input[name="scaleType"][value="progressive"]').checked = true;
+                    this.usingCustomScale = false;
+                    this.customNoteSelectionMode = false;
+                    const customContainer = document.getElementById('customScaleContainer');
+                    customContainer.style.display = 'none';
+                    this.updateNoteDisplay();
+                    this.showNoteAndGameModeChangeMessage('😎 Fun Levels');
+                }
+
+                // Reset pitch training count and update everything
+                this.pitchTrainingListenCount = 0;
+                this.updateDisplay();
+                this.updateControls();
+                this.updateOptionsIndicator();
+            }
+
+            // Show note and game mode change feedback
+            showNoteAndGameModeChangeMessage(mode) {
+                const message = document.createElement('div');
+                message.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(135deg, #00b894, #00cec9);
+                    color: white;
+                    padding: 15px 25px;
+                    border-radius: 15px;
+                    font-size: 1.1rem;
+                    font-weight: bold;
+                    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+                    z-index: 10001;
+                    border: 2px solid white;
+                    animation: slideInRight 0.3s ease-out;
+                `;
+                message.textContent = `Mode: ${mode}`;
+                document.body.appendChild(message);
+
+                setTimeout(() => {
+                    if (document.body.contains(message)) {
+                        message.remove();
+                    }
+                }, 1500);
+            }
+
+            // Cycle through note options during gameplay
+            cycleNoteOptions() {
+                if (this.gameState === 'stopped') {
+                    this.currentNoteOptionIndex = (this.currentNoteOptionIndex + 1) % this.noteOptions.length;
+                    const newOption = this.noteOptions[this.currentNoteOptionIndex];
+
+                    if (newOption === 'progression') {
+                        document.querySelector('input[name="scaleType"][value="progressive"]').checked = true;
+                        this.usingCustomScale = false;
+                        this.customNoteSelectionMode = false;
+                    } else {
+                        document.querySelector('input[name="scaleType"][value="custom"]').checked = true;
+                        this.usingCustomScale = true;
+                        this.customNoteSelectionMode = true;
+
+                        // Hide checkboxes during custom mode
+                        const customContainer = document.getElementById('customScaleContainer');
+                        customContainer.style.display = 'none';
+                    }
+
+                    this.updateNoteDisplay();
+                    this.updateOptionsIndicator();
+                    this.showNoteOptionChangeMessage(newOption);
+                }
+            }
+
+            // Toggle sound FX
+            toggleSoundFX() {
+                const soundFXCheckbox = document.getElementById('muteCheeringSound');
+                soundFXCheckbox.checked = !soundFXCheckbox.checked;
+                this.updateOptionsIndicator();
+                this.showSoundFXToggleMessage(soundFXCheckbox.checked);
+            }
+
+            // Show rhythm change feedback
+            showRhythmChangeMessage(combination) {
+                const rhythmSymbols = {
+                    quarter: '♩',
+                    eighth: '♫',
+                    triplet: '³',
+                    sixteenth: '♬'
+                };
+                const symbols = combination.map(r => rhythmSymbols[r]).join(' ');
+
+                const message = document.createElement('div');
+                message.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: linear-gradient(135deg, #667eea, #764ba2);
+                    color: white;
+                    padding: 25px 40px;
+                    border-radius: 20px;
+                    font-size: 2rem;
+                    font-weight: 900;
+                    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+                    z-index: 10001;
+                    border: 4px solid white;
+                    animation: slideInRight 0.4s ease-out;
+                    text-align: center;
+                    font-family: 'Comic Sans MS', sans-serif;
+                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+                `;
+                message.innerHTML = `🎵 Rhythms: <span style="font-size: 2.5rem; color: #000000;">${symbols}</span> 🎵`;
+                document.body.appendChild(message);
+
+                setTimeout(() => {
+                    if (document.body.contains(message)) {
+                        message.remove();
+                    }
+                }, 2000);
+            }
+
+            // Show rhythm reset feedback
+            showRhythmResetMessage() {
+                const message = document.createElement('div');
+                message.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: linear-gradient(135deg, #f093fb, #f5576c);
+                    color: white;
+                    padding: 25px 40px;
+                    border-radius: 20px;
+                    font-size: 2rem;
+                    font-weight: 900;
+                    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+                    z-index: 10001;
+                    border: 4px solid white;
+                    animation: slideInRight 0.4s ease-out;
+                    text-align: center;
+                    font-family: 'Comic Sans MS', sans-serif;
+                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+                `;
+                message.innerHTML = `🔄 Reset to <span style="font-size: 2.5rem; color: #000000;">♩</span> Quarter Notes 🔄`;
+                document.body.appendChild(message);
+
+                setTimeout(() => {
+                    if (document.body.contains(message)) {
+                        message.remove();
+                    }
+                }, 2000);
+            }
+
+            // Show note option change feedback
+            showNoteOptionChangeMessage(option) {
+                const optionText = option === 'progression' ? '😎 Fun Levels' : '🎨 My Own Notes';
+
+                const message = document.createElement('div');
+                message.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(135deg, #00b894, #00cec9);
+                    color: white;
+                    padding: 15px 25px;
+                    border-radius: 15px;
+                    font-size: 1.1rem;
+                    font-weight: bold;
+                    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+                    z-index: 10001;
+                    border: 2px solid white;
+                    animation: slideInRight 0.3s ease-out;
+                `;
+                message.textContent = `Notes: ${optionText}`;
+                document.body.appendChild(message);
+
+                setTimeout(() => {
+                    if (document.body.contains(message)) {
+                        message.remove();
+                    }
+                }, 1500);
+            }
+
+            // Show sound FX toggle feedback
+            showSoundFXToggleMessage(enabled) {
+                const statusText = enabled ? '🔊 Sound FX On' : '🔇 Sound FX Off';
+
+                const message = document.createElement('div');
+                message.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(135deg, #fd79a8, #e84393);
+                    color: white;
+                    padding: 15px 25px;
+                    border-radius: 15px;
+                    font-size: 1.1rem;
+                    font-weight: bold;
+                    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+                    z-index: 10001;
+                    border: 2px solid white;
+                    animation: slideInRight 0.3s ease-out;
+                `;
+                message.textContent = statusText;
+                document.body.appendChild(message);
+
+                setTimeout(() => {
+                    if (document.body.contains(message)) {
+                        message.remove();
+                    }
+                }, 1500);
+            }
+
+            updateOptionsIndicator() {
+                const indicator = document.getElementById('optionsIndicator');
+
+                // Get enabled rhythms
+                const enabledRhythms = [];
+                if (document.getElementById('rhythmQuarter').checked) enabledRhythms.push('♩');
+                if (document.getElementById('rhythmEighth').checked) enabledRhythms.push('♫');
+                if (document.getElementById('rhythmTriplet').checked) enabledRhythms.push('³');
+                if (document.getElementById('rhythmSixteenth').checked) enabledRhythms.push('♬');
+
+                // Get note mode and game mode combined
+                let noteAndGameMode;
+                if (this.pitchTrainingMode) {
+                    noteAndGameMode = '🎯 Pitch Training';
+                } else if (this.callResponseMode) {
+                    noteAndGameMode = '👥 2 Player';
+                } else {
+                    const funLevels = document.querySelector('input[name="scaleType"][value="progressive"]').checked;
+                    noteAndGameMode = funLevels ? '😎 Fun Levels' : '🎨 Own Notes';
+                }
+
+                // Get other options
+                const soundFX = document.getElementById('muteCheeringSound').checked ? '🔊 Sound FX' : '🔇 Silent';
+
+                // Get game mode
+                const gameModeNames = {
+                    'normal': '🎮 Normal',
+                    'pitch-training': '🎯 Pitch Training',
+                    'call-response': '👥 Call & Response'
+                };
+                const gameMode = gameModeNames[this.gameMode] || '� Normal';
+
+                // Update indicator
+                indicator.innerHTML = `
+                    <div class="option-tag rhythm-tag" data-option="rhythm">🎵 Rhythms: <span style="font-size: 1.3rem; color: #000000;">${enabledRhythms.join(' ')}</span></div>
+                    <div class="option-tag note-tag" data-option="notes">Notes: ${noteAndGameMode}</div>
+                    <div class="option-tag sound-tag" data-option="sound">${soundFX}</div>
+                `;
+
+                // Add event listeners to option tags
+                const rhythmTag = indicator.querySelector('.rhythm-tag');
+                const noteTag = indicator.querySelector('.note-tag');
+                const soundTag = indicator.querySelector('.sound-tag');
+
+                // Rhythm tag - show rhythm selection menu any time
+                if (rhythmTag) {
+                    rhythmTag.addEventListener('click', () => {
+                        this.showRhythmMenu();
+                    });
+                }
+
+                // Note tag - cycle through all four modes only when stopped
+                if (noteTag) {
+                    noteTag.addEventListener('click', () => {
+                        if (this.gameState === 'stopped') {
+                            this.cycleNoteAndGameModes();
+                        }
+                        // Do nothing during gameplay
+                    });
+                }
+
+                // Sound tag - always toggle
+                if (soundTag) {
+                    soundTag.addEventListener('click', () => {
+                        this.toggleSoundFX();
+                    });
+                }
+            }            // Start a new round with a fresh sequence for the current level
             startRound() {
                 // Play start round sound only if Sound FX is enabled
                 const soundFxEnabled = document.getElementById('muteCheeringSound').checked;
@@ -2060,6 +3411,15 @@
                             transform: translateY(0);
                         }
                     }
+                    @keyframes bonusPulse {
+                        0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+                        50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+                        100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+                    }
+                    @keyframes slideInRight {
+                        0% { transform: translateX(100%); opacity: 0; }
+                        100% { transform: translateX(0); opacity: 1; }
+                    }
                 `;
                 document.head.appendChild(style);
 
@@ -2164,17 +3524,49 @@
                 const startBtn = document.getElementById('startBtn');
                 const stopBtn = document.getElementById('stopBtn');
                 const listenAgainBtn = document.getElementById('listenAgainBtn');
+                const optionsBtn = document.getElementById('optionsBtn');
+                const helpBtn = document.getElementById('helpBtn');
+                const controlsDiv = document.querySelector('.controls');
                 const scaleRadios = document.querySelectorAll('input[name="scaleType"]');
 
+                // Update Listen Again button text based on mode and available listens
+                if (this.pitchTrainingMode) {
+                    const remainingListens = 2 - this.pitchTrainingListenCount;
+                    listenAgainBtn.innerHTML = `👂 Listen Again (${remainingListens})`;
+                } else if (this.callResponseMode) {
+                    listenAgainBtn.innerHTML = '👂 Listen Again';
+                } else {
+                    // Normal mode - show remaining listens based on bonus system
+                    const remainingListens = this.normalListenAgainCount - (this.listenAgainUsed ? 1 : 0);
+                    listenAgainBtn.innerHTML = `👂 Listen Again (${remainingListens})`;
+                }
+
                 if (this.gameState === 'stopped') {
+                    // Game stopped - show Start Game, hide Stop
+                    startBtn.textContent = '🎮 Start Game';
                     startBtn.disabled = false;
-                    stopBtn.disabled = true;
+                    startBtn.style.display = 'block';
+                    stopBtn.style.display = 'none';
                     listenAgainBtn.disabled = true;
+
+                    // Show all buttons when stopped
+                    optionsBtn.style.display = 'block';
+                    helpBtn.style.display = 'block';
+                    controlsDiv.classList.remove('during-gameplay');
+
                     // Enable scale selection when game is stopped
                     scaleRadios.forEach(radio => radio.disabled = false);
                 } else {
-                    startBtn.disabled = true;
+                    // Game playing - show Stop, hide Start Game
+                    stopBtn.textContent = '🛑 Stop';
                     stopBtn.disabled = false;
+                    stopBtn.style.display = 'block';
+                    startBtn.style.display = 'none';
+
+                    // During gameplay - only show essential buttons
+                    optionsBtn.style.display = 'block'; // Keep options available
+                    helpBtn.style.display = 'none'; // Hide help during gameplay
+                    controlsDiv.classList.add('during-gameplay');
 
                     // Listen Again button logic depends on game mode
                     if (this.callResponseMode) {
@@ -2184,8 +3576,9 @@
                         // In pitch training, allow 2 Listen Again uses
                         listenAgainBtn.disabled = !(this.gameState === 'listening' && this.isPlayerTurn && this.pitchTrainingListenCount < 2);
                     } else {
-                        // Normal mode - enabled only during listening state, not used yet this level
-                        listenAgainBtn.disabled = !(this.gameState === 'listening' && this.isPlayerTurn && !this.listenAgainUsed);
+                        // Normal mode - check if any listens remain
+                        const remainingListens = this.normalListenAgainCount - (this.listenAgainUsed ? 1 : 0);
+                        listenAgainBtn.disabled = !(this.gameState === 'listening' && this.isPlayerTurn && remainingListens > 0);
                     }
 
                     // Disable scale selection during active game

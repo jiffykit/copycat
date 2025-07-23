@@ -31,15 +31,13 @@
                     <label><input type="checkbox" id="rhythmTriplet"> ³ Triplets</label>
                     <label><input type="checkbox" id="rhythmSixteenth"> ♬ Sixteenth Notes</label>
                 </div>
-                <div class="rhythm-toggles" style="margin-top: 15px;">
-                    <label><input type="checkbox" id="muteCheeringSound" checked> 🔊 Cheering Sound</label>
-                </div>
             </div>
             <div class="scale-controls">
                 <h4>🎹 Note Options:</h4>
                 <div class="scale-options">
                     <label><input type="radio" name="scaleType" value="progressive" checked> 🌟 Fun Levels</label>
                     <label><input type="radio" name="scaleType" value="custom"> 🎨 My Own Notes</label>
+                    <label><input type="checkbox" id="muteCheeringSound" checked> 🔊 Sound FX</label>
                 </div>
                 <div class="custom-scale" id="customScaleContainer" style="display: none;">
                     <div class="note-toggles">
@@ -743,10 +741,10 @@
                 // Visual and audio for each subdivision
                 for (let i = 0; i < tapsToPlay; i++) {
                     setTimeout(() => {
-                        // Visual flash - duration matches note duration
-                        light.classList.add('active', 'playing');
+                        // Visual flash - duration matches note duration (only 'playing' class for sequence)
+                        light.classList.add('playing');
                         setTimeout(() => {
-                            light.classList.remove('active', 'playing');
+                            light.classList.remove('playing');
                         }, noteDuration);
 
                         // Audio with Shepard tone and proper duration
@@ -763,12 +761,12 @@
 
                 // Mark as used for this level
                 this.listenAgainUsed = true;
-                
+
                 // Temporarily disable player turn and replay sequence
                 this.isPlayerTurn = false;
                 this.gameState = 'playing';
                 this.updateControls(); // Update button states
-                
+
                 // Replay the current sequence
                 this.playSequence();
             }
@@ -1070,9 +1068,14 @@
                 const rhythmBonus = this.currentLevelRhythmBonus; // Use the tracked rhythm bonus for this level
 
                 this.levelScore = baseLevelScore + rhythmBonus; // Ensure correct total
-                this.totalScore += this.levelScore; // Add ENTIRE level score to total at end of level                // Play kids cheering sound
-                const cheeringAudio = new Audio('kids-cheering-sound-effect.mp3');
-                cheeringAudio.play().catch(e => console.log('Audio play failed:', e));
+                this.totalScore += this.levelScore; // Add ENTIRE level score to total at end of level
+
+                // Play kids cheering sound only if Sound FX is enabled
+                const soundFxEnabled = document.getElementById('muteCheeringSound').checked;
+                if (soundFxEnabled) {
+                    const cheeringAudio = new Audio('kids-cheering-sound-effect.mp3');
+                    cheeringAudio.play().catch(e => console.log('Audio play failed:', e));
+                }
 
                 // Create celebration overlay
                 const overlay = document.createElement('div');
@@ -1264,10 +1267,10 @@
                 } else {
                     startBtn.disabled = true;
                     stopBtn.disabled = false;
-                    
+
                     // Listen Again button: enabled only during listening state, not used yet this level
                     listenAgainBtn.disabled = !(this.gameState === 'listening' && this.isPlayerTurn && !this.listenAgainUsed);
-                    
+
                     // Disable scale selection during active game
                     scaleRadios.forEach(radio => radio.disabled = true);
                 }

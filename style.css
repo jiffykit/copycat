@@ -113,6 +113,7 @@ body {
 
 .rhythm-toggles,
 .scale-options,
+.game-mode-options,
 .note-toggles {
     display: flex;
     justify-content: center;
@@ -122,6 +123,7 @@ body {
 
 .rhythm-toggles label,
 .scale-options label,
+.game-mode-options label,
 .note-toggles label {
     display: flex;
     align-items: center;
@@ -139,6 +141,7 @@ body {
 
 .rhythm-toggles label:hover,
 .scale-options label:hover,
+.game-mode-options label:hover,
 .note-toggles label:hover {
     background: #74b9ff;
     color: white;
@@ -147,6 +150,7 @@ body {
 
 .rhythm-toggles input,
 .scale-options input,
+.game-mode-options input,
 .note-toggles input {
     margin: 0;
     cursor: pointer;
@@ -247,7 +251,7 @@ body {
     margin-bottom: 20px;
 }
 
-.clock-container {
+.notes-container {
     position: relative;
     width: 400px;
     height: 180px;
@@ -255,7 +259,7 @@ body {
     transition: all 0.5s ease;
 }
 
-.clock-container.linear-layout {
+.notes-container.linear-layout {
     display: grid;
     grid-template-rows: 60px 90px;
     grid-template-columns: repeat(14, 1fr);
@@ -350,7 +354,7 @@ body {
     overflow: visible;
 }
 
-.clock-container.circular-layout {
+.notes-container.circular-layout {
     width: 400px;
     height: 400px;
 }
@@ -550,12 +554,12 @@ body {
         padding: 10px;
     }
 
-    .clock-container {
+    .notes-container {
         width: 320px;
         height: 320px;
     }
 
-    .clock-container.linear-layout {
+    .notes-container.linear-layout {
         max-width: 95%;
         gap: 3px;
         padding: 5px;
@@ -608,12 +612,12 @@ body {
         padding: 8px;
     }
 
-    .clock-container {
+    .notes-container {
         width: 280px;
         height: 280px;
     }
 
-    .clock-container.linear-layout {
+    .notes-container.linear-layout {
         max-width: 95%;
         gap: 1px;
         padding: 2px;

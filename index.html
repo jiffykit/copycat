@@ -12,6 +12,13 @@
     <div class="game-container">
         <header class="game-header">
             <h1>🎵 Music Match 🎵</h1>
+            <div id="playerNameDisplay"
+                style="text-align: center; margin: 10px 0; font-size: 1.2rem; font-weight: bold; color: #6c5ce7; display: none; cursor: pointer; transition: all 0.2s; padding: 5px 10px; border-radius: 15px;"
+                onmouseover="this.style.backgroundColor='rgba(108, 92, 231, 0.1)'; this.style.transform='scale(1.05)'"
+                onmouseout="this.style.backgroundColor='transparent'; this.style.transform='scale(1)'"
+                title="Click to view your progress and statistics">
+                ⭐ <span id="currentPlayerName"></span>
+            </div>
             <div class="game-info">
                 <div class="score">Score: <span id="totalScore">0</span></div>
                 <div class="score">Round: <span id="round">1</span></div>
@@ -23,6 +30,15 @@
                 <div class="option-tag">Rhythms: ♩</div>
                 <div class="option-tag">Notes: 😎 Fun Levels</div>
                 <div class="option-tag">🔊 Sound FX</div>
+            </div>
+
+            <!-- My Own Notes checkbox - always visible -->
+            <div style="text-align: center; margin: 10px 0;">
+                <label id="myOwnNotesCheckboxContainer"
+                    style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 15px; border-radius: 12px; cursor: pointer; font-size: 1rem; border: 2px solid #ddd; transition: all 0.2s;">
+                    <input type="checkbox" id="useMyOwnNotesGlobal" style="margin-right: 8px; transform: scale(1.2);">
+                    <span>🎨 Use My Own Notes</span>
+                </label>
             </div>
 
             <div class="controls">
@@ -122,6 +138,19 @@
 
         class MemoryRhythmGame {
             constructor() {
+                // Player management
+                this.playerName = '';
+                this.player2Name = ''; // For 2-player mode
+                this.playerStats = {
+                    totalGamesPlayed: 0,
+                    bestLevel: 1,
+                    bestScore: 0,
+                    rhythmAccuracyHistory: [],
+                    pitchAccuracyHistory: [],
+                    sessionScores: []
+                };
+                this.gameStarted = false; // Track if welcome flow is complete
+
                 this.audioContext = null;
                 this.masterGain = null;
                 this.gameSequence = [];
@@ -136,10 +165,11 @@
                 this.currentTapCount = 0; // Track taps for current item
                 this.tapStartTime = 0; // Track when player started tapping current item
                 this.currentItemStartTime = 0; // Track when current sequence item started
+                this.currentItemTapTimes = []; // Track individual tap times for current item
                 this.usingCustomScale = false; // Track if using custom scale
                 this.customNotes = ['C', 'E', 'G']; // Default custom scale
                 this.customNoteSelectionMode = false; // Track if in interactive note selection mode
-                this.enabledRhythms = ['quarter']; // Start with only quarters - super simple
+                this.enabledRhythms = ['quarter', 'eighth']; // Start with quarters and eighths for testing
                 this.currentLevel = 1; // Current level (affects available notes)
                 this.correctInRow = 0; // Track consecutive correct answers
                 this.lastNoteIndex = -1; // Track last note to avoid repetition
@@ -188,6 +218,7 @@
                 this.rhythmAccuracy = 0;
                 this.perfectTimingCount = 0;
                 this.totalTimingAttempts = 0;
+                this.sessionRhythmAccuracySum = 0; // Sum of all rhythm accuracy scores this session
                 this.currentLevelRhythmBonus = 0; // Track rhythm bonus for current level only
                 this.listenAgainUsed = false; // Track if Listen Again has been used this level
 
@@ -266,6 +297,479 @@
 
                 // Track active oscillators for cleanup
                 this.activeOscillators = [];
+
+                // Load player data and always show welcome screen
+                this.loadPlayerData();
+                // Always show welcome screen on startup
+                this.showWelcomeScreen();
+            }
+
+            // Player data management
+            loadPlayerData() {
+                const savedData = localStorage.getItem('musicMatchPlayerData');
+                if (savedData) {
+                    try {
+                        const data = JSON.parse(savedData);
+                        this.playerName = data.playerName || '';
+                        this.player2Name = data.player2Name || '';
+                        this.playerStats = { ...this.playerStats, ...data.playerStats };
+                        this.gameStarted = data.gameStarted || false;
+                    } catch (e) {
+                        console.log('Error loading player data, starting fresh');
+                        this.gameStarted = false;
+                    }
+                } else {
+                    this.gameStarted = false;
+                }
+            }
+
+            savePlayerData() {
+                const data = {
+                    playerName: this.playerName,
+                    player2Name: this.player2Name,
+                    playerStats: this.playerStats,
+                    gameStarted: this.gameStarted
+                };
+                localStorage.setItem('musicMatchPlayerData', JSON.stringify(data));
+            }
+
+            updatePlayerStats(gameScore, gameLevel, rhythmAccuracy, pitchAccuracy) {
+                this.playerStats.totalGamesPlayed++;
+                this.playerStats.bestScore = Math.max(this.playerStats.bestScore, gameScore);
+                this.playerStats.bestLevel = Math.max(this.playerStats.bestLevel, gameLevel);
+
+                // Add to session history (keep last 20 sessions)
+                this.playerStats.sessionScores.push({
+                    score: gameScore,
+                    level: gameLevel,
+                    date: new Date().toLocaleDateString(),
+                    rhythmAccuracy: rhythmAccuracy,
+                    pitchAccuracy: pitchAccuracy
+                });
+
+                if (this.playerStats.sessionScores.length > 20) {
+                    this.playerStats.sessionScores.shift();
+                }
+
+                // Track accuracy history (keep last 10 games)
+                this.playerStats.rhythmAccuracyHistory.push(rhythmAccuracy);
+                this.playerStats.pitchAccuracyHistory.push(pitchAccuracy);
+
+                if (this.playerStats.rhythmAccuracyHistory.length > 10) {
+                    this.playerStats.rhythmAccuracyHistory.shift();
+                }
+                if (this.playerStats.pitchAccuracyHistory.length > 10) {
+                    this.playerStats.pitchAccuracyHistory.shift();
+                }
+
+                this.savePlayerData();
+            }
+
+            // Welcome screen
+            showWelcomeScreen() {
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(135deg, #667eea, #764ba2);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10001;
+                    backdrop-filter: blur(10px);
+                `;
+
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+                    border-radius: 20px;
+                    padding: 40px;
+                    text-align: center;
+                    color: #2d3436;
+                    border: 3px solid white;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                    max-width: 500px;
+                    width: 90%;
+                    animation: fadeInUp 0.6s ease-out;
+                `;
+
+                const welcomeMessage = this.playerName ?
+                    `Welcome back, <strong>${this.playerName}</strong>! 🎉` :
+                    'Welcome to Music Match! 🎵';
+
+                modal.innerHTML = `
+                    <h1 style="font-size: 2.5rem; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🎵 Music Match 🎵</h1>
+                    
+                    <div style="font-size: 1.2rem; margin-bottom: 25px; line-height: 1.6;">
+                        ${welcomeMessage}
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 15px; margin-bottom: 25px; text-align: left;">
+                        <p style="margin: 0 0 15px 0; font-size: 1.1rem;"><strong>🎮 How to Play:</strong></p>
+                        <p style="margin: 0 0 10px 0;">• Listen to the musical pattern and repeat it back</p>
+                        <p style="margin: 0 0 10px 0;">• Match both the notes and rhythm timing</p>
+                        <p style="margin: 0 0 10px 0;">• Progress through levels with more complex patterns</p>
+                        <p style="margin: 0;">• Challenge friends in 2-Player mode! 👥</p>
+                    </div>
+
+                    <div id="nameInputSection">
+                        <div style="margin-bottom: 20px;">
+                            <input type="text" id="playerNameInput" placeholder="Enter your name" 
+                                value="${this.playerName}" 
+                                style="padding: 12px 20px; border: 2px solid #ddd; border-radius: 25px; font-size: 1.1rem; width: 70%; text-align: center; margin-bottom: 15px;">
+                        </div>
+                        
+                        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                            ${this.playerName ?
+                        `<button id="continueAsBtn" style="background: linear-gradient(45deg, #00b894, #00cec9); color: white; border: none; padding: 12px 20px; border-radius: 25px; font-size: 1rem; font-weight: bold; cursor: pointer;">Continue as ${this.playerName}</button>` :
+                        ''
+                    }
+                            <button id="newPlayerBtn" style="background: linear-gradient(45deg, #fd79a8, #e84393); color: white; border: none; padding: 12px 20px; border-radius: 25px; font-size: 1rem; font-weight: bold; cursor: pointer;">${this.playerName ? 'New Player' : 'Start Playing'}</button>
+                            ${this.playerName ?
+                        '<button id="viewStatsBtn" style="background: linear-gradient(45deg, #6c5ce7, #a29bfe); color: white; border: none; padding: 12px 20px; border-radius: 25px; font-size: 1rem; font-weight: bold; cursor: pointer;">📊 View Progress</button>' :
+                        ''
+                    }
+                        </div>
+                    </div>
+                `;
+
+                // Add fade in animation
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes fadeInUp {
+                        from {
+                            opacity: 0;
+                            transform: translateY(30px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateY(0);
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+
+                overlay.appendChild(modal);
+                document.body.appendChild(overlay);
+
+                // Event listeners
+                const nameInput = modal.querySelector('#playerNameInput');
+                const continueBtn = modal.querySelector('#continueAsBtn');
+                const newPlayerBtn = modal.querySelector('#newPlayerBtn');
+                const viewStatsBtn = modal.querySelector('#viewStatsBtn');
+
+                const startGame = (name) => {
+                    if (name.trim()) {
+                        this.playerName = name.trim();
+                        this.gameStarted = true;
+                        this.savePlayerData();
+                        document.body.removeChild(overlay);
+                        this.updateDisplay(); // Update display to show player name
+                    } else {
+                        nameInput.style.border = '2px solid #e74c3c';
+                        nameInput.placeholder = 'Please enter your name!';
+                    }
+                };
+
+                nameInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        startGame(nameInput.value);
+                    }
+                });
+
+                if (continueBtn) {
+                    continueBtn.onclick = () => {
+                        this.gameStarted = true;
+                        this.savePlayerData();
+                        document.body.removeChild(overlay);
+                        this.updateDisplay();
+                    };
+                }
+
+                newPlayerBtn.onclick = () => {
+                    startGame(nameInput.value);
+                };
+
+                if (viewStatsBtn) {
+                    viewStatsBtn.onclick = () => {
+                        document.body.removeChild(overlay);
+                        this.showProgressChart();
+                    };
+                }
+            }
+
+            // Progress chart and statistics
+            showProgressChart() {
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    display: flex;
+                    justify-content: center;
+                    align-items: flex-start;
+                    padding: 20px 0;
+                    z-index: 10001;
+                    backdrop-filter: blur(10px);
+                    overflow-y: auto;
+                `;
+
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    background: linear-gradient(135deg, #a8e6cf, #88d8c0);
+                    border-radius: 20px;
+                    padding: 30px;
+                    text-align: center;
+                    color: #2d3436;
+                    border: 3px solid white;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                    max-width: 700px;
+                    width: 90%;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                `;
+
+                const createProgressBar = (label, percentage, color) => {
+                    return `
+                        <div style="margin: 15px 0;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span style="font-weight: bold;">${label}</span>
+                                <span>${Math.round(percentage)}%</span>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.3); border-radius: 10px; height: 20px; overflow: hidden;">
+                                <div style="background: ${color}; height: 100%; width: ${percentage}%; transition: width 0.3s ease; border-radius: 10px;"></div>
+                            </div>
+                        </div>
+                    `;
+                };
+
+                const createMiniChart = (data, label, color) => {
+                    if (!data || data.length === 0) return `<div style="text-align: center; color: #666;">No data yet</div>`;
+
+                    const max = Math.max(...data);
+                    const min = Math.min(...data);
+                    const range = max - min || 1;
+
+                    return `
+                        <div style="margin: 20px 0;">
+                            <h4 style="margin-bottom: 10px;">${label}</h4>
+                            <div style="display: flex; align-items: end; justify-content: center; gap: 3px; height: 60px; background: rgba(255,255,255,0.2); padding: 10px; border-radius: 10px;">
+                                ${data.map(value => {
+                        const height = range > 0 ? ((value - min) / range) * 40 + 10 : 25;
+                        return `<div style="width: 20px; height: ${height}px; background: ${color}; border-radius: 2px;" title="${Math.round(value)}%"></div>`;
+                    }).join('')}
+                            </div>
+                            <div style="font-size: 0.9rem; margin-top: 5px;">Average: ${Math.round(data.reduce((a, b) => a + b, 0) / data.length)}%</div>
+                        </div>
+                    `;
+                };
+
+                // Calculate averages
+                const avgRhythm = this.playerStats.rhythmAccuracyHistory.length > 0 ?
+                    this.playerStats.rhythmAccuracyHistory.reduce((a, b) => a + b, 0) / this.playerStats.rhythmAccuracyHistory.length : 0;
+                const avgPitch = this.playerStats.pitchAccuracyHistory.length > 0 ?
+                    this.playerStats.pitchAccuracyHistory.reduce((a, b) => a + b, 0) / this.playerStats.pitchAccuracyHistory.length : 0;
+
+                modal.innerHTML = `
+                    <h2 style="font-size: 2.2rem; margin-bottom: 25px; color: #2d3436;">📊 ${this.playerName}'s Progress 📊</h2>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+                        <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 15px;">
+                            <h3 style="margin-bottom: 15px; color: #6c5ce7;">🏆 High Scores</h3>
+                            <div style="font-size: 1.2rem; margin: 10px 0;"><strong>Best Score:</strong> ${this.playerStats.bestScore.toLocaleString()}</div>
+                            <div style="font-size: 1.2rem; margin: 10px 0;"><strong>Best Level:</strong> ${this.playerStats.bestLevel}</div>
+                            <div style="font-size: 1.1rem; margin: 10px 0;"><strong>Games Played:</strong> ${this.playerStats.totalGamesPlayed}</div>
+                        </div>
+                        
+                        <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 15px;">
+                            <h3 style="margin-bottom: 15px; color: #00b894;">📈 Current Averages</h3>
+                            ${createProgressBar('Rhythm Accuracy', avgRhythm, 'linear-gradient(45deg, #667eea, #764ba2)')}
+                            ${createProgressBar('Pitch Accuracy', avgPitch, 'linear-gradient(45deg, #00b894, #00cec9)')}
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+                        <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 15px;">
+                            ${createMiniChart(this.playerStats.rhythmAccuracyHistory, '🥁 Rhythm Progress (Last 10 Games)', 'linear-gradient(45deg, #667eea, #764ba2)')}
+                        </div>
+                        
+                        <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 15px;">
+                            ${createMiniChart(this.playerStats.pitchAccuracyHistory, '🎵 Pitch Progress (Last 10 Games)', 'linear-gradient(45deg, #00b894, #00cec9)')}
+                        </div>
+                    </div>
+
+                    ${this.playerStats.sessionScores.length > 0 ? `
+                        <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 15px; margin-bottom: 25px;">
+                            <h3 style="margin-bottom: 15px; color: #e17055;">📅 Recent Sessions</h3>
+                            <div style="max-height: 150px; overflow-y: auto;">
+                                ${this.playerStats.sessionScores.slice(-5).reverse().map(session => `
+                                    <div style="display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #ddd; font-size: 0.95rem;">
+                                        <span>${session.date}</span>
+                                        <span>Score: ${session.score.toLocaleString()}</span>
+                                        <span>Level: ${session.level}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                        <button id="backToWelcomeBtn" style="background: linear-gradient(45deg, #fd79a8, #e84393); color: white; border: none; padding: 12px 20px; border-radius: 25px; font-size: 1rem; font-weight: bold; cursor: pointer;">◀️ Back</button>
+                        <button id="startFromStatsBtn" style="background: linear-gradient(45deg, #00b894, #00cec9); color: white; border: none; padding: 12px 20px; border-radius: 25px; font-size: 1rem; font-weight: bold; cursor: pointer;">🎮 Start Playing</button>
+                        <button id="newUserFromStatsBtn" style="background: linear-gradient(45deg, #6c5ce7, #a29bfe); color: white; border: none; padding: 12px 20px; border-radius: 25px; font-size: 1rem; font-weight: bold; cursor: pointer;">👤 New User</button>
+                        <button id="resetStatsBtn" style="background: linear-gradient(45deg, #e74c3c, #c0392b); color: white; border: none; padding: 12px 20px; border-radius: 25px; font-size: 1rem; font-weight: bold; cursor: pointer;">🗑️ Reset Stats</button>
+                    </div>
+                `;
+
+                overlay.appendChild(modal);
+                document.body.appendChild(overlay);
+
+                // Event listeners
+                modal.querySelector('#backToWelcomeBtn').onclick = () => {
+                    document.body.removeChild(overlay);
+                    this.showWelcomeScreen();
+                };
+
+                modal.querySelector('#startFromStatsBtn').onclick = () => {
+                    document.body.removeChild(overlay);
+                    this.gameStarted = true;
+                    this.savePlayerData();
+                    this.updateDisplay();
+                };
+
+                modal.querySelector('#newUserFromStatsBtn').onclick = () => {
+                    document.body.removeChild(overlay);
+                    this.startNewUser();
+                };
+
+                modal.querySelector('#resetStatsBtn').onclick = () => {
+                    if (confirm('Are you sure you want to reset all your statistics? This cannot be undone.')) {
+                        this.playerStats = {
+                            totalGamesPlayed: 0,
+                            bestLevel: 1,
+                            bestScore: 0,
+                            rhythmAccuracyHistory: [],
+                            pitchAccuracyHistory: [],
+                            sessionScores: []
+                        };
+                        this.savePlayerData();
+                        document.body.removeChild(overlay);
+                        this.showProgressChart(); // Refresh the chart
+                    }
+                };
+
+                // Close on overlay click
+                overlay.onclick = (e) => {
+                    if (e.target === overlay) {
+                        document.body.removeChild(overlay);
+                        this.showWelcomeScreen();
+                    }
+                };
+            }
+
+            // Start new user flow - clear current data and show welcome screen
+            startNewUser() {
+                // Clear current user data
+                this.playerName = '';
+                this.player2Name = '';
+                this.gameStarted = false;
+                this.playerStats = {
+                    totalGamesPlayed: 0,
+                    bestLevel: 1,
+                    bestScore: 0,
+                    rhythmAccuracyHistory: [],
+                    pitchAccuracyHistory: [],
+                    sessionScores: []
+                };
+
+                // Save the cleared data
+                this.savePlayerData();
+
+                // Update display to hide player name
+                this.updateDisplay();
+
+                // Show welcome screen for new user
+                this.showWelcomeScreen();
+            }
+
+            // Prompt for Player 2 name in 2-player mode
+            promptForPlayer2Name() {
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10001;
+                    backdrop-filter: blur(10px);
+                `;
+
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    background: linear-gradient(135deg, #fd79a8, #fdcb6e);
+                    border-radius: 20px;
+                    padding: 30px;
+                    text-align: center;
+                    color: white;
+                    border: 3px solid white;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                    max-width: 400px;
+                    width: 90%;
+                `;
+
+                modal.innerHTML = `
+                    <h2 style="font-size: 2rem; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">👥 2 Player Mode! 👥</h2>
+                    
+                    <div style="font-size: 1.1rem; margin-bottom: 20px;">
+                        <strong>${this.playerName}</strong> will create patterns<br>
+                        <strong>Player 2</strong> will try to match them!
+                    </div>
+                    
+                    <div style="margin-bottom: 25px;">
+                        <input type="text" id="player2NameInput" placeholder="Enter Player 2's name" 
+                            style="padding: 12px 20px; border: 2px solid white; border-radius: 25px; font-size: 1.1rem; width: 80%; text-align: center; margin-bottom: 15px;">
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                        <button id="skipPlayer2NameBtn" style="background: rgba(255,255,255,0.2); color: white; border: 2px solid white; padding: 12px 20px; border-radius: 25px; font-size: 1rem; font-weight: bold; cursor: pointer;">Skip (use "Player 2")</button>
+                        <button id="setPlayer2NameBtn" style="background: linear-gradient(45deg, #00b894, #00cec9); color: white; border: none; padding: 12px 20px; border-radius: 25px; font-size: 1rem; font-weight: bold; cursor: pointer;">Let's Play!</button>
+                    </div>
+                `;
+
+                overlay.appendChild(modal);
+                document.body.appendChild(overlay);
+
+                const nameInput = modal.querySelector('#player2NameInput');
+                const skipBtn = modal.querySelector('#skipPlayer2NameBtn');
+                const setBtn = modal.querySelector('#setPlayer2NameBtn');
+
+                const finishSetup = (name = '') => {
+                    this.player2Name = name.trim() || 'Player 2';
+                    this.savePlayerData();
+                    document.body.removeChild(overlay);
+                    this.showNoteAndGameModeChangeMessage('👥 2 Player');
+                    this.updateDisplay();
+                };
+
+                nameInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        finishSetup(nameInput.value);
+                    }
+                });
+
+                skipBtn.onclick = () => finishSetup();
+                setBtn.onclick = () => finishSetup(nameInput.value);
             }
 
             // Add interactive styles for option tags
@@ -366,6 +870,23 @@
                 });
 
                 document.getElementById('helpBtn').addEventListener('click', () => this.showHelpModal());
+
+                // Player name display click - show progress chart
+                document.getElementById('playerNameDisplay').addEventListener('click', () => {
+                    if (this.playerName && this.gameStarted) {
+                        this.showProgressChart();
+                    }
+                });
+
+                // Global My Own Notes checkbox
+                document.getElementById('useMyOwnNotesGlobal').addEventListener('change', (e) => {
+                    // Only allow changes if not in Fun Levels mode
+                    if (!this.pitchTrainingMode && !this.callResponseMode && !this.usingCustomScale) {
+                        e.preventDefault();
+                        return;
+                    }
+                    this.toggleMyOwnNotesInMode(e.target.checked);
+                });
 
                 // Rhythm toggle controls
                 document.getElementById('rhythmQuarter').addEventListener('change', () => this.updateEnabledRhythms());
@@ -1221,6 +1742,16 @@
                 this.lives = 3; // Reset lives to 3
                 this.currentSequenceIndex = 0;
                 this.currentTapCount = 0;
+                this.currentItemTapTimes = []; // Reset tap times tracking
+
+                // Reset scoring and rhythm accuracy tracking
+                this.totalScore = 0;
+                this.levelScore = 0;
+                this.rhythmAccuracy = 0;
+                this.perfectTimingCount = 0;
+                this.totalTimingAttempts = 0;
+                this.sessionRhythmAccuracySum = 0;
+                this.currentLevelRhythmBonus = 0;
 
                 // Reset Listen Again bonus system
                 this.normalListenAgainCount = 1; // Reset to normal
@@ -1413,8 +1944,11 @@
                 if (this.currentTapCount === 0) {
                     this.tapStartTime = Date.now();
                     this.currentItemStartTime = Date.now(); // Track when this item started
+                    this.currentItemTapTimes = []; // Track individual tap times for this item
                 }
 
+                // Record this tap time
+                this.currentItemTapTimes.push(Date.now());
                 this.currentTapCount++;
 
                 // Check if we've got enough taps
@@ -1441,11 +1975,13 @@
                         rhythm: expectedItem.rhythm,
                         tapCount: this.currentTapCount,
                         startTime: this.currentItemStartTime,
-                        endTime: Date.now()
+                        endTime: Date.now(),
+                        tapTimes: [...this.currentItemTapTimes] // Store all individual tap times
                     });
 
                     this.currentSequenceIndex++;
                     this.currentTapCount = 0;
+                    this.currentItemTapTimes = []; // Reset for next item
 
                     // Check if sequence complete
                     if (this.currentSequenceIndex >= this.gameSequence.length) {
@@ -1694,104 +2230,250 @@
                 this.playerPressedLight = null;
             }
 
-            // Calculate rhythm bonus for the entire sequence timing
+            // Calculate rhythm bonus for the ENTIRE sequence timing - called only after complete sequence
             calculateSequenceRhythmBonus() {
-                if (this.playerSequence.length < 2) {
-                    // Single note sequences don't get rhythm bonus
+                if (this.playerSequence.length === 0) {
                     return;
                 }
 
-                // Calculate expected timing for the entire sequence: (n-1) beats total
                 const beatDuration = 60000 / this.bpm; // Duration of one beat in ms
-                const expectedTotalTime = (this.gameSequence.length - 1) * beatDuration;
+                let rhythmAccuracy = 0; // Initialize rhythm accuracy variable
+                console.log(`=== COMPLETE SEQUENCE RHYTHM ANALYSIS ===`);
+                console.log(`BPM: ${this.bpm}, Beat duration: ${beatDuration}ms`);
+                console.log(`Sequence length: ${this.gameSequence.length} items`);
 
-                // Get actual timing from player sequence
-                const firstItemTime = this.playerSequence[0].startTime || Date.now();
-                const lastItemTime = this.playerSequence[this.playerSequence.length - 1].endTime || Date.now();
-                const actualTotalTime = lastItemTime - firstItemTime;
-
-                // Check overall sequence timing first - much stricter validation
-                let overallTimingAccuracy = 0;
-                if (expectedTotalTime > 0) {
-                    // Calculate how far off the player was from perfect timing
-                    const timingError = Math.abs(actualTotalTime - expectedTotalTime);
-                    const maxAllowedError = expectedTotalTime * 0.15; // Only 15% tolerance for timing
-
-                    if (timingError <= maxAllowedError) {
-                        // Within acceptable range - calculate accuracy
-                        overallTimingAccuracy = 1 - (timingError / maxAllowedError);
-                    } else {
-                        // Too far off - no accuracy bonus
-                        overallTimingAccuracy = 0;
-                    }
-                }
-
-                // Now check individual rhythm accuracy for each note
-                let rhythmAccuracyCount = 0;
-                let totalRhythmChecks = 0;
+                // Collect ALL tap times from the entire sequence
+                let allPlayerTaps = [];
+                let sequenceItemTypes = [];
 
                 for (let i = 0; i < this.playerSequence.length; i++) {
                     const playerItem = this.playerSequence[i];
-                    const expectedItem = this.gameSequence[i];
+                    const gameItem = this.gameSequence[i];
 
-                    // Skip rhythm check for quarter notes (single tap)
-                    if (expectedItem.rhythmData.taps === 1) {
-                        rhythmAccuracyCount++; // Quarter notes are always "accurate"
-                        totalRhythmChecks++;
-                        continue;
+                    if (playerItem.tapTimes && playerItem.tapTimes.length > 0) {
+                        // Add all taps from this item
+                        for (let tapTime of playerItem.tapTimes) {
+                            allPlayerTaps.push({
+                                time: tapTime,
+                                itemIndex: i,
+                                tapWithinItem: allPlayerTaps.filter(t => t.itemIndex === i).length,
+                                expectedTaps: gameItem.rhythmData.taps,
+                                rhythm: gameItem.rhythm
+                            });
+                        }
+                        sequenceItemTypes.push({
+                            rhythm: gameItem.rhythm,
+                            taps: gameItem.rhythmData.taps
+                        });
                     }
-
-                    // For multi-tap rhythms, check if player timing matches expected subdivisions
-                    const expectedSubdivisionTime = beatDuration / expectedItem.rhythmData.taps;
-
-                    // Calculate player's rhythm timing for this note
-                    const playerRhythmTime = playerItem.endTime - playerItem.startTime;
-                    const expectedRhythmTime = (expectedItem.rhythmData.taps - 1) * expectedSubdivisionTime;
-
-                    // Much stricter rhythm timing - only 10% tolerance for multi-tap rhythms
-                    const rhythmTolerance = expectedRhythmTime * 0.1;
-                    if (Math.abs(playerRhythmTime - expectedRhythmTime) <= rhythmTolerance) {
-                        rhythmAccuracyCount++;
-                    }
-                    totalRhythmChecks++;
                 }
 
-                // Calculate final rhythm accuracy percentage
-                const rhythmAccuracy = totalRhythmChecks > 0 ? rhythmAccuracyCount / totalRhythmChecks : 1;
+                console.log(`Total taps collected: ${allPlayerTaps.length}`);
+                console.log(`Player tap times: [${allPlayerTaps.map((t, i) => i === 0 ? '0ms' : (t.time - allPlayerTaps[0].time).toFixed(0) + 'ms').join(', ')}]`);
 
-                // Combine overall timing and rhythm accuracy (both must be good)
-                const finalAccuracy = Math.min(overallTimingAccuracy, rhythmAccuracy);
+                if (allPlayerTaps.length < 2) {
+                    // Single tap - still need to check tempo even with one tap
+                    // For single taps, we can't check rhythm pattern, only tempo consistency
+                    console.log(`Single tap sequence - checking tempo only`);
 
-                console.log(`Overall Timing: ${(overallTimingAccuracy * 100).toFixed(1)}%, Rhythm Accuracy: ${(rhythmAccuracy * 100).toFixed(1)}%, Final: ${(finalAccuracy * 100).toFixed(1)}%`);
-                console.log(`Expected Total: ${expectedTotalTime}ms, Actual Total: ${actualTotalTime}ms`);
+                    // If it's truly a single tap in the entire sequence, we can't measure tempo
+                    if (this.gameSequence.length === 1) {
+                        // Single note sequences should still be timed correctly relative to the beat
+                        // Check if the single tap was reasonably close to when it should have been played
+                        const expectedTiming = 0; // First note should be played immediately
+                        const actualTiming = allPlayerTaps[0].time - allPlayerTaps[0].time; // Always 0 for first tap
 
-                // Award rhythm bonus based on combined accuracy - much stricter thresholds
+                        // For single notes, we can't measure rhythm, so give moderate accuracy
+                        // This prevents automatic 100% but doesn't penalize too harshly
+                        rhythmAccuracy = 0.75; // 75% accuracy for single notes (reasonable default)
+                        console.log(`Single note sequence - 75% accuracy (no rhythm pattern to measure)`);
+                    } else {
+                        // Multiple notes but player only tapped once - this is wrong
+                        rhythmAccuracy = 0;
+                        console.log(`Expected ${this.gameSequence.length} notes but only got 1 tap - 0% accuracy`);
+                    }
+                } else {
+                    // Build expected timing pattern for the entire sequence
+                    let expectedTapTimes = [];
+                    let currentBeatStart = 0;
+
+                    for (let i = 0; i < this.gameSequence.length; i++) {
+                        const gameItem = this.gameSequence[i];
+                        const tapsInThisBeat = gameItem.rhythmData.taps;
+
+                        // Add expected tap times for this beat
+                        for (let tap = 0; tap < tapsInThisBeat; tap++) {
+                            const positionInBeat = tap / tapsInThisBeat; // 0, 0.25, 0.5, 0.75 for sixteenth notes
+                            const expectedTime = currentBeatStart + (positionInBeat * beatDuration);
+                            expectedTapTimes.push(expectedTime);
+                        }
+
+                        currentBeatStart += beatDuration; // Move to next beat
+                    }
+
+                    console.log(`Expected tap times: [${expectedTapTimes.map(t => t.toFixed(0) + 'ms').join(', ')}]`);
+                    console.log(`Expected total duration: ${expectedTapTimes[expectedTapTimes.length - 1].toFixed(0)}ms`);
+
+                    // Calculate actual timing relative to first tap
+                    let actualTapTimes = allPlayerTaps.map(tap => tap.time - allPlayerTaps[0].time);
+                    const actualTotalDuration = actualTapTimes[actualTapTimes.length - 1];
+                    const expectedTotalDuration = expectedTapTimes[expectedTapTimes.length - 1];
+
+                    console.log(`Actual total duration: ${actualTotalDuration.toFixed(0)}ms`);
+
+                    if (actualTapTimes.length !== expectedTapTimes.length) {
+                        rhythmAccuracy = 0;
+                        console.log(`Wrong number of taps: expected ${expectedTapTimes.length}, got ${actualTapTimes.length}`);
+                    } else {
+                        // NEW APPROACH: Measure rhythm accuracy based on gap consistency
+                        // For quarters: T---T---T---T should have equal gaps
+                        // Don't normalize by tempo - measure actual rhythm pattern accuracy
+
+                        console.log(`\n=== RHYTHM PATTERN ANALYSIS ===`);
+
+                        if (actualTapTimes.length === 1) {
+                            // Single tap - give reasonable accuracy since we can't measure rhythm pattern
+                            rhythmAccuracy = 0.75; // 75% accuracy for single taps (no pattern to measure)
+                            console.log(`Single tap - 75% rhythm accuracy (no pattern to compare)`);
+                        } else {
+                            // CORRECT APPROACH: Compare player gaps directly to CPU gaps
+                            // If CPU played at 60 BPM with 1000ms gaps, player should have 1000ms gaps
+
+                            console.log(`\n=== RHYTHM ACCURACY: PLAYER vs CPU TIMING ===`);
+
+                            // Calculate gaps between actual player taps
+                            let actualGaps = [];
+                            for (let i = 1; i < actualTapTimes.length; i++) {
+                                actualGaps.push(actualTapTimes[i] - actualTapTimes[i - 1]);
+                            }
+
+                            // Calculate expected gaps between CPU notes (what CPU actually played)
+                            let expectedGaps = [];
+                            for (let i = 1; i < expectedTapTimes.length; i++) {
+                                expectedGaps.push(expectedTapTimes[i] - expectedTapTimes[i - 1]);
+                            }
+
+                            console.log(`CPU played gaps: [${expectedGaps.map(g => g.toFixed(0) + 'ms').join(', ')}]`);
+                            console.log(`Player tapped gaps: [${actualGaps.map(g => g.toFixed(0) + 'ms').join(', ')}]`);
+
+                            // Compare each player gap to the corresponding CPU gap
+                            let totalAccuracy = 0;
+                            let totalError = 0;
+                            const tolerance = 0.2; // 20% tolerance per gap
+
+                            for (let i = 0; i < expectedGaps.length; i++) {
+                                const expectedGap = expectedGaps[i];
+                                const actualGap = actualGaps[i];
+                                const rawError = Math.abs(actualGap - expectedGap) / expectedGap;
+                                const gapError = Math.min(rawError, 1.0); // Cap error at 100%
+
+                                // Calculate accuracy for this gap (1.0 = perfect, 0.0 = terrible)
+                                const gapAccuracy = Math.max(0, 1 - (gapError / tolerance));
+                                totalAccuracy += gapAccuracy;
+                                totalError += gapError;
+
+                                console.log(`Gap ${i + 1}: CPU=${expectedGap.toFixed(0)}ms, Player=${actualGap.toFixed(0)}ms, Error=${(gapError * 100).toFixed(1)}%, Accuracy=${(gapAccuracy * 100).toFixed(1)}%`);
+                            }
+
+                            // Average accuracy across all gaps
+                            rhythmAccuracy = totalAccuracy / expectedGaps.length;
+
+                            // Average error across all gaps
+                            const averageError = totalError / expectedGaps.length;
+
+                            console.log(`\nAVERAGE ERROR: ${(averageError * 100).toFixed(1)}%`);
+                            console.log(`RHYTHM ACCURACY: ${(rhythmAccuracy * 100).toFixed(1)}% (direct comparison to CPU timing)`);
+                        }                        // Special case examples for your scenarios:
+                        if (this.gameSequence.length === 4 && this.gameSequence.every(item => item.rhythmData.taps === 1)) {
+                            console.log(`\n📝 QUARTER NOTE ANALYSIS:`);
+                            if (actualTapTimes.length >= 4) {
+                                const gaps = [];
+                                for (let i = 1; i < actualTapTimes.length; i++) {
+                                    gaps.push(actualTapTimes[i] - actualTapTimes[i - 1]);
+                                }
+                                console.log(`Actual gaps: [${gaps.map(g => (g / 1000).toFixed(1) + 's').join(', ')}]`);
+                                console.log(`Expected gaps: [${Array(gaps.length).fill((beatDuration / 1000).toFixed(1) + 's').join(', ')}]`);
+
+                                if (Math.abs(actualTotalDuration - expectedTotalDuration) < 100) {
+                                    console.log(`✓ Correct total duration (${(actualTotalDuration / 1000).toFixed(1)}s ≈ ${(expectedTotalDuration / 1000).toFixed(1)}s)`);
+                                } else {
+                                    console.log(`✗ Wrong total duration (${(actualTotalDuration / 1000).toFixed(1)}s ≠ ${(expectedTotalDuration / 1000).toFixed(1)}s)`);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                console.log(`\nFINAL RHYTHM ACCURACY: ${(rhythmAccuracy * 100).toFixed(1)}%`);
+
+                // Store rhythm accuracy for stats
+                this.rhythmAccuracy = rhythmAccuracy;
+
+                // Award rhythm bonus based on accuracy - Direct percentage calculation
                 let rhythmBonus = 0;
-                if (this.currentLevelRhythmBonus < 250) {
-                    if (finalAccuracy >= 0.95) {
-                        // Within 95% = 250 bonus (was 90%)
-                        rhythmBonus = Math.min(250, 250 - this.currentLevelRhythmBonus);
+
+                // Calculate bonus proportional to accuracy, but cap total level bonus at 250
+                if (rhythmAccuracy > 0) {
+                    // Calculate bonus as 250 * accuracy percentage
+                    // 90% or higher counts as 100% (full 250 bonus)
+                    const effectiveAccuracy = Math.min(rhythmAccuracy / 0.9, 1.0);
+                    const calculatedBonus = Math.round(250 * effectiveAccuracy);
+
+                    // Cap the bonus so total level bonus doesn't exceed 250
+                    const remainingLevelBonus = Math.max(0, 250 - this.currentLevelRhythmBonus);
+                    rhythmBonus = Math.min(calculatedBonus, remainingLevelBonus);
+
+                    console.log(`Rhythm bonus calculation: ${(rhythmAccuracy * 100).toFixed(1)}% accuracy`);
+                    console.log(`Effective accuracy (90% = 100%): ${(effectiveAccuracy * 100).toFixed(1)}%`);
+                    console.log(`Calculated bonus: 250 × ${effectiveAccuracy.toFixed(3)} = ${calculatedBonus}`);
+                    console.log(`Current level bonus: ${this.currentLevelRhythmBonus}/250`);
+                    console.log(`Remaining level bonus: ${remainingLevelBonus}`);
+                    console.log(`Final bonus awarded: ${rhythmBonus}`);
+
+                    if (rhythmAccuracy >= 0.9) {
                         this.perfectTimingCount++;
-                    } else if (finalAccuracy >= 0.85) {
-                        // Within 85% = 100 bonus (was 75%)
-                        rhythmBonus = Math.min(100, 250 - this.currentLevelRhythmBonus);
-                    } else if (finalAccuracy >= 0.7) {
-                        // Within 70% = 50 bonus (was 50%)
-                        rhythmBonus = Math.min(50, 250 - this.currentLevelRhythmBonus);
                     }
+                } else {
+                    console.log(`No rhythm bonus awarded - 0% accuracy`);
                 }
 
-                // Store bonus but DON'T add to total score yet - only add to level tracking
+                // Store bonus but DON'T add to total score yet - only track for level
                 if (rhythmBonus > 0) {
-                    this.levelScore += rhythmBonus; // Track for level display only
+                    // DON'T add to levelScore here - will be added at level completion
                     this.currentLevelRhythmBonus += rhythmBonus; // Track rhythm bonus for this level
+                    console.log(`Added ${rhythmBonus} to level bonus tracking. New level bonus total: ${this.currentLevelRhythmBonus}/250`);
                     // DON'T add to totalScore here - only at end of level
-                }
-
+                } else {
+                    console.log(`No bonus added to level tracking`);
+                }                // Accumulate rhythm accuracy for session statistics
+                this.sessionRhythmAccuracySum += rhythmAccuracy;
                 this.totalTimingAttempts++;
             }
 
-            // Detect rhythm based on duration
+            // Helper function to calculate how consistent gaps are (for rhythm accuracy)
+            calculateGapConsistency(gaps) {
+                if (gaps.length < 2) return 1.0; // Single gap is perfectly consistent
+
+                // Calculate average gap
+                const avgGap = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+
+                // Calculate how much each gap deviates from the average
+                let totalDeviation = 0;
+                gaps.forEach(gap => {
+                    const deviation = Math.abs(gap - avgGap) / avgGap;
+                    totalDeviation += deviation;
+                });
+
+                // Average deviation as percentage
+                const avgDeviation = totalDeviation / gaps.length;
+
+                // Convert to consistency score (0 = totally inconsistent, 1 = perfectly consistent)
+                const consistency = Math.max(0, 1 - avgDeviation);
+
+                console.log(`Gap analysis: avg=${avgGap.toFixed(0)}ms, avgDeviation=${(avgDeviation * 100).toFixed(1)}%, consistency=${(consistency * 100).toFixed(1)}%`);
+
+                return consistency;
+            }            // Detect rhythm based on duration
             detectRhythm(beats) {
                 const rhythmEntries = Object.entries(this.rhythms);
                 let closestRhythm = 'quarter';
@@ -1816,7 +2498,12 @@
                 const targetSequenceLength = this.levelRequirements[this.currentLevel];
                 if (this.gameSequence.length >= targetSequenceLength && this.currentLevel < 20) {
                     // Check for perfect accuracy bonus BEFORE advancing level
-                    const perfectAccuracy = !this.listenAgainUsed && this.currentLevel >= 5;
+                    // Must have: 1) not used Listen Again, 2) level 5+, and 3) good rhythm accuracy
+                    const avgRhythmAccuracy = this.totalTimingAttempts > 0 ?
+                        (this.sessionRhythmAccuracySum / this.totalTimingAttempts) : 0;
+                    const perfectAccuracy = !this.listenAgainUsed &&
+                        this.currentLevel >= 5 &&
+                        avgRhythmAccuracy >= 0.8; // Require 80%+ rhythm accuracy
 
                     const newLevel = this.currentLevel + 1;
                     this.currentLevel = newLevel;
@@ -1913,6 +2600,14 @@
                 this.correctInRow = 0; // Reset on game over
                 this.lives = 3; // Reset lives for next game
                 // No metronome to stop
+
+                // Record game statistics
+                // Use the accumulated rhythm accuracy from all sequences played this game
+                const totalRhythmAccuracy = this.totalTimingAttempts > 0 ?
+                    (this.sessionRhythmAccuracySum / this.totalTimingAttempts) * 100 : 0;
+                const pitchAccuracy = this.currentRound > 1 ? ((this.currentRound - 1) / this.currentRound) * 100 : 100;
+                this.updatePlayerStats(this.totalScore, this.currentLevel, totalRhythmAccuracy, pitchAccuracy);
+
                 this.updateDisplay();
                 this.updateControls();
 
@@ -2024,9 +2719,13 @@
 
                 // Game Over title
                 const title = document.createElement('div');
-                title.textContent = 'GAME OVER';
+                if (this.callResponseMode) {
+                    title.textContent = this.player2Name ? `${this.player2Name} - Game Over` : 'Player 2 - Game Over';
+                } else {
+                    title.textContent = `${this.playerName} - Game Over`;
+                }
                 title.style.cssText = `
-                    font-size: 2.5rem;
+                    font-size: 2.2rem;
                     font-weight: bold;
                     margin-bottom: 20px;
                     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
@@ -2041,6 +2740,28 @@
                     margin-bottom: 25px;
                     border: 2px solid rgba(255, 255, 255, 0.3);
                 `;
+
+                // Add personalized message based on mode
+                let personalMessage = '';
+                if (this.callResponseMode) {
+                    personalMessage = `
+                        <div style="font-size: 1.1rem; margin-bottom: 15px; font-style: italic;">
+                            🎵 ${this.player2Name || 'Player 2'} challenged ${this.playerName}'s patterns! 🎵
+                        </div>
+                    `;
+                } else if (this.pitchTrainingMode) {
+                    personalMessage = `
+                        <div style="font-size: 1.1rem; margin-bottom: 15px; font-style: italic;">
+                            🎯 ${this.playerName} completed Pitch Training! 🎯
+                        </div>
+                    `;
+                } else {
+                    personalMessage = `
+                        <div style="font-size: 1.1rem; margin-bottom: 15px; font-style: italic;">
+                            🎮 ${this.playerName} conquered the rhythm challenge! 🎮
+                        </div>
+                    `;
+                }
 
                 const finalRound = document.createElement('div');
                 finalRound.textContent = `Final Round: ${this.currentRound}`;
@@ -2067,6 +2788,8 @@
                     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
                 `;
 
+                // Add personal message to scoreBreakdown
+                scoreBreakdown.innerHTML = personalMessage;
                 scoreBreakdown.appendChild(finalRound);
                 scoreBreakdown.appendChild(finalLevel);
                 scoreBreakdown.appendChild(finalScore);
@@ -2309,7 +3032,7 @@
                         </label>
                         <label style="display: flex; align-items: center; background: rgba(255,255,255,0.8); padding: 10px 15px; border-radius: 10px; cursor: pointer; transition: all 0.2s;">
                             <input type="radio" name="gameMode" value="custom" ${this.gameMode === 'normal' && customChecked ? 'checked' : ''} style="margin-right: 8px;">
-                            <span>🎨 Own Notes</span>
+                            <span>🎨 My Own Notes</span>
                         </label>
                         <label style="display: flex; align-items: center; background: rgba(255,255,255,0.8); padding: 10px 15px; border-radius: 10px; cursor: pointer; transition: all 0.2s;">
                             <input type="radio" name="gameMode" value="pitch-training" ${this.gameMode === 'pitch-training' ? 'checked' : ''} style="margin-right: 8px;">
@@ -2320,66 +3043,18 @@
                             <span>👥 2 Player</span>
                         </label>
                     </div>
-                    <div id="modalCustomNotes" style="display: ${this.gameMode === 'normal' && customChecked ? 'block' : 'none'}; margin-top: 15px;">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; margin-top: 10px;">
-                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
-                                <input type="checkbox" id="modalNoteC" ${document.getElementById('noteC').checked ? 'checked' : ''} style="margin-right: 6px;">
-                                <span>C</span>
-                            </label>
-                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
-                                <input type="checkbox" id="modalNoteCsharp" ${document.getElementById('noteCsharp').checked ? 'checked' : ''} style="margin-right: 6px;">
-                                <span>C#</span>
-                            </label>
-                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
-                                <input type="checkbox" id="modalNoteD" ${document.getElementById('noteD').checked ? 'checked' : ''} style="margin-right: 6px;">
-                                <span>D</span>
-                            </label>
-                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
-                                <input type="checkbox" id="modalNoteDsharp" ${document.getElementById('noteDsharp').checked ? 'checked' : ''} style="margin-right: 6px;">
-                                <span>D#</span>
-                            </label>
-                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
-                                <input type="checkbox" id="modalNoteE" ${document.getElementById('noteE').checked ? 'checked' : ''} style="margin-right: 6px;">
-                                <span>E</span>
-                            </label>
-                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
-                                <input type="checkbox" id="modalNoteF" ${document.getElementById('noteF').checked ? 'checked' : ''} style="margin-right: 6px;">
-                                <span>F</span>
-                            </label>
-                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
-                                <input type="checkbox" id="modalNoteFsharp" ${document.getElementById('noteFsharp').checked ? 'checked' : ''} style="margin-right: 6px;">
-                                <span>F#</span>
-                            </label>
-                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
-                                <input type="checkbox" id="modalNoteG" ${document.getElementById('noteG').checked ? 'checked' : ''} style="margin-right: 6px;">
-                                <span>G</span>
-                            </label>
-                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
-                                <input type="checkbox" id="modalNoteGsharp" ${document.getElementById('noteGsharp').checked ? 'checked' : ''} style="margin-right: 6px;">
-                                <span>G#</span>
-                            </label>
-                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
-                                <input type="checkbox" id="modalNoteA" ${document.getElementById('noteA').checked ? 'checked' : ''} style="margin-right: 6px;">
-                                <span>A</span>
-                            </label>
-                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
-                                <input type="checkbox" id="modalNoteAsharp" ${document.getElementById('noteAsharp').checked ? 'checked' : ''} style="margin-right: 6px;">
-                                <span>A#</span>
-                            </label>
-                            <label style="display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
-                                <input type="checkbox" id="modalNoteB" ${document.getElementById('noteB').checked ? 'checked' : ''} style="margin-right: 6px;">
-                                <span>B</span>
-                            </label>
-                        </div>
-                    </div>
                 `;
 
-                // Add event listeners to toggle custom notes visibility
+                // Add event listeners for immediate modal exit when selecting My Own Notes
                 const modalGameModeRadios = gameModeSection.querySelectorAll('input[name="gameMode"]');
                 modalGameModeRadios.forEach(radio => {
                     radio.addEventListener('change', () => {
-                        const customNotesDiv = gameModeSection.querySelector('#modalCustomNotes');
-                        customNotesDiv.style.display = radio.value === 'custom' ? 'block' : 'none';
+                        if (radio.value === 'custom' && radio.checked) {
+                            // Immediately close modal and enable custom note selection
+                            this.syncOptionsFromModal(modal);
+                            document.body.removeChild(overlay);
+                            this.updateOptionsIndicator();
+                        }
                     });
                 });
 
@@ -2406,11 +3081,46 @@
                     this.updateOptionsIndicator();
                 };
 
+                // New User button
+                const newUserBtn = document.createElement('button');
+                newUserBtn.textContent = '👤 New User';
+                newUserBtn.style.cssText = `
+                    background: linear-gradient(45deg, #fd79a8, #e84393);
+                    color: white;
+                    border: none;
+                    padding: 12px 20px;
+                    border-radius: 25px;
+                    font-size: 1rem;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: transform 0.2s;
+                    margin-top: 20px;
+                    margin-right: 10px;
+                `;
+
+                newUserBtn.onclick = () => {
+                    document.body.removeChild(overlay);
+                    this.startNewUser();
+                };
+
+                // Button container for better layout
+                const buttonContainer = document.createElement('div');
+                buttonContainer.style.cssText = `
+                    display: flex;
+                    gap: 10px;
+                    justify-content: center;
+                    flex-wrap: wrap;
+                    margin-top: 20px;
+                `;
+
+                buttonContainer.appendChild(newUserBtn);
+                buttonContainer.appendChild(closeBtn);
+
                 modal.appendChild(title);
                 modal.appendChild(rhythmSection);
                 modal.appendChild(soundFxSection);
                 modal.appendChild(gameModeSection);
-                modal.appendChild(closeBtn);
+                modal.appendChild(buttonContainer);
                 overlay.appendChild(modal);
                 document.body.appendChild(overlay);
 
@@ -2555,30 +3265,33 @@
                     }
                 });
 
-                // Custom note checkboxes
-                const modalNoteCheckboxes = modal.querySelectorAll('#modalCustomNotes input[type="checkbox"]');
-                modalNoteCheckboxes.forEach(checkbox => {
-                    const noteId = checkbox.id.replace('modal', ''); // Remove 'modal' prefix
-                    const originalCheckbox = document.getElementById(noteId);
-                    if (originalCheckbox) {
-                        originalCheckbox.checked = checkbox.checked;
-                    }
-                });
-
                 // Update game mode from modal radio buttons
                 const modalGameModeRadios = modal.querySelectorAll('input[name="gameMode"]');
                 modalGameModeRadios.forEach(radio => {
                     if (radio.checked) {
                         if (radio.value === 'custom') {
-                            // Custom notes mode
+                            // Custom notes mode - enable interactive note selection
                             this.gameMode = 'normal';
                             this.pitchTrainingMode = false;
                             this.callResponseMode = false;
-                            // Set scale type to custom
+
+                            // Set scale type to custom and enable selection mode
                             const customRadio = document.querySelector('input[name="scaleType"][value="custom"]');
                             if (customRadio) customRadio.checked = true;
                             const progressiveRadio = document.querySelector('input[name="scaleType"][value="progressive"]');
                             if (progressiveRadio) progressiveRadio.checked = false;
+
+                            // Enable custom note selection mode for interactive keyboard
+                            this.usingCustomScale = true;
+                            this.customNoteSelectionMode = true;
+
+                            // Hide custom container checkboxes, show interactive selection
+                            const customContainer = document.getElementById('customScaleContainer');
+                            customContainer.style.display = 'none';
+
+                            // Update display and show save button
+                            this.updateNoteDisplay();
+
                         } else {
                             // Other game modes
                             this.gameMode = radio.value;
@@ -2591,6 +3304,11 @@
                                     if (progressiveRadio) progressiveRadio.checked = true;
                                     const customRadio = document.querySelector('input[name="scaleType"][value="custom"]');
                                     if (customRadio) customRadio.checked = false;
+
+                                    // Ensure we're not in custom selection mode
+                                    this.usingCustomScale = false;
+                                    this.customNoteSelectionMode = false;
+                                    this.hideSaveCustomNotesButton();
                                     break;
                                 case 'pitch-training':
                                     this.pitchTrainingMode = true;
@@ -2610,25 +3328,32 @@
 
                 // Trigger change events to update game state
                 this.updateEnabledRhythms();
-                const scaleRadios = document.querySelectorAll('input[name="scaleType"]');
-                scaleRadios.forEach(radio => {
-                    if (radio.checked) {
-                        this.usingCustomScale = radio.value === 'custom';
-                        const customContainer = document.getElementById('customScaleContainer');
 
-                        if (this.usingCustomScale) {
-                            // Enter custom note selection mode
-                            this.customNoteSelectionMode = true;
-                            customContainer.style.display = 'none'; // Hide checkboxes, show interactive keyboard
-                        } else {
-                            // Exit custom note selection mode
-                            this.customNoteSelectionMode = false;
-                            customContainer.style.display = 'none';
+                // Only update scale state if we're not in the middle of setting up custom note selection
+                if (!this.customNoteSelectionMode) {
+                    const scaleRadios = document.querySelectorAll('input[name="scaleType"]');
+                    scaleRadios.forEach(radio => {
+                        if (radio.checked) {
+                            this.usingCustomScale = radio.value === 'custom';
+                            const customContainer = document.getElementById('customScaleContainer');
+
+                            if (this.usingCustomScale && !this.customNoteSelectionMode) {
+                                // Using custom scale (from Options) - don't enter selection mode
+                                customContainer.style.display = 'none';
+                                // Hide save button if it exists from previous cycling
+                                this.hideSaveCustomNotesButton();
+                            } else if (!this.usingCustomScale) {
+                                // Exit custom note selection mode
+                                this.customNoteSelectionMode = false;
+                                customContainer.style.display = 'none';
+                                // Hide save button if it exists
+                                this.hideSaveCustomNotesButton();
+                            }
+
+                            this.updateNoteDisplay();
                         }
-
-                        this.updateNoteDisplay();
-                    }
-                });
+                    });
+                }
 
                 // Update display and controls to reflect game mode changes
                 this.updateDisplay();
@@ -2662,15 +3387,6 @@
                     }
                 });
 
-                // Custom note checkboxes
-                const originalNoteCheckboxes = document.querySelectorAll('#customScaleContainer input[type="checkbox"]');
-                originalNoteCheckboxes.forEach(checkbox => {
-                    const modalCheckbox = modal.querySelector(`#modal${checkbox.id}`);
-                    if (modalCheckbox) {
-                        modalCheckbox.checked = checkbox.checked;
-                    }
-                });
-
                 // Sync current game mode to modal
                 const modalGameModeRadios = modal.querySelectorAll('input[name="gameMode"]');
                 const currentScaleType = document.querySelector('input[name="scaleType"]:checked')?.value;
@@ -2683,13 +3399,6 @@
                         radio.checked = (radio.value === this.gameMode);
                     }
                 });
-
-                // Update custom notes visibility in modal
-                const modalCustomNotesDiv = modal.querySelector('#modalCustomNotes');
-                if (modalCustomNotesDiv) {
-                    const customSelected = modal.querySelector('input[name="gameMode"][value="custom"]')?.checked;
-                    modalCustomNotesDiv.style.display = customSelected ? 'block' : 'none';
-                }
             }
 
             // Update the options indicator display
@@ -2902,42 +3611,103 @@
                 };
             }
 
-            // Cycle through note options and game modes: Fun Levels → Own Notes → Pitch Training → 2 Player
+            // Cycle through note options and game modes: Fun Levels → My Own Notes → Pitch Training → 2 Player
             cycleNoteAndGameModes() {
-                // Define the cycle order
-                if (!this.pitchTrainingMode && !this.callResponseMode) {
-                    // Currently Fun Levels or Own Notes
-                    const funLevels = document.querySelector('input[name="scaleType"][value="progressive"]').checked;
-                    if (funLevels) {
-                        // Fun Levels → Own Notes
-                        document.querySelector('input[name="scaleType"][value="custom"]').checked = true;
+                // Check current state and cycle through modes
+                const isUsingCustomNotes = document.querySelector('input[name="scaleType"][value="custom"]')?.checked;
+
+                if (!this.pitchTrainingMode && !this.callResponseMode && !isUsingCustomNotes) {
+                    // Currently Fun Levels → go to My Own Notes (if we have meaningful custom notes set)
+                    const hasCustomNotes = this.customNotes && this.customNotes.length > 0;
+                    const isDefaultCEG = hasCustomNotes && this.customNotes.length === 3 &&
+                        this.customNotes.includes('C') && this.customNotes.includes('E') && this.customNotes.includes('G');
+
+                    if (hasCustomNotes && !isDefaultCEG) {
+                        // Switch to My Own Notes mode without changing the selected notes
+                        this.gameMode = 'normal';
+                        this.pitchTrainingMode = false;
+                        this.callResponseMode = false;
                         this.usingCustomScale = true;
-                        this.customNoteSelectionMode = true;
+
+                        // Set scale radio to custom but don't enter selection mode
+                        document.querySelector('input[name="scaleType"][value="progressive"]').checked = false;
+                        document.querySelector('input[name="scaleType"][value="custom"]').checked = true;
+
+                        // Hide save button since we're not in selection mode
+                        this.hideSaveCustomNotesButton();
                         const customContainer = document.getElementById('customScaleContainer');
                         customContainer.style.display = 'none';
+
                         this.updateNoteDisplay();
-                        this.showNoteAndGameModeChangeMessage('🎨 Own Notes');
+                        this.showNoteAndGameModeChangeMessage('🎨 My Own Notes');
                     } else {
-                        // Own Notes → Pitch Training
+                        // No custom notes saved or using default C E G, show message and skip to Pitch Training
+                        this.showCustomNotesReminderMessage();
+
+                        // Go directly to Pitch Training
                         this.pitchTrainingMode = true;
                         this.callResponseMode = false;
                         this.gameMode = 'pitch-training';
-                        this.showNoteAndGameModeChangeMessage('🎯 Pitch Training');
+
+                        // Make sure we stay on progressive scale
+                        document.querySelector('input[name="scaleType"][value="progressive"]').checked = true;
+                        document.querySelector('input[name="scaleType"][value="custom"]').checked = false;
+                        this.usingCustomScale = false;
+                        this.customNoteSelectionMode = false;
+
+                        this.hideSaveCustomNotesButton();
+                        const customContainer = document.getElementById('customScaleContainer');
+                        customContainer.style.display = 'none';
+                        this.updateNoteDisplay();
+
+                        // Show pitch training message after a brief delay
+                        setTimeout(() => {
+                            this.showNoteAndGameModeChangeMessage('🎯 Pitch Training');
+                        }, 1500);
                     }
+                } else if (!this.pitchTrainingMode && !this.callResponseMode && isUsingCustomNotes) {
+                    // Currently My Own Notes → go to Pitch Training
+                    this.pitchTrainingMode = true;
+                    this.callResponseMode = false;
+                    this.gameMode = 'pitch-training';
+
+                    // Switch back to progressive scale
+                    document.querySelector('input[name="scaleType"][value="progressive"]').checked = true;
+                    document.querySelector('input[name="scaleType"][value="custom"]').checked = false;
+                    this.usingCustomScale = false;
+                    this.customNoteSelectionMode = false;
+
+                    this.hideSaveCustomNotesButton();
+                    const customContainer = document.getElementById('customScaleContainer');
+                    customContainer.style.display = 'none';
+                    this.updateNoteDisplay();
+                    this.showNoteAndGameModeChangeMessage('🎯 Pitch Training');
                 } else if (this.pitchTrainingMode && !this.callResponseMode) {
                     // Pitch Training → 2 Player
                     this.pitchTrainingMode = false;
                     this.callResponseMode = true;
                     this.gameMode = 'call-response';
-                    this.showNoteAndGameModeChangeMessage('👥 2 Player');
+
+                    // Prompt for Player 2 name if not set
+                    if (!this.player2Name) {
+                        this.promptForPlayer2Name();
+                    } else {
+                        this.showNoteAndGameModeChangeMessage('👥 2 Player');
+                    }
                 } else if (this.callResponseMode) {
                     // 2 Player → Fun Levels
                     this.pitchTrainingMode = false;
                     this.callResponseMode = false;
                     this.gameMode = 'normal';
+
+                    // Make sure we're back to progressive scale (not custom)
                     document.querySelector('input[name="scaleType"][value="progressive"]').checked = true;
+                    const customRadio = document.querySelector('input[name="scaleType"][value="custom"]');
+                    if (customRadio) customRadio.checked = false;
                     this.usingCustomScale = false;
                     this.customNoteSelectionMode = false;
+
+                    this.hideSaveCustomNotesButton();
                     const customContainer = document.getElementById('customScaleContainer');
                     customContainer.style.display = 'none';
                     this.updateNoteDisplay();
@@ -2979,6 +3749,35 @@
                 }, 1500);
             }
 
+            // Show custom notes reminder message
+            showCustomNotesReminderMessage() {
+                const message = document.createElement('div');
+                message.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(135deg, #fd79a8, #fdcb6e);
+                    color: white;
+                    padding: 15px 25px;
+                    border-radius: 15px;
+                    font-size: 1.1rem;
+                    font-weight: bold;
+                    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+                    z-index: 10001;
+                    border: 2px solid white;
+                    animation: slideInRight 0.3s ease-out;
+                    text-align: center;
+                `;
+                message.textContent = 'Change Custom Notes in Options';
+                document.body.appendChild(message);
+
+                setTimeout(() => {
+                    if (document.body.contains(message)) {
+                        message.remove();
+                    }
+                }, 1500);
+            }
+
             // Cycle through note options during gameplay
             cycleNoteOptions() {
                 if (this.gameState === 'stopped') {
@@ -3011,6 +3810,30 @@
                 soundFXCheckbox.checked = !soundFXCheckbox.checked;
                 this.updateOptionsIndicator();
                 this.showSoundFXToggleMessage(soundFXCheckbox.checked);
+            }
+
+            // Toggle My Own Notes in Pitch Training or 2 Player mode
+            toggleMyOwnNotesInMode(useCustomNotes) {
+                if (useCustomNotes) {
+                    // Enable custom notes for this mode
+                    document.querySelector('input[name="scaleType"][value="custom"]').checked = true;
+                    document.querySelector('input[name="scaleType"][value="progressive"]').checked = false;
+                    this.usingCustomScale = true;
+                } else {
+                    // Disable custom notes, use progressive scale
+                    document.querySelector('input[name="scaleType"][value="progressive"]').checked = true;
+                    document.querySelector('input[name="scaleType"][value="custom"]').checked = false;
+                    this.usingCustomScale = false;
+                }
+
+                // Update display and controls
+                this.updateNoteDisplay();
+                this.updateOptionsIndicator();
+
+                // Show feedback message
+                const modeText = this.pitchTrainingMode ? 'Pitch Training' : '2 Player';
+                const notesText = useCustomNotes ? 'My Own Notes' : 'Progressive Scale';
+                this.showMyOwnNotesToggleMessage(modeText, notesText);
             }
 
             // Show rhythm change feedback
@@ -3145,6 +3968,35 @@
                 }, 1500);
             }
 
+            // Show My Own Notes toggle feedback
+            showMyOwnNotesToggleMessage(mode, notesType) {
+                const message = document.createElement('div');
+                message.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+                    color: white;
+                    padding: 15px 25px;
+                    border-radius: 15px;
+                    font-size: 1.1rem;
+                    font-weight: bold;
+                    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+                    z-index: 10001;
+                    border: 2px solid white;
+                    animation: slideInRight 0.3s ease-out;
+                    text-align: center;
+                `;
+                message.textContent = `${mode}: ${notesType}`;
+                document.body.appendChild(message);
+
+                setTimeout(() => {
+                    if (document.body.contains(message)) {
+                        message.remove();
+                    }
+                }, 1500);
+            }
+
             updateOptionsIndicator() {
                 const indicator = document.getElementById('optionsIndicator');
 
@@ -3184,6 +4036,31 @@
                     <div class="option-tag sound-tag" data-option="sound">${soundFX}</div>
                 `;
 
+                // Update the global My Own Notes checkbox
+                const globalCheckbox = document.getElementById('useMyOwnNotesGlobal');
+                const checkboxContainer = document.getElementById('myOwnNotesCheckboxContainer');
+                if (globalCheckbox && checkboxContainer) {
+                    // Set checkbox state
+                    globalCheckbox.checked = this.usingCustomScale;
+
+                    // Style based on current mode
+                    if (!this.pitchTrainingMode && !this.callResponseMode && !this.usingCustomScale) {
+                        // Fun Levels mode - grey out
+                        checkboxContainer.style.opacity = '0.5';
+                        checkboxContainer.style.cursor = 'not-allowed';
+                        globalCheckbox.disabled = true;
+                        checkboxContainer.style.background = 'rgba(200,200,200,0.7)';
+                        checkboxContainer.style.borderColor = '#ccc';
+                    } else {
+                        // Other modes - active
+                        checkboxContainer.style.opacity = '1';
+                        checkboxContainer.style.cursor = 'pointer';
+                        globalCheckbox.disabled = false;
+                        checkboxContainer.style.background = 'rgba(255,255,255,0.9)';
+                        checkboxContainer.style.borderColor = '#ddd';
+                    }
+                }
+
                 // Add event listeners to option tags
                 const rhythmTag = indicator.querySelector('.rhythm-tag');
                 const noteTag = indicator.querySelector('.note-tag');
@@ -3196,7 +4073,7 @@
                     });
                 }
 
-                // Note tag - cycle through all four modes only when stopped
+                // Note tag - cycle through three modes only when stopped (skips Own Notes - that's Options only)
                 if (noteTag) {
                     noteTag.addEventListener('click', () => {
                         if (this.gameState === 'stopped') {
@@ -3254,6 +4131,26 @@
             // Update display elements
             updateDisplay() {
                 document.getElementById('totalScore').textContent = this.totalScore.toLocaleString();
+
+                // Update player name display
+                const playerNameDisplay = document.getElementById('playerNameDisplay');
+                const currentPlayerName = document.getElementById('currentPlayerName');
+                if (this.playerName && this.gameStarted) {
+                    if (this.callResponseMode) {
+                        // Show both players in 2-player mode
+                        const player2Display = this.player2Name || 'Player 2';
+                        if (this.isPlayer1Turn) {
+                            currentPlayerName.textContent = `${this.playerName} vs ${player2Display} - ${this.playerName}'s Turn`;
+                        } else {
+                            currentPlayerName.textContent = `${this.playerName} vs ${player2Display} - ${player2Display}'s Turn`;
+                        }
+                    } else {
+                        currentPlayerName.textContent = this.playerName;
+                    }
+                    playerNameDisplay.style.display = 'block';
+                } else {
+                    playerNameDisplay.style.display = 'none';
+                }
 
                 if (this.callResponseMode) {
                     // Show current player with their role in Call & Response mode

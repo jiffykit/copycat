@@ -324,6 +324,11 @@
             }
 
             savePlayerData() {
+                // Don't save stats data when in 2-player mode (call-response mode)
+                if (this.callResponseMode) {
+                    return;
+                }
+
                 const data = {
                     playerName: this.playerName,
                     player2Name: this.player2Name,
@@ -334,6 +339,11 @@
             }
 
             updatePlayerStats(gameScore, gameLevel, rhythmAccuracy, pitchAccuracy) {
+                // Don't track stats in 2-player mode (call-response mode)
+                if (this.callResponseMode) {
+                    return;
+                }
+
                 this.playerStats.totalGamesPlayed++;
                 this.playerStats.bestScore = Math.max(this.playerStats.bestScore, gameScore);
                 this.playerStats.bestLevel = Math.max(this.playerStats.bestLevel, gameLevel);
@@ -738,6 +748,7 @@
                     
                     <div style="margin-bottom: 25px;">
                         <input type="text" id="player2NameInput" placeholder="Enter Player 2's name" 
+                            value="${this.player2Name || ''}"
                             style="padding: 12px 20px; border: 2px solid white; border-radius: 25px; font-size: 1.1rem; width: 80%; text-align: center; margin-bottom: 15px;">
                     </div>
                     
@@ -758,8 +769,8 @@
                     this.player2Name = name.trim() || 'Player 2';
                     this.savePlayerData();
                     document.body.removeChild(overlay);
-                    this.showNoteAndGameModeChangeMessage('👥 2 Player');
-                    this.updateDisplay();
+                    // After setting name, continue with starting the game
+                    this.startGame();
                 };
 
                 nameInput.addEventListener('keypress', (e) => {
@@ -1445,6 +1456,12 @@
 
             // Start new game - faster setup
             async startGame() {
+                // If in 2-player mode, always prompt for Player 2 name to confirm/change it
+                if (this.callResponseMode) {
+                    this.promptForPlayer2Name();
+                    return; // Don't start the game yet, wait for name input
+                }
+
                 if (this.audioContext.state === 'suspended') {
                     await this.audioContext.resume();
                 }
@@ -3688,12 +3705,8 @@
                     this.callResponseMode = true;
                     this.gameMode = 'call-response';
 
-                    // Prompt for Player 2 name if not set
-                    if (!this.player2Name) {
-                        this.promptForPlayer2Name();
-                    } else {
-                        this.showNoteAndGameModeChangeMessage('👥 2 Player');
-                    }
+                    // Just show the mode change message, don't prompt for name yet
+                    this.showNoteAndGameModeChangeMessage('👥 2 Player');
                 } else if (this.callResponseMode) {
                     // 2 Player → Fun Levels
                     this.pitchTrainingMode = false;
@@ -4164,9 +4177,8 @@
                 }
 
                 if (this.pitchTrainingMode) {
-                    // Show remaining Listen Again uses in Pitch Training mode
-                    const remainingListens = 2 - this.pitchTrainingListenCount;
-                    document.getElementById('lives').textContent = `Listens: ${remainingListens}`;
+                    // In Pitch Training mode, show lives normally (listens don't affect lives)
+                    document.getElementById('lives').textContent = this.lives;
                 } else {
                     document.getElementById('lives').textContent = this.lives;
                 }

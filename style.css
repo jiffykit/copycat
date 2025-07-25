@@ -6,11 +6,12 @@
 }
 
 body {
-    font-family: 'Comic Sans MS', sans-serif;
-    background: linear-gradient(135deg, #ffffff, #f8f9ff, #fff5f5);
-    color: #333;
+    font-family: 'Segoe UI', 'SF Pro Display', 'Inter', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
+    background: linear-gradient(135deg, #1a237e, #283593, #0d47a1);
+    color: #e3f2fd;
     min-height: 100vh;
     overflow-y: auto;
+    transition: background 1.5s ease-in-out, filter 0.5s ease;
 }
 
 .game-container {
@@ -26,20 +27,155 @@ body {
 .game-header {
     text-align: center;
     margin-bottom: 20px;
+    position: relative;
+    padding: 20px 0;
+    overflow: hidden;
 }
 
 .game-header h1 {
-    font-size: 3.5rem;
+    font-size: 4.5rem;
     margin-bottom: 20px;
-    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
-    background: linear-gradient(45deg, #ff4757, #ff6b6b, #ffa502, #f9ca24, #1dd1a1, #00d2d3, #5f27cd, #a55eea);
-    background-size: 300% 300%;
+    background: linear-gradient(45deg,
+            #ff1744 0%, #ff6b00 15%, #ffc107 30%,
+            #4caf50 45%, #00e5ff 60%, #2196f3 75%,
+            #9c27b0 90%, #e91e63 100%);
+    background-size: 200% 200%;
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: gradient 3s ease infinite;
+    animation: rainbow-shift 4s ease-in-out infinite;
     font-weight: 900;
-    letter-spacing: 3px;
+    letter-spacing: 4px;
+    font-family: 'Segoe UI', 'SF Pro Display', 'Inter', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
+    position: relative;
+    display: inline-block;
+    text-transform: uppercase;
+
+    /* 3D Crystal Glass Effect */
+    text-shadow:
+        0 1px 0 #00e5ff,
+        0 2px 0 #0091ea,
+        0 3px 0 #1976d2,
+        0 4px 0 #0d47a1,
+        0 5px 10px rgba(0, 0, 0, 0.4),
+        0 6px 20px rgba(0, 229, 255, 0.3),
+        0 0 30px rgba(0, 229, 255, 0.5);
+
+    /* Glass reflection effect */
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));
+}
+
+/* Crystal glass border frame */
+.game-header h1::before {
+    content: "";
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    right: -8px;
+    bottom: -8px;
+    background: linear-gradient(45deg,
+            rgba(255, 255, 255, 0.3) 0%,
+            rgba(0, 229, 255, 0.3) 25%,
+            rgba(255, 255, 255, 0.2) 50%,
+            rgba(0, 229, 255, 0.3) 75%,
+            rgba(255, 255, 255, 0.3) 100%);
+    border-radius: 20px;
+    z-index: -1;
+    animation: crystal-shine 3s ease-in-out infinite;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    box-shadow:
+        inset 0 2px 10px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 10px rgba(0, 229, 255, 0.2),
+        0 0 30px rgba(0, 229, 255, 0.4);
+}
+
+@keyframes rainbow-shift {
+
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+@keyframes crystal-shine {
+
+    0%,
+    100% {
+        box-shadow:
+            inset 0 2px 10px rgba(255, 255, 255, 0.3),
+            inset 0 -2px 10px rgba(0, 229, 255, 0.2),
+            0 0 30px rgba(0, 229, 255, 0.4);
+    }
+
+    50% {
+        box-shadow:
+            inset 0 2px 15px rgba(255, 255, 255, 0.5),
+            inset 0 -2px 15px rgba(0, 229, 255, 0.4),
+            0 0 40px rgba(0, 229, 255, 0.6);
+    }
+}
+
+/* Logo background energy field - subtle and clean */
+.game-header::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 120%;
+    background: radial-gradient(ellipse at center,
+            rgba(0, 229, 255, 0.03) 0%,
+            transparent 50%);
+    z-index: -2;
+    border-radius: 50%;
+}
+
+/* Floating musical elements - Epic particle system */
+.game-header::after {
+    content: "♩ ♪ ♫ ♬ ♭ ♯ 𝄞 𝄢";
+    position: absolute;
+    top: -20px;
+    left: 0;
+    right: 0;
+    font-size: 1.8rem;
+    color: rgba(0, 229, 255, 0.4);
+    animation: float-notes 12s linear infinite;
+    letter-spacing: 100px;
+    text-shadow: 0 0 15px currentColor, 0 0 30px rgba(0, 229, 255, 0.3);
+    z-index: -1;
+    transform-origin: center;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+@keyframes float-notes {
+    0% {
+        transform: translateX(-150%) rotate(0deg);
+        opacity: 0;
+    }
+
+    5% {
+        opacity: 0.6;
+    }
+
+    50% {
+        transform: translateX(0%) rotate(180deg);
+        opacity: 0.8;
+    }
+
+    95% {
+        opacity: 0.6;
+    }
+
+    100% {
+        transform: translateX(150%) rotate(360deg);
+        opacity: 0;
+    }
 }
 
 @keyframes gradient {
@@ -65,20 +201,21 @@ body {
 }
 
 .game-info>div {
-    background: linear-gradient(45deg, #ff9ff3, #54a0ff);
+    background: linear-gradient(45deg, #0277bd, #0288d1);
     padding: 15px 25px;
     border-radius: 30px;
-    border: 3px solid #ffffff;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    color: white;
+    border: 3px solid #00e5ff;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    color: #e3f2fd;
     font-size: 1.2rem;
     font-weight: bold;
 }
 
 .game-info span {
     font-weight: 900;
-    color: #ffffff;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    color: #00e5ff;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    transition: transform 0.4s ease, text-shadow 0.4s ease;
 }
 
 .controls {
@@ -93,11 +230,11 @@ body {
 .scale-controls {
     margin-bottom: 10px;
     text-align: center;
-    background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+    background: linear-gradient(135deg, #1565c0, #1976d2);
     padding: 15px;
     border-radius: 20px;
-    border: 3px solid white;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    border: 3px solid #00e5ff;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
     max-width: 750px;
     margin-left: auto;
     margin-right: auto;
@@ -106,7 +243,7 @@ body {
 .rhythm-controls h4,
 .scale-controls h4 {
     margin: 5px 0 10px 0;
-    color: #2d3436;
+    color: #e3f2fd;
     font-size: 1.2rem;
     font-weight: 900;
 }
@@ -128,13 +265,13 @@ body {
     display: flex;
     align-items: center;
     gap: 5px;
-    color: #2d3436;
+    color: #1a237e;
     font-size: 1rem;
     cursor: pointer;
-    background: white;
+    background: linear-gradient(135deg, #e1f5fe, #b3e5fc);
     padding: 8px 15px;
     border-radius: 20px;
-    border: 3px solid #74b9ff;
+    border: 3px solid #0288d1;
     transition: all 0.3s ease;
     font-weight: bold;
 }
@@ -143,8 +280,8 @@ body {
 .scale-options label:hover,
 .game-mode-options label:hover,
 .note-toggles label:hover {
-    background: #74b9ff;
-    color: white;
+    background: linear-gradient(135deg, #0288d1, #0277bd);
+    color: #e3f2fd;
     transform: translateY(-2px);
 }
 
@@ -158,10 +295,10 @@ body {
 
 .custom-scale {
     margin-top: 10px;
-    background: linear-gradient(135deg, #a29bfe, #fd79a8);
+    background: linear-gradient(135deg, #0d47a1, #1565c0);
     padding: 15px;
     border-radius: 15px;
-    border: 3px solid white;
+    border: 3px solid #26c6da;
 }
 
 .note-toggles {
@@ -182,27 +319,27 @@ body {
     font-weight: 900;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-family: 'Comic Sans MS', 'Trebuchet MS', 'Lucida Grande', Arial, sans-serif;
+    font-family: 'Segoe UI', 'SF Pro Display', 'Inter', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
     border: 3px solid white;
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
 }
 
 .btn.primary {
-    background: linear-gradient(45deg, #00b894, #00cec9);
-    color: white;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(45deg, #0277bd, #0288d1);
+    color: #e3f2fd;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .btn.secondary {
-    background: linear-gradient(45deg, #fd79a8, #fdcb6e);
-    color: white;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(45deg, #1565c0, #1976d2);
+    color: #e3f2fd;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .btn.special {
-    background: linear-gradient(45deg, #74b9ff, #0984e3);
-    color: white;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(45deg, #0091ea, #00acc1);
+    color: #e3f2fd;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
     position: relative;
     overflow: hidden;
 }
@@ -240,12 +377,12 @@ body {
 }
 
 .btn.info {
-    background: linear-gradient(135deg, #74b9ff, #0984e3);
-    color: white;
+    background: linear-gradient(135deg, #00acc1, #0288d1);
+    color: #e3f2fd;
 }
 
 .btn.info:not(:disabled) {
-    box-shadow: 0 6px 15px rgba(116, 185, 255, 0.4);
+    box-shadow: 0 6px 15px rgba(0, 172, 193, 0.4);
 }
 
 /* Options Indicator */
@@ -262,24 +399,24 @@ body {
 }
 
 .option-tag {
-    background: linear-gradient(135deg, #ddd6fe, #c7d2fe);
+    background: linear-gradient(135deg, #b3e5fc, #81d4fa);
     padding: 8px 12px;
     border-radius: 15px;
     font-size: 0.9rem;
     font-weight: bold;
-    color: #1e1b4b;
-    border: 2px solid #8b5cf6;
-    box-shadow: 0 2px 6px rgba(139, 92, 246, 0.2);
+    color: #0d47a1;
+    border: 2px solid #0288d1;
+    box-shadow: 0 2px 6px rgba(2, 136, 209, 0.3);
     animation: glow 2s ease-in-out infinite alternate;
 }
 
 @keyframes glow {
     from {
-        box-shadow: 0 2px 6px rgba(139, 92, 246, 0.2);
+        box-shadow: 0 2px 6px rgba(2, 136, 209, 0.3);
     }
 
     to {
-        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+        box-shadow: 0 4px 12px rgba(2, 136, 209, 0.6);
     }
 }
 
@@ -328,19 +465,19 @@ body {
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: linear-gradient(45deg, #00b894, #00cec9);
-    color: white;
+    background: linear-gradient(45deg, #0277bd, #0288d1);
+    color: #e3f2fd;
     border: none;
     padding: 15px 40px;
     border-radius: 30px;
     font-size: 1.3rem;
     font-weight: 900;
     cursor: pointer;
-    border: 3px solid white;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    border: 3px solid #00e5ff;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
     z-index: 1000;
     animation: pulse-save 2s ease-in-out infinite;
-    font-family: 'Comic Sans MS', sans-serif;
+    font-family: 'Segoe UI', 'SF Pro Display', 'Inter', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
 }
 
 @keyframes pulse-save {
@@ -348,12 +485,12 @@ body {
     0%,
     100% {
         transform: translateX(-50%) scale(1);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
     }
 
     50% {
         transform: translateX(-50%) scale(1.05);
-        box-shadow: 0 12px 25px rgba(0, 184, 148, 0.5);
+        box-shadow: 0 12px 25px rgba(0, 229, 255, 0.8);
     }
 }
 
@@ -547,71 +684,59 @@ body {
     color: white;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     text-align: center;
-    font-family: 'Comic Sans MS', 'Trebuchet MS', 'Lucida Grande', Arial, sans-serif;
+    font-family: 'Segoe UI', 'SF Pro Display', 'Inter', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
     letter-spacing: 1px;
 }
 
-/* Individual light colors - C note is RED, rainbow spectrum around the clock */
+/* Individual light colors - Permanent rainbow scheme */
 .light:nth-child(1) {
-    background: linear-gradient(45deg, #ff0000, #ff4444);
+    background: linear-gradient(45deg, #ff1744, #ff5722) !important; /* Energy Red */
 }
 
-/* C - RED (was black, now red as requested) */
 .light:nth-child(2) {
-    background: linear-gradient(45deg, #ff8800, #ffaa44);
+    background: linear-gradient(45deg, #ff9800, #ff6f00) !important; /* Power Orange */
 }
 
-/* C# - Orange */
 .light:nth-child(3) {
-    background: linear-gradient(45deg, #ffff00, #ffff44);
+    background: linear-gradient(45deg, #ffea00, #ffc107) !important; /* Electric Yellow */
 }
 
-/* D - Yellow */
 .light:nth-child(4) {
-    background: linear-gradient(45deg, #88ff00, #aaffaa);
+    background: linear-gradient(45deg, #76ff03, #64dd17) !important; /* Plasma Green */
 }
 
-/* D# - Yellow-Green */
 .light:nth-child(5) {
-    background: linear-gradient(45deg, #00ff00, #44ff44);
+    background: linear-gradient(45deg, #00e676, #00c853) !important; /* Neo Green */
 }
 
-/* E - Green */
 .light:nth-child(6) {
-    background: linear-gradient(45deg, #00ff88, #44ffaa);
+    background: linear-gradient(45deg, #00e5ff, #00bcd4) !important; /* Cyber Cyan */
 }
 
-/* F - Green-Cyan */
 .light:nth-child(7) {
-    background: linear-gradient(45deg, #00ffff, #44ffff);
+    background: linear-gradient(45deg, #40c4ff, #0091ea) !important; /* Mega Blue */
 }
 
-/* F# - Cyan */
 .light:nth-child(8) {
-    background: linear-gradient(45deg, #0088ff, #44aaff);
+    background: linear-gradient(45deg, #2196f3, #1976d2) !important; /* Proto Blue */
 }
 
-/* G - Blue-Cyan */
 .light:nth-child(9) {
-    background: linear-gradient(45deg, #0000ff, #4444ff);
+    background: linear-gradient(45deg, #651fff, #3f51b5) !important; /* Bass Purple */
 }
 
-/* G# - Blue */
 .light:nth-child(10) {
-    background: linear-gradient(45deg, #8800ff, #aa44ff);
+    background: linear-gradient(45deg, #e91e63, #c2185b) !important; /* X Pink */
 }
 
-/* A - Blue-Purple */
 .light:nth-child(11) {
-    background: linear-gradient(45deg, #ff00ff, #ff44ff);
+    background: linear-gradient(45deg, #ff4081, #ad1457) !important; /* Zero Magenta */
 }
 
-/* A# - Magenta */
 .light:nth-child(12) {
-    background: linear-gradient(45deg, #ff0088, #ff44aa);
+    background: linear-gradient(45deg, #ff6ec7, #e91e63) !important; /* Sigma Pink */
 }
 
-/* B - Pink */
 .light:hover {
     transform: translate(-50%, -50%) rotate(var(--angle)) translateY(-180px) rotate(calc(-1 * var(--angle))) scale(1.1);
     border-color: rgba(255, 255, 255, 1);
@@ -680,19 +805,19 @@ body {
 .game-footer {
     text-align: center;
     margin-top: 30px;
-    background: linear-gradient(135deg, #74b9ff, #0984e3);
+    background: linear-gradient(135deg, #0d47a1, #1565c0);
     padding: 20px;
     border-radius: 20px;
-    border: 3px solid white;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-    color: white;
+    border: 3px solid #00e5ff;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
+    color: #e3f2fd;
 }
 
 .game-footer p {
     margin: 8px 0;
     font-size: 1.1rem;
     font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 /* Responsive Design */
@@ -810,35 +935,35 @@ body {
 
 /* Game Mode Toggle Button */
 .game-mode-toggle {
-    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-    color: white;
-    border: 3px solid white;
+    background: linear-gradient(135deg, #0091ea, #0288d1);
+    color: #e3f2fd;
+    border: 3px solid #00e5ff;
     padding: 12px 25px;
     border-radius: 25px;
     font-size: 1.1rem;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-family: 'Comic Sans MS', sans-serif;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    font-family: 'Segoe UI', 'SF Pro Display', 'Inter', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
     animation: subtle-glow 3s ease-in-out infinite alternate;
 }
 
 @keyframes subtle-glow {
     from {
-        box-shadow: 0 4px 8px rgba(108, 92, 231, 0.3);
+        box-shadow: 0 4px 8px rgba(0, 145, 234, 0.4);
     }
 
     to {
-        box-shadow: 0 6px 12px rgba(108, 92, 231, 0.5);
+        box-shadow: 0 6px 12px rgba(0, 229, 255, 0.6);
     }
 }
 
 .game-mode-toggle:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-    background: linear-gradient(135deg, #5f3dc4, #845ec2);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+    background: linear-gradient(135deg, #0277bd, #01579b);
 }
 
 .game-mode-toggle:active {
@@ -848,13 +973,13 @@ body {
 
 /* Game mode specific styles */
 .game-mode-toggle.normal {
-    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    background: linear-gradient(135deg, #0091ea, #0288d1);
 }
 
 .game-mode-toggle.pitch-training {
-    background: linear-gradient(135deg, #00b894, #00cec9);
+    background: linear-gradient(135deg, #00acc1, #0097a7);
 }
 
 .game-mode-toggle.call-response {
-    background: linear-gradient(135deg, #fd79a8, #fdcb6e);
+    background: linear-gradient(135deg, #1976d2, #1565c0);
 }

@@ -4,14 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Noteably</title>
+    <title>System B</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
     <div class="game-container">
         <header class="game-header">
-            <h1>🎵 Noteably 🎵</h1>
+            <h1>🎵 System B 🎵</h1>
             <div id="playerNameDisplay"
                 style="text-align: center; margin: 10px 0; font-size: 1.2rem; font-weight: bold; color: #6c5ce7; display: none; cursor: pointer; transition: all 0.2s; padding: 5px 10px; border-radius: 15px;"
                 onmouseover="this.style.backgroundColor='rgba(108, 92, 231, 0.1)'; this.style.transform='scale(1.05)'"
@@ -409,10 +409,10 @@
 
                 const welcomeMessage = this.playerName ?
                     `Welcome back, <strong>${this.playerName}</strong>! 🎉` :
-                    'Welcome to Noteably! 🎵';
+                    'Welcome to System B! 🎵';
 
                 modal.innerHTML = `
-                    <h1 style="font-size: 2.5rem; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🎵 Noteably 🎵</h1>
+                    <h1 style="font-size: 2.5rem; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🎵 System B 🎵</h1>
                     
                     <div style="font-size: 1.2rem; margin-bottom: 25px; line-height: 1.6;">
                         ${welcomeMessage}
@@ -1011,6 +1011,18 @@
                 
                 // Apply background to body with smooth transition
                 document.body.style.background = background;
+
+                // Ensure the logo keeps its rainbow gradient (preserve original CSS styling)
+                const logo = document.querySelector('.game-header h1');
+                if (logo) {
+                    // Force the original rainbow gradient to stay intact
+                    logo.style.background = 'linear-gradient(45deg, #ff1744 0%, #ff6b00 15%, #ffc107 30%, #4caf50 45%, #00e5ff 60%, #2196f3 75%, #9c27b0 90%, #e91e63 100%)';
+                    logo.style.backgroundSize = '200% 200%';
+                    logo.style.webkitBackgroundClip = 'text';
+                    logo.style.backgroundClip = 'text';
+                    logo.style.webkitTextFillColor = 'transparent';
+                    logo.style.animation = 'rainbow-shift 4s ease-in-out infinite';
+                }
 
                 // Define 12 equally spaced hues around the color wheel for the 12 lights
                 const lights = document.querySelectorAll('.light');
@@ -3298,7 +3310,7 @@
                 modal.classList.add('modal-with-scroll');
 
                 modal.innerHTML = `
-                    <h2 style="text-align: center; margin-bottom: 20px; color: #2d3436;">🎵 How to Play Noteably! 🎵</h2>
+                    <h2 style="text-align: center; margin-bottom: 20px; color: #2d3436;">🎵 How to Play System B! 🎵</h2>
                     
                     <div style="background: rgba(255,255,255,0.8); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
                         <h3>🎯 Goal</h3>

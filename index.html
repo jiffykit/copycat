@@ -4,14 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System B</title>
+    <title>Copy-Cat</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
     <div class="game-container">
         <header class="game-header">
-            <h1>🎵 System B 🎵</h1>
+            <img src="Copycat logo.png" alt="Copy-Cat"
+                style="max-height: 120px; max-width: 100%; object-fit: contain; margin-bottom: 20px; filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));">
+            
+            <!-- Player name display -->
             <div id="playerNameDisplay"
                 style="text-align: center; margin: 10px 0; font-size: 1.2rem; font-weight: bold; color: #6c5ce7; display: none; cursor: pointer; transition: all 0.2s; padding: 5px 10px; border-radius: 15px;"
                 onmouseover="this.style.backgroundColor='rgba(108, 92, 231, 0.1)'; this.style.transform='scale(1.05)'"
@@ -19,35 +22,53 @@
                 title="Click to view your progress and statistics">
                 ⭐ <span id="currentPlayerName"></span>
             </div>
-            <div class="game-info">
-                <div class="score">Score: <span id="totalScore">0</span></div>
-                <div class="score">Round: <span id="round">1</span></div>
-                <div class="score">Lives: <span id="lives">3</span></div>
+
+            <!-- PRE-GAME UI (shown when game is stopped) -->
+            <div id="preGameUI">
+                <!-- Main controls for starting the game -->
+                <div class="controls">
+                    <button id="startBtn" class="btn primary">🎮 Start Game</button>
+                    <button id="optionsBtn" class="btn special">⚙️ Options</button>
+                    <button id="helpBtn" class="btn info">❓ Help</button>
+                </div>
+
+                <!-- Options indicator - pre-game -->
+                <div class="options-indicator" id="optionsIndicator">
+                    <div class="option-tag rhythm-tag">Rhythms: ♩</div>
+                    <div class="option-tag note-tag">Notes: 😎 Fun Levels</div>
+                    <div class="option-tag sound-tag">🔊 Sound FX</div>
+                </div>
+
+                <!-- My Own Notes checkbox - pre-game only -->
+                <div style="text-align: center; margin: 10px 0;">
+                    <label id="myOwnNotesCheckboxContainer"
+                        style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.95); color: #2d3436; padding: 8px 15px; border-radius: 12px; cursor: pointer; font-size: 1rem; border: 2px solid #ddd; transition: all 0.2s; font-weight: 500;">
+                        <input type="checkbox" id="useMyOwnNotesGlobal" style="margin-right: 8px; transform: scale(1.2);">
+                        <span>🎨 Use My Own Notes</span>
+                    </label>
+                </div>
             </div>
 
-            <!-- Options indicator -->
-            <div class="options-indicator" id="optionsIndicator">
-                <div class="option-tag">Rhythms: ♩</div>
-                <div class="option-tag">Notes: 😎 Fun Levels</div>
-                <div class="option-tag">🔊 Sound FX</div>
-            </div>
+            <!-- IN-GAME UI (shown when game is running) -->
+            <div id="inGameUI" style="display: none;">
+                <!-- Game info display -->
+                <div class="game-info">
+                    <div class="score">Score: <span id="totalScore">0</span></div>
+                    <div class="score">Level: <span id="round">1</span>-<span id="currentLevel">1</span></div>
+                    <div class="score">Lives: <span id="lives">3</span></div>
+                </div>
 
-            <!-- My Own Notes checkbox - always visible -->
-            <div style="text-align: center; margin: 10px 0;">
-                <label id="myOwnNotesCheckboxContainer"
-                    style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.9); padding: 8px 15px; border-radius: 12px; cursor: pointer; font-size: 1rem; border: 2px solid #ddd; transition: all 0.2s;">
-                    <input type="checkbox" id="useMyOwnNotesGlobal" style="margin-right: 8px; transform: scale(1.2);">
-                    <span>🎨 Use My Own Notes</span>
-                </label>
-            </div>
+                <!-- In-game options indicator - minimal -->
+                <div class="options-indicator in-game">
+                    <div class="option-tag rhythm-tag">Rhythms: ♩</div>
+                    <div class="option-tag sound-tag">🔊 Sound FX</div>
+                </div>
 
-            <div class="controls">
-                <button id="startBtn" class="btn primary">🎮 Start Game</button>
-                <button id="stopBtn" class="btn secondary" disabled>🛑 Stop</button>
-                <button id="resetBtn" class="btn secondary">🔄 Reset</button>
-                <button id="listenAgainBtn" class="btn special" disabled>👂 Listen Again</button>
-                <button id="optionsBtn" class="btn special">⚙️ Options</button>
-                <button id="helpBtn" class="btn info">❓ Help</button>
+                <!-- In-game controls -->
+                <div class="controls">
+                    <button id="stopResetBtn" class="btn secondary">🛑 Stop/Reset</button>
+                    <button id="listenAgainBtn" class="btn special" disabled>👂 Listen Again</button>
+                </div>
             </div>
 
             <!-- Hidden options (moved to modal) -->
@@ -409,10 +430,10 @@
 
                 const welcomeMessage = this.playerName ?
                     `Welcome back, <strong>${this.playerName}</strong>! 🎉` :
-                    'Welcome to System B! 🎵';
+                    'Welcome to Copy-Cat! 🎵';
 
                 modal.innerHTML = `
-                    <h1 style="font-size: 2.5rem; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🎵 System B 🎵</h1>
+                    <img src="Copycat logo.png" alt="Copy-Cat" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 20px;">
                     
                     <div style="font-size: 1.2rem; margin-bottom: 25px; line-height: 1.6;">
                         ${welcomeMessage}
@@ -869,8 +890,7 @@
             initializeEventListeners() {
                 // Control buttons
                 document.getElementById('startBtn').addEventListener('click', () => this.startGame());
-                document.getElementById('stopBtn').addEventListener('click', () => this.stopGame());
-                document.getElementById('resetBtn').addEventListener('click', () => this.resetGame());
+                document.getElementById('stopResetBtn').addEventListener('click', () => this.stopResetGame());
                 document.getElementById('listenAgainBtn').addEventListener('click', () => this.listenAgain());
 
                 // Options button - only works when stopped
@@ -1001,43 +1021,31 @@
                 const backgroundHue1 = currentHue;
                 const backgroundHue2 = (currentHue + 20) % 360; // Slightly different hue for gradient
                 const backgroundHue3 = (currentHue + 40) % 360; // Third color for richer gradient
-                
+
                 // Create a sophisticated gradient background that complements the light colors
                 const background = `linear-gradient(135deg, 
                     hsl(${backgroundHue1}, 70%, 15%), 
                     hsl(${backgroundHue2}, 75%, 20%), 
                     hsl(${backgroundHue3}, 80%, 25%)
                 )`;
-                
+
                 // Apply background to body with smooth transition
                 document.body.style.background = background;
-
-                // Ensure the logo keeps its rainbow gradient (preserve original CSS styling)
-                const logo = document.querySelector('.game-header h1');
-                if (logo) {
-                    // Force the original rainbow gradient to stay intact
-                    logo.style.background = 'linear-gradient(45deg, #ff1744 0%, #ff6b00 15%, #ffc107 30%, #4caf50 45%, #00e5ff 60%, #2196f3 75%, #9c27b0 90%, #e91e63 100%)';
-                    logo.style.backgroundSize = '200% 200%';
-                    logo.style.webkitBackgroundClip = 'text';
-                    logo.style.backgroundClip = 'text';
-                    logo.style.webkitTextFillColor = 'transparent';
-                    logo.style.animation = 'rainbow-shift 4s ease-in-out infinite';
-                }
 
                 // Define 12 equally spaced hues around the color wheel for the 12 lights
                 const lights = document.querySelectorAll('.light');
                 lights.forEach((light, index) => {
                     // Spread the 12 lights evenly around the color wheel from the current level's base hue
                     const lightHue = (currentHue + (index * 30)) % 360; // 30° spacing between lights
-                    
+
                     // Use consistent saturation and lightness for good visibility
                     const saturation = 85; // High saturation for vibrant colors
                     const lightness = 58; // Good contrast against white text
-                    
+
                     // Create the gradient using HSL
                     const color1 = `hsl(${lightHue}, ${saturation}%, ${lightness}%)`;
                     const color2 = `hsl(${lightHue}, ${saturation}%, ${lightness - 10}%)`; // Slightly darker for gradient
-                    
+
                     // Apply the new gradient background
                     light.style.background = `linear-gradient(45deg, ${color1}, ${color2}) !important`;
                 });
@@ -1571,6 +1579,7 @@
                 this.updateDisplay();
                 this.updateControls();
                 this.updateNoteDisplay(); // Ensure proper note display for level 1
+                this.switchToInGameUI(); // Switch to in-game UI layout
 
                 // Handle different game modes
                 if (this.callResponseMode) {
@@ -1794,6 +1803,12 @@
                 }, 10000);
             }
 
+            // Stop and reset game combined (for single button)
+            stopResetGame() {
+                this.resetGame();
+                this.switchToPreGameUI();
+            }
+
             // Stop game
             stopGame() {
                 this.gameState = 'stopped';
@@ -1813,6 +1828,7 @@
 
                 this.updateDisplay();
                 this.updateControls();
+                this.switchToPreGameUI();
             }
 
             // Reset game
@@ -1850,6 +1866,34 @@
                 this.updateDisplay();
                 this.updateNoteDisplay(); // Refresh notes for level 1
                 this.updateControls(); // Update button states
+            }
+
+            // UI switching methods
+            switchToInGameUI() {
+                // Hide pre-game UI elements
+                document.getElementById('preGameUI').style.display = 'none';
+                
+                // Show in-game UI elements
+                document.getElementById('inGameUI').style.display = 'block';
+                
+                // Update the current level display
+                this.updateLevelDisplay();
+            }
+
+            switchToPreGameUI() {
+                // Show pre-game UI elements
+                document.getElementById('preGameUI').style.display = 'block';
+                
+                // Hide in-game UI elements
+                document.getElementById('inGameUI').style.display = 'none';
+            }
+
+            updateLevelDisplay() {
+                // Update the level display in the in-game UI
+                const currentLevelSpan = document.getElementById('currentLevel');
+                if (currentLevelSpan) {
+                    currentLevelSpan.textContent = this.currentLevel;
+                }
             }
 
             // Special sequence playback for pitch training mode - only shows first note visually
@@ -2651,6 +2695,9 @@
 
                     // Update light colors for the new level
                     this.updateLightColors();
+                    
+                    // Update level display in UI
+                    this.updateLevelDisplay();
 
                     // Award bonus Listen Again for next level if perfect accuracy achieved
                     if (perfectAccuracy && !this.bonusListenAgainAwarded) {
@@ -3310,7 +3357,7 @@
                 modal.classList.add('modal-with-scroll');
 
                 modal.innerHTML = `
-                    <h2 style="text-align: center; margin-bottom: 20px; color: #2d3436;">🎵 How to Play System B! 🎵</h2>
+                    <h2 style="text-align: center; margin-bottom: 20px; color: #2d3436;">🎵 How to Play Copy-Cat! 🎵</h2>
                     
                     <div style="background: rgba(255,255,255,0.8); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
                         <h3>🎯 Goal</h3>
@@ -4555,11 +4602,8 @@
             // Update control buttons
             updateControls() {
                 const startBtn = document.getElementById('startBtn');
-                const stopBtn = document.getElementById('stopBtn');
+                const stopResetBtn = document.getElementById('stopResetBtn');
                 const listenAgainBtn = document.getElementById('listenAgainBtn');
-                const optionsBtn = document.getElementById('optionsBtn');
-                const helpBtn = document.getElementById('helpBtn');
-                const controlsDiv = document.querySelector('.controls');
                 const scaleRadios = document.querySelectorAll('input[name="scaleType"]');
 
                 // Update Listen Again button text based on mode and available listens
@@ -4575,31 +4619,21 @@
                 }
 
                 if (this.gameState === 'stopped') {
-                    // Game stopped - show Start Game, hide Stop
-                    startBtn.textContent = '🎮 Start Game';
-                    startBtn.disabled = false;
-                    startBtn.style.display = 'block';
-                    stopBtn.style.display = 'none';
-                    listenAgainBtn.disabled = true;
-
-                    // Show all buttons when stopped
-                    optionsBtn.style.display = 'block';
-                    helpBtn.style.display = 'block';
-                    controlsDiv.classList.remove('during-gameplay');
-
+                    // Game stopped - start button enabled, listen again disabled
+                    if (startBtn) {
+                        startBtn.disabled = false;
+                    }
+                    if (listenAgainBtn) {
+                        listenAgainBtn.disabled = true;
+                    }
+                    
                     // Enable scale selection when game is stopped
                     scaleRadios.forEach(radio => radio.disabled = false);
                 } else {
-                    // Game playing - show Stop, hide Start Game
-                    stopBtn.textContent = '🛑 Stop';
-                    stopBtn.disabled = false;
-                    stopBtn.style.display = 'block';
-                    startBtn.style.display = 'none';
-
-                    // During gameplay - only show essential buttons
-                    optionsBtn.style.display = 'block'; // Keep options available
-                    helpBtn.style.display = 'none'; // Hide help during gameplay
-                    controlsDiv.classList.add('during-gameplay');
+                    // Game playing - update button states
+                    if (stopResetBtn) {
+                        stopResetBtn.disabled = false;
+                    }
 
                     // Listen Again button logic depends on game mode
                     if (this.callResponseMode) {

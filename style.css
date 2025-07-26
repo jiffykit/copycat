@@ -646,6 +646,96 @@ body {
     height: 440px;
 }
 
+/* UI switching styles */
+#preGameUI {
+    transition: opacity 0.3s ease-in-out;
+}
+
+#inGameUI {
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* In-game specific styles */
+#inGameUI .game-info {
+    margin: 15px 0;
+    text-align: center;
+}
+
+#inGameUI .game-info .score {
+    display: inline-block;
+    margin: 0 15px;
+    padding: 8px 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+#inGameUI .options-indicator.in-game {
+    margin: 10px auto;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    width: 100%;
+    max-width: 600px;
+}
+
+#inGameUI .options-indicator.in-game .option-tag {
+    font-size: 0.9rem;
+    padding: 6px 12px;
+}
+
+/* Larger lights for in-game mode */
+#inGameUI .light {
+    width: 130px;
+    height: 130px;
+}
+
+#inGameUI .linear-layout .light {
+    width: 130px;
+    height: 130px;
+}
+
+#inGameUI .light-number {
+    font-size: 26px;
+}
+
+/* Responsive design - make lights even bigger on larger screens */
+@media (min-width: 768px) {
+    #inGameUI .light {
+        width: 150px;
+        height: 150px;
+    }
+    
+    #inGameUI .linear-layout .light {
+        width: 150px;
+        height: 150px;
+    }
+    
+    #inGameUI .light-number {
+        font-size: 30px;
+    }
+}
+
+@media (min-width: 1024px) {
+    #inGameUI .light {
+        width: 180px;
+        height: 180px;
+    }
+    
+    #inGameUI .linear-layout .light {
+        width: 180px;
+        height: 180px;
+    }
+    
+    #inGameUI .light-number {
+        font-size: 36px;
+    }
+}
+
 /* Light Positions and Colors */
 .light {
     position: absolute;

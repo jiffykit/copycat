@@ -13,7 +13,7 @@
         <header class="game-header">
             <img src="Copycat logo.png" alt="Copy-Cat"
                 style="max-height: 120px; max-width: 100%; object-fit: contain; margin-bottom: 20px; filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));">
-            
+
             <!-- Player name display -->
             <div id="playerNameDisplay"
                 style="text-align: center; margin: 10px 0; font-size: 1.2rem; font-weight: bold; color: #6c5ce7; display: none; cursor: pointer; transition: all 0.2s; padding: 5px 10px; border-radius: 15px;"
@@ -43,7 +43,8 @@
                 <div style="text-align: center; margin: 10px 0;">
                     <label id="myOwnNotesCheckboxContainer"
                         style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.95); color: #2d3436; padding: 8px 15px; border-radius: 12px; cursor: pointer; font-size: 1rem; border: 2px solid #ddd; transition: all 0.2s; font-weight: 500;">
-                        <input type="checkbox" id="useMyOwnNotesGlobal" style="margin-right: 8px; transform: scale(1.2);">
+                        <input type="checkbox" id="useMyOwnNotesGlobal"
+                            style="margin-right: 8px; transform: scale(1.2);">
                         <span>🎨 Use My Own Notes</span>
                     </label>
                 </div>
@@ -54,7 +55,7 @@
                 <!-- Game info display -->
                 <div class="game-info">
                     <div class="score">Score: <span id="totalScore">0</span></div>
-                    <div class="score">Level: <span id="round">1</span>-<span id="currentLevel">1</span></div>
+                    <div class="score">Level: <span id="currentLevel">1</span>-<span id="round">1</span></div>
                     <div class="score">Lives: <span id="lives">3</span></div>
                 </div>
 
@@ -322,6 +323,10 @@
 
                 // Load player data and always show welcome screen
                 this.loadPlayerData();
+
+                // Get reference to game board and hide it initially until welcome screen is closed
+                this.gameBoard = document.querySelector('.game-board');
+
                 // Always show welcome screen on startup
                 this.showWelcomeScreen();
             }
@@ -499,6 +504,7 @@
                         this.gameStarted = true;
                         this.savePlayerData();
                         document.body.removeChild(overlay);
+                        this.gameBoard.classList.add('show'); // Show game board after welcome screen
                         this.updateDisplay(); // Update display to show player name
                     } else {
                         nameInput.style.border = '2px solid #e74c3c';
@@ -517,6 +523,7 @@
                         this.gameStarted = true;
                         this.savePlayerData();
                         document.body.removeChild(overlay);
+                        this.gameBoard.classList.add('show'); // Show game board after welcome screen
                         this.updateDisplay();
                     };
                 }
@@ -528,6 +535,7 @@
                 if (viewStatsBtn) {
                     viewStatsBtn.onclick = () => {
                         document.body.removeChild(overlay);
+                        this.gameBoard.classList.add('show'); // Show game board after welcome screen
                         this.showProgressChart();
                     };
                 }
@@ -602,11 +610,11 @@
                     `;
                 };
 
-                // Calculate averages
+                // Calculate averages and convert to percentages for display
                 const avgRhythm = this.playerStats.rhythmAccuracyHistory.length > 0 ?
-                    this.playerStats.rhythmAccuracyHistory.reduce((a, b) => a + b, 0) / this.playerStats.rhythmAccuracyHistory.length : 0;
+                    (this.playerStats.rhythmAccuracyHistory.reduce((a, b) => a + b, 0) / this.playerStats.rhythmAccuracyHistory.length) * 100 : 0;
                 const avgPitch = this.playerStats.pitchAccuracyHistory.length > 0 ?
-                    this.playerStats.pitchAccuracyHistory.reduce((a, b) => a + b, 0) / this.playerStats.pitchAccuracyHistory.length : 0;
+                    (this.playerStats.pitchAccuracyHistory.reduce((a, b) => a + b, 0) / this.playerStats.pitchAccuracyHistory.length) * 100 : 0;
 
                 modal.innerHTML = `
                     <h2 style="font-size: 2.2rem; margin-bottom: 25px; color: #2d3436;">📊 ${this.playerName}'s Progress 📊</h2>
@@ -628,11 +636,11 @@
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
                         <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 15px;">
-                            ${createMiniChart(this.playerStats.rhythmAccuracyHistory, '🥁 Rhythm Progress (Last 10 Games)', 'linear-gradient(45deg, #667eea, #764ba2)')}
+                            ${createMiniChart(this.playerStats.rhythmAccuracyHistory.map(v => v * 100), '🥁 Rhythm Progress (Last 10 Games)', 'linear-gradient(45deg, #667eea, #764ba2)')}
                         </div>
                         
                         <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 15px;">
-                            ${createMiniChart(this.playerStats.pitchAccuracyHistory, '🎵 Pitch Progress (Last 10 Games)', 'linear-gradient(45deg, #00b894, #00cec9)')}
+                            ${createMiniChart(this.playerStats.pitchAccuracyHistory.map(v => v * 100), '🎵 Pitch Progress (Last 10 Games)', 'linear-gradient(45deg, #00b894, #00cec9)')}
                         </div>
                     </div>
 
@@ -912,12 +920,35 @@
 
                 // Global My Own Notes checkbox
                 document.getElementById('useMyOwnNotesGlobal').addEventListener('change', (e) => {
-                    // Only allow changes if not in Fun Levels mode
-                    if (!this.pitchTrainingMode && !this.callResponseMode && !this.usingCustomScale) {
-                        e.preventDefault();
-                        return;
+                    if (e.target.checked) {
+                        // Enable custom note selection mode
+                        this.usingCustomScale = true;
+                        this.customNoteSelectionMode = true;
+
+                        // Update radio button to custom
+                        const customRadio = document.getElementById('scaleTypeCustom');
+                        if (customRadio) {
+                            customRadio.checked = true;
+                        }
+
+                        // Update displays
+                        this.updateNoteDisplay();
+                        this.updateOptionsIndicator();
+                    } else {
+                        // Disable custom note selection mode
+                        this.usingCustomScale = false;
+                        this.customNoteSelectionMode = false;
+
+                        // Update radio button to progressive
+                        const progressiveRadio = document.querySelector('input[name="scaleType"][value="progressive"]');
+                        if (progressiveRadio) {
+                            progressiveRadio.checked = true;
+                        }
+
+                        // Update displays
+                        this.updateNoteDisplay();
+                        this.updateOptionsIndicator();
                     }
-                    this.toggleMyOwnNotesInMode(e.target.checked);
                 });
 
                 // Rhythm toggle controls
@@ -1222,7 +1253,8 @@
                 const container = document.querySelector('.notes-container');
                 const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
-                // Reset container styles for linear layout
+                // Always use linear layout (horizontal) - remove any circular layout
+                container.classList.remove('circular-layout');
                 container.classList.add('linear-layout');
                 container.style.width = 'auto';
                 container.style.height = '180px';
@@ -1526,6 +1558,13 @@
 
             // Start new game - faster setup
             async startGame(skipPrompt = false) {
+                // Check if we're in "My Own Notes" mode but haven't saved custom notes
+                const useMyOwnNotesGlobal = document.getElementById('useMyOwnNotesGlobal');
+                if (useMyOwnNotesGlobal && useMyOwnNotesGlobal.checked && this.customNotes.length === 0) {
+                    alert('Please select and save your custom notes before starting the game!');
+                    return;
+                }
+
                 // If in 2-player mode and we haven't skipped the prompt, always prompt for Player 2 name to confirm/change it
                 if (this.callResponseMode && !skipPrompt) {
                     this.promptForPlayer2Name();
@@ -1872,10 +1911,10 @@
             switchToInGameUI() {
                 // Hide pre-game UI elements
                 document.getElementById('preGameUI').style.display = 'none';
-                
+
                 // Show in-game UI elements
                 document.getElementById('inGameUI').style.display = 'block';
-                
+
                 // Update the current level display
                 this.updateLevelDisplay();
             }
@@ -1883,7 +1922,7 @@
             switchToPreGameUI() {
                 // Show pre-game UI elements
                 document.getElementById('preGameUI').style.display = 'block';
-                
+
                 // Hide in-game UI elements
                 document.getElementById('inGameUI').style.display = 'none';
             }
@@ -2038,20 +2077,54 @@
 
             // Handle light press - simplified validation with timing tolerance
             onLightPress(lightIndex, event) {
+                // Prevent default touch behavior to avoid glitches
+                if (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+
+                // Resume audio context if suspended (required for mobile browsers)
+                if (this.audioContext && this.audioContext.state === 'suspended') {
+                    this.audioContext.resume();
+                }
+
                 // Handle custom note selection mode
                 if (this.customNoteSelectionMode) {
                     this.handleCustomNoteSelection(lightIndex);
                     return;
                 }
 
-                if (!this.isPlayerTurn) return;
-
-                // Handle different game modes
-                if (this.callResponseMode) {
-                    this.handleCallResponsePress(lightIndex);
-                } else {
-                    this.handleNormalGamePress(lightIndex);
+                // If game is active and waiting for player input, handle as gameplay
+                if (this.gameState === 'listening' && this.isPlayerTurn) {
+                    // Handle different game modes
+                    if (this.callResponseMode) {
+                        this.handleCallResponsePress(lightIndex);
+                    } else {
+                        this.handleNormalGamePress(lightIndex);
+                    }
+                    return;
                 }
+
+                // If no game is active (stopped state), just play the note for preview
+                if (this.gameState === 'stopped') {
+                    const light = document.getElementById(`light-${lightIndex}`);
+                    const note = light.dataset.note;
+                    const frequency = this.notes[note];
+
+                    // Play note with visual feedback
+                    light.classList.add('active');
+                    this.playTone(frequency, 300); // Play for 300ms (corrected units)
+
+                    // Remove visual feedback after 300ms
+                    setTimeout(() => {
+                        light.classList.remove('active');
+                    }, 300);
+
+                    return;
+                }
+
+                // During sequence playback or other game states, ignore input
+                return;
             }
 
             // Handle input for normal game mode (including pitch training)
@@ -2695,7 +2768,7 @@
 
                     // Update light colors for the new level
                     this.updateLightColors();
-                    
+
                     // Update level display in UI
                     this.updateLevelDisplay();
 
@@ -2768,6 +2841,22 @@
 
             // Lose a life - restart the same level
             loseLife() {
+                // Immediately stop player input to prevent further interaction
+                this.isPlayerTurn = false;
+                this.gameState = 'playing'; // Set to playing to block input
+
+                // Clear any active visual feedback
+                document.querySelectorAll('.light.active').forEach(light => {
+                    light.classList.remove('active');
+                });
+
+                // Reset current sequence tracking
+                this.currentSequenceIndex = 0;
+                this.currentTapCount = 0;
+                this.currentItemTapTimes = [];
+                this.playerSequence = [];
+                this.playerPressedLight = null;
+
                 this.lives--;
                 this.updateDisplay();
 
@@ -2790,8 +2879,8 @@
                 // Record game statistics
                 // Use the accumulated rhythm accuracy from all sequences played this game
                 const totalRhythmAccuracy = this.totalTimingAttempts > 0 ?
-                    (this.sessionRhythmAccuracySum / this.totalTimingAttempts) * 100 : 0;
-                const pitchAccuracy = this.currentRound > 1 ? ((this.currentRound - 1) / this.currentRound) * 100 : 100;
+                    (this.sessionRhythmAccuracySum / this.totalTimingAttempts) : 0; // Keep as decimal 0-1
+                const pitchAccuracy = this.currentRound > 1 ? ((this.currentRound - 1) / this.currentRound) : 1;
                 this.updatePlayerStats(this.totalScore, this.currentLevel, totalRhythmAccuracy, pitchAccuracy);
 
                 this.updateDisplay();
@@ -3014,14 +3103,40 @@
                 };
                 startAgainBtn.onclick = () => {
                     document.body.removeChild(overlay);
+
+                    // Complete reset to level 1
                     this.currentLevel = 1;
                     this.currentRound = 1;
-                    this.score = 0;
-                    this.lives = 3;
+                    this.totalScore = 0; // Reset score
+                    this.levelScore = 0;
+                    this.lives = 3; // Reset lives
                     this.correctInRow = 0;
-                    this.sequence = [];
+
+                    // Reset Listen Again system
+                    this.normalListenAgainCount = 1;
+                    this.bonusListenAgainAwarded = false;
+                    this.listenAgainUsed = false;
+                    this.pitchTrainingListenCount = 0;
+
+                    // Reset sequence tracking
+                    this.gameSequence = [];
                     this.playerSequence = [];
+                    this.currentSequenceIndex = 0;
+                    this.currentTapCount = 0;
+                    this.currentItemTapTimes = [];
+                    this.playerPressedLight = null;
+
+                    // Reset timing and rhythm tracking
+                    this.rhythmAccuracy = 0;
+                    this.perfectTimingCount = 0;
+                    this.totalTimingAttempts = 0;
+                    this.sessionRhythmAccuracySum = 0;
+                    this.currentLevelRhythmBonus = 0;
+
+                    // Reset game state
                     this.gameState = 'stopped';
+                    this.isPlayerTurn = false;
+
                     this.updateDisplay();
                     this.updateControls();
                     this.updateNoteDisplay();
@@ -3053,17 +3168,71 @@
                 };
                 continueBtn.onclick = () => {
                     document.body.removeChild(overlay);
-                    this.currentRound = 1;
-                    this.score = 0;
-                    this.lives = 3;
+
+                    // Store the current level and round we failed on
+                    const failedLevel = this.currentLevel;
+                    const failedRound = this.currentRound;
+
+                    // Reset game stats but keep the level/round we failed on
+                    this.currentLevel = failedLevel;
+                    this.currentRound = failedRound;
+                    this.totalScore = 0; // Reset score
+                    this.levelScore = 0;
+                    this.lives = 3; // Reset lives
                     this.correctInRow = 0;
-                    this.sequence = [];
+
+                    // Set BPM for the current level (not reset to level 1)
+                    this.bpm = Math.min(50 + (failedLevel - 1) * 2, 85); // 2 BPM per level, max 85
+                    this.lastNoteIndex = -1; // Reset note tracking
+
+                    // Reset Listen Again system
+                    this.normalListenAgainCount = 1; // Reset Listen Again count
+                    this.bonusListenAgainAwarded = false;
+                    this.listenAgainUsed = false;
+                    this.pitchTrainingListenCount = 0;
+
+                    // Build a NEW sequence for the current level/round (not from level 1)
+                    this.gameSequence = [];
+                    for (let i = 0; i < failedRound; i++) {
+                        this.gameSequence.push(this.generateSequenceItem());
+                    }
+
+                    // Reset player tracking
                     this.playerSequence = [];
+                    this.currentSequenceIndex = 0;
+                    this.currentTapCount = 0;
+                    this.currentItemTapTimes = [];
+                    this.playerPressedLight = null;
+
+                    // Reset timing and rhythm tracking
+                    this.rhythmAccuracy = 0;
+                    this.perfectTimingCount = 0;
+                    this.totalTimingAttempts = 0;
+                    this.sessionRhythmAccuracySum = 0;
+                    this.currentLevelRhythmBonus = 0;
+
+                    // Reset game state and prepare to start
                     this.gameState = 'stopped';
+                    this.isPlayerTurn = false;
+
                     this.updateDisplay();
                     this.updateControls();
-                    this.updateNoteDisplay();
+                    this.updateNoteDisplay(); // Update notes for current level
                     this.updateLightColors(); // Maintain current level colors
+
+                    // Switch to in-game UI and start playing the sequence
+                    this.switchToInGameUI();
+
+                    // Show "Get Ready!" modal then start the sequence
+                    setTimeout(() => {
+                        this.showGetReadyModal(() => {
+                            if (this.pitchTrainingMode) {
+                                this.playSequenceWithPitchTraining();
+                            } else {
+                                this.playSequence();
+                            }
+                        });
+                    }, 500); // Brief delay to let UI update
                 };
 
                 // Quit button
@@ -4626,7 +4795,7 @@
                     if (listenAgainBtn) {
                         listenAgainBtn.disabled = true;
                     }
-                    
+
                     // Enable scale selection when game is stopped
                     scaleRadios.forEach(radio => radio.disabled = false);
                 } else {

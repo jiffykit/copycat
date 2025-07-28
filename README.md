@@ -103,25 +103,12 @@ The code is designed for extensibility:
 - **Sound Packs**: Different instrument timbres
 - **Multiplayer**: Turn-based or competitive modes
 
-## Development
 
-### Running the Game
-Simply open `index.html` in any modern web browser. No build process required.
 
-### Customization
-Key parameters can be modified in `script.js`:
-- `bpm`: Metronome speed (default: 120)
-- `rhythms`: Available rhythm patterns
-- `notes`: Shepard tone frequencies
-- Light colors and positions in `style.css`
-
-### Audio Context
-The game automatically handles Web Audio API initialization and browser audio policy restrictions.
 
 ## License
 
-This project is open source. Feel free to modify and distribute as needed.
+This project is NOT open source. It is for educational purposes only.
+ALL RIGHTS RESERVED James Mulvale 2025
 
----
 
-**Enjoy the rhythmic memory challenge!** 🎵🎮

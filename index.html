@@ -5,14 +5,155 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Copy-Cat</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+/* Copy-Cat 2026. Single authoritative responsive layout. */
+:root { color-scheme:dark; --bg:#0c1333; --panel:#161f42; --line:#35456d; --ink:#f5f7ff; --muted:#bdc8e4; --hot:#f7cf73; --keyheight:clamp(192px, 34vw, 320px); }
+*,*::before,*::after { box-sizing:border-box; }
+html { -webkit-text-size-adjust:100%; }
+body { margin:0; min-height:100vh; min-height:100dvh; background:radial-gradient(ellipse at 50% -20%,#303a78 0%,#141d46 44%,#090e29 100%); color:var(--ink); font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif; }
+button,input,select { font:inherit; }
+button { -webkit-tap-highlight-color:transparent; }
+button:focus-visible,select:focus-visible,input:focus-visible,.option-tag:focus-visible { outline:3px solid #ffcf70; outline-offset:3px; }
+[hidden] { display:none!important; }
+.game-container { width:min(100%,1040px); margin:0 auto; padding:clamp(12px,2.8vw,28px) clamp(12px,2vw,22px) 38px; display:flex; flex-direction:column; gap:clamp(14px,2vw,24px); }
+.game-header { text-align:center; position:relative; height:330px; display:grid; grid-template-rows:90px 34px 190px; justify-items:center; align-items:center; gap:8px; flex-shrink:0; }
+.brand { height:92px; width:100%; display:flex; align-items:center; justify-content:center; }
+.brand img { display:block; max-width:100%; max-height:90px; width:auto; object-fit:contain; filter:drop-shadow(0 7px 20px #0007); }
+.brand h1 { margin:0; letter-spacing:.10em; font-size:clamp(2.3rem,6vw,4.8rem); font-weight:900; color:#f5f7ff; text-shadow:0 4px 0 #293063,0 10px 24px #0008; }
+.brand h1 span { color:#ffca62; }
+#playerNameDisplay { width:fit-content; margin:0 auto!important; height:32px; max-width:100%; font-size:1rem!important; color:#c6d5ff!important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#preGameUI,#inGameUI { width:100%; height:192px; flex-shrink:0; }
+.controls { display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap; padding:2px 0; min-height:49px; }
+.btn { cursor:pointer; border:1px solid #687cb0; background:#243665; color:white; border-radius:12px; padding:11px 17px; font-size:.95rem; font-weight:700; line-height:1.2; min-height:45px; transition:background-color .13s ease,border-color .13s ease; white-space:nowrap; }
+.btn:hover:not(:disabled) { background:#364e89; border-color:#bacbf4; }
+.btn:active:not(:disabled) { background:#5568a0; }
+.btn.primary { background:#f9c767; color:#172245; border-color:#ffdd99; }
+.btn.primary:hover { background:#ffe08c; }
+.btn.special { background:#364a85; }
+.btn.secondary { background:#2f345b; }
+.btn.info { background:#234a70; }
+.btn:disabled { opacity:.48; cursor:not-allowed; }
+.game-info { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; padding:0 0 8px; }
+.game-info .score { flex:0 1 auto; min-width:114px; background:#111a39; color:#bfcce8; border:1px solid #3b4e77; border-radius:11px; padding:9px 12px; font-size:clamp(.82rem,2vw,1rem); }
+.game-info .score span { color:#fff; font-weight:800; }
+.options-indicator { display:flex; justify-content:center; flex-wrap:wrap; align-items:center; gap:8px; min-height:42px; padding:6px 0; }
+.option-tag { user-select:none; background:#1c2954; color:#dce8ff; border:1px solid #42547e; font-size:.82rem; font-weight:600; padding:8px 11px; border-radius:11px; cursor:pointer; }
+.option-tag:hover { background:#263968; }
+.option-tag.pulse { animation:rhythmPulse .6s ease-in-out; }
+#preGameUI > div[style*="text-align: center"] { margin:5px 0!important; }
+#myOwnNotesCheckboxContainer { border:1px solid #5a77a3!important; color:var(--ink)!important; background:#202d56!important; font-size:.87rem!important; }
+#myOwnNotesCheckboxContainer input { accent-color:#e8a84b; }
+.rhythm-controls,.scale-controls { display:none; }
+.game-board { display:flex!important; flex-direction:column; align-items:center; gap:12px; width:100%; margin:0; padding:clamp(12px,2vw,24px); background:#111a37; border:1px solid #3a4a75; box-shadow:0 12px 45px #0003; border-radius:20px; }
+.keyboard-heading,.keyboard-legend { width:100%; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center; }
+.keyboard-heading { font-weight:750; letter-spacing:.1em; font-size:.84rem; color:#e1e9ff; }
+#keyboardHint { font-size:.81rem; letter-spacing:0; font-weight:500; color:#aebfe0; text-align:right; }
+.keyboard-tools { display:flex; align-items:center; gap:12px; }
+.audio-settings-btn { display:grid; place-items:center; width:36px; height:36px; flex:none; padding:0; border:1px solid #5e719d; background:#1c2954; color:#e8f0ff; border-radius:10px; font-size:1.48rem; line-height:1; cursor:pointer; }
+.audio-settings-btn:hover,.audio-settings-btn[aria-expanded="true"] { color:#1b2748; background:#f4ca72; border-color:#ffdb9b; }
+.notes-container { width:100%; height:var(--keyheight); position:relative; isolation:isolate; touch-action:none; user-select:none; -webkit-user-select:none; border-radius:7px; overflow:hidden; background:#050814; border:clamp(3px,.65vw,6px) solid #070d25; box-shadow:0 9px 0 #030711,0 16px 24px #0008; }
+.piano-key { appearance:none; -webkit-appearance:none; padding:0; margin:0; position:absolute; top:0; border-radius:0 0 7px 7px; display:flex; justify-content:center; align-items:flex-end; overflow:hidden; cursor:pointer; touch-action:none; transition:none; transform:none!important; font-weight:700; }
+.piano-key.white { width:12.5%; height:100%; z-index:1; background:linear-gradient(180deg,#e9eaf1 0%,#fdfdff 58%,#d7d8df 100%); color:#27304b; border:1px solid #8c91a5; box-shadow:inset 0 -6px 6px #686e7930; }
+.piano-key.black { width:7.7%; height:64%; z-index:3; background:linear-gradient(100deg,#1e2442,#060914 60%,#30394f); color:#f3f6ff; border:1px solid #02030a; border-radius:0 0 6px 6px; box-shadow:2px 5px 6px #0009,inset 0 -3px 2px #5a6172; }
+.light-number { display:block; padding-bottom:clamp(10px,2vw,21px); font-size:clamp(.61rem,1.35vw,.96rem); pointer-events:none; white-space:nowrap; }
+.black .light-number { padding-bottom:clamp(8px,2vw,15px); font-size:clamp(.54rem,1.1vw,.79rem); }
+.piano-key.out-of-scale:not(.playing):not(.active):not(.selected) { filter:grayscale(1) brightness(.62); cursor:pointer; }
+.piano-key.black.out-of-scale:not(.playing):not(.active):not(.selected) { filter:grayscale(1) brightness(.75); }
+.piano-key.selected { outline:3px solid #f7c666; outline-offset:-4px; }
+.piano-key.white.playing,.piano-key.white.active,.piano-key.black.playing,.piano-key.black.active { background:var(--note-glow,#f2ae41)!important; color:#0c1230; border-color:#fff9!important; box-shadow:inset 0 0 27px #ffffff88,0 0 22px var(--note-glow,#f2ae41); filter:none!important; z-index:4; }
+.piano-key.black.playing,.piano-key.black.active { z-index:5; }
+.keyboard-legend { justify-content:center; gap:14px; font-size:.76rem; color:#a9b9dc; padding-top:5px; }
+.keyboard-legend span { display:flex; align-items:center; gap:5px; }
+.legend-dot { display:inline-block; width:9px; height:9px; border-radius:3px; background:#fafbff; }
+.legend-dot.unavailable { background:#787c8e; }
+.legend-dot.lit { background:linear-gradient(90deg,#f6534b,#ffd053,#41d996,#547cf5,#9869df); }
+/* Floating settings do not resize or move the keyboard when opened. */
+.midi-panel { position:fixed; top:clamp(12px,15vh,170px); right:max(12px,calc((100vw - 1040px) / 2 + 16px)); z-index:60; width:min(600px,calc(100vw - 24px)); max-height:calc(100dvh - 32px); overflow-y:auto; padding:15px clamp(12px,2vw,20px); border:1px solid #7087b3; background:#131d40; border-radius:16px; box-shadow:0 18px 60px #000c; }
+.midi-panel-header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.midi-panel-header strong { font-size:1rem; }
+.audio-settings-close { min-height:36px; padding:6px 12px; color:#e8f0ff; border:1px solid #6c7fac; border-radius:9px; background:#243665; cursor:pointer; }
+.audio-settings-close:hover { background:#354a81; }
+#midiStatus { flex-basis:100%; }
+#midiStatus { font-size:.8rem; color:#b3c7eb; }
+.midi-controls { display:flex; flex-wrap:wrap; align-items:end; gap:10px; }
+.midi-field { display:flex; flex:1 1 180px; min-width:160px; flex-direction:column; gap:5px; font-size:.72rem; letter-spacing:.07em; font-weight:700; color:#cbd5ef; }
+.midi-field select { height:42px; min-width:0; max-width:100%; padding:0 10px; color:#f8faff; border:1px solid #576b95; border-radius:9px; background:#1e2a52; font-size:.86rem; }
+.midi-field select:disabled { opacity:.55; }
+.btn.midi-connect { height:42px; min-height:42px; font-size:.85rem; }
+.midi-checkbox { display:flex; align-items:center; gap:6px; min-height:42px; font-size:.83rem; white-space:nowrap; color:#cbd8f3; cursor:pointer; }
+.midi-checkbox input { width:17px; height:17px; margin:0; accent-color:#f8ca72; }
+.save-custom-notes-btn { display:block; position:fixed; bottom:calc(16px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); z-index:999; padding:14px 26px; color:#17213c; background:#ffce72; border:2px solid white; border-radius:12px; font-weight:800; box-shadow:0 8px 28px #0009; cursor:pointer; }
+.rhythm-toggles,.scale-options,.game-mode-options,.note-toggles { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
+.rhythm-controls label,.scale-controls label { display:inline-flex; align-items:center; gap:6px; color:#202540; background:#fff7e7; border:1px solid #e2d4b0; border-radius:9px; padding:7px 10px; cursor:pointer; font-size:.92rem; }
+.rhythm-controls h4,.scale-controls h4 { margin:8px 0; color:#172343; }
+.modal-with-scroll { overscroll-behavior:contain; }
+.game-overlay { box-sizing:border-box; max-width:100vw; max-height:100dvh; overflow:auto; }
+.game-overlay > div:not(.welcome-dialog) { box-sizing:border-box; max-width:min(92vw,540px)!important; min-width:0!important; max-height:min(88dvh,820px); overflow-y:auto; overflow-x:hidden; }
+/* Welcome dialog: natural height and no internal scrollbar. On very short
+   screens the overlay itself remains swipe-scrollable, with hidden track. */
+.welcome-overlay { position:fixed; inset:0; z-index:10001; display:flex; justify-content:center; align-items:initial; overflow-y:auto; overflow-x:hidden; padding:max(10px,env(safe-area-inset-top)) 12px max(10px,env(safe-area-inset-bottom)); background:linear-gradient(135deg,#667eea,#764ba2); backdrop-filter:blur(10px); scrollbar-width:none; }
+.welcome-overlay::-webkit-scrollbar { display:none; }
+.welcome-dialog { flex:0 0 auto; margin:auto; width:min(100%,500px); max-width:100%; max-height:none; overflow:visible; padding:clamp(16px,2.8vh,26px); text-align:center; color:#2d3436; background:linear-gradient(135deg,#ffeaa7,#fab1a0); border:3px solid white; border-radius:20px; box-shadow:0 20px 40px #0005; animation:fadeInUp .6s ease-out; }
+.welcome-logo { display:block; width:auto; max-width:100%; max-height:clamp(52px,8vh,76px); object-fit:contain; margin:0 auto clamp(6px,1.3vh,12px); }
+.welcome-greeting { font-size:clamp(1rem,2.5vw,1.2rem); line-height:1.35; margin-bottom:clamp(10px,1.9vh,17px); }
+.welcome-instructions { text-align:left; background:#fffc; border-radius:15px; padding:clamp(12px,2.3vh,19px); margin-bottom:clamp(9px,1.7vh,15px); font-size:clamp(.83rem,2vw,1rem); line-height:1.35; }
+.welcome-instructions p { margin:0 0 9px; }
+.welcome-instructions p:first-child { font-size:1.08em; margin-bottom:12px; }
+.welcome-instructions p:last-child { margin-bottom:0; }
+.welcome-name-row { margin-bottom:clamp(10px,2vh,16px); }
+.welcome-name-input { width:min(100%,365px); padding:10px 16px; border:2px solid #ddd; border-radius:25px; font-size:1rem; text-align:center; }
+.welcome-actions { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+.welcome-actions button { min-height:42px; }
+@media (max-height:640px) { .welcome-dialog {padding:12px;} .welcome-logo{max-height:49px; margin-bottom:5px;} .welcome-greeting{margin-bottom:8px;} .welcome-instructions{padding:10px;margin-bottom:8px;} .welcome-instructions p{margin-bottom:6px;} .welcome-name-row{margin-bottom:8px;} .welcome-actions{gap:6px;} }
+.game-overlay input[type="text"] { max-width:100%; }
+@keyframes rhythmPulse { 50% { box-shadow:0 0 0 5px #fcd06b80; } }
+@keyframes fadeInUp { from { opacity:0;transform:translateY(22px); } to {opacity:1;transform:translateY(0);} }
+@keyframes scoreReveal { to {opacity:1;transform:translateY(0);} }
+@keyframes colorCycle {0%{color:#ff5e62}25%{color:#ffcf65}50%{color:#55dfbe}75%{color:#8c96fc}100%{color:#fa7fda}}
+@keyframes gradientShift {0%{background-position:0 50%}50%{background-position:100% 50%}100%{background-position:0 50%}}
+@keyframes bonusPulse { 0%{transform:translate(-50%,-50%) scale(.85);opacity:0}100%{transform:translate(-50%,-50%) scale(1);opacity:1} }
+@keyframes slideInRight {from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes pulse { from {transform:scale(1)}to{transform:scale(1.04)} }
+@media (max-width:650px) {
+ :root { --keyheight:clamp(175px,47vw,260px); }
+ .game-container { padding:12px 9px 22px; gap:12px; }
+ .game-header { height:332px; grid-template-rows:80px 34px 202px; }
+ .brand {height:80px}
+ .brand img {max-height:78px}
+ #preGameUI,#inGameUI {height:202px}
+ .controls {gap:7px}
+ .btn {padding:10px 11px;font-size:.83rem;min-height:43px}
+ .game-info {gap:5px}
+ .game-info .score {min-width:96px;padding:8px 6px;font-size:.78rem}
+ .option-tag {font-size:.73rem;padding:7px}
+ .game-board {padding:11px 8px 17px;border-radius:12px}
+ .keyboard-heading {font-size:.7rem}
+ .keyboard-tools {gap:7px}
+ .audio-settings-btn {width:34px;height:34px}
+ #keyboardHint {font-size:.72rem}
+ .keyboard-legend {font-size:.65rem;gap:8px}
+ .light-number {font-size:.65rem}
+ .black .light-number {font-size:.54rem;writing-mode:vertical-rl;transform:rotate(180deg);padding:0 0 7px}
+ .midi-panel {padding:12px 10px}
+ .midi-field {min-width:130px;flex-basis:130px}
+ .midi-checkbox {min-height:28px}
+ .game-overlay > div {padding:min(6vw,22px)!important;width:92vw!important}
+}
+@media (max-width:380px) {
+ .game-header {height:341px;grid-template-rows:80px 34px 211px}
+ #preGameUI,#inGameUI {height:211px}
+ .midi-field {flex-basis:100%;}
+}
+@media (orientation:landscape) and (max-height:550px) { :root {--keyheight:185px;} .game-container{max-width:900px;} .game-header{height:280px;grid-template-rows:56px 34px 174px;} .brand{height:56px} .brand img{max-height:54px} #preGameUI,#inGameUI{height:174px} }
+@media (prefers-reduced-motion:reduce) {*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;} }
+
+    </style>
 </head>
 
 <body>
     <div class="game-container">
         <header class="game-header">
-            <img src="Copycat logo.png" alt="Copy-Cat"
-                style="max-height: 120px; max-width: 100%; object-fit: contain; margin-bottom: 20px; filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));">
+            <div class="brand"><img src="Copycat logo.png" alt="Copy-Cat" onload="this.nextElementSibling.hidden=true" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><h1>COPY<span>CAT</span></h1></div>
 
             <!-- Player name display -->
             <div id="playerNameDisplay"
@@ -35,7 +176,7 @@
                 <!-- Options indicator - pre-game -->
                 <div class="options-indicator" id="optionsIndicator">
                     <div class="option-tag rhythm-tag">Rhythms: ♩</div>
-                    <div class="option-tag note-tag">Notes: 😎 Fun Levels</div>
+                    <div class="option-tag note-tag">Notes: Adventure</div>
                     <div class="option-tag sound-tag">🔊 Sound FX</div>
                 </div>
 
@@ -55,7 +196,7 @@
                 <!-- Game info display -->
                 <div class="game-info">
                     <div class="score">Score: <span id="totalScore">0</span></div>
-                    <div class="score">Level: <span id="currentLevel">1</span>-<span id="round">1</span></div>
+                    <div class="score"><span id="stageLabel">Level</span>: <span id="currentLevel">1</span> · <span id="round">1</span></div>
                     <div class="score">Lives: <span id="lives">3</span></div>
                 </div>
 
@@ -87,12 +228,12 @@
             <div class="scale-controls" style="display: none;">
                 <h4>🎹 Note Options:</h4>
                 <div class="scale-options">
-                    <label><input type="radio" name="scaleType" value="progressive" checked> 😎 Fun Levels</label>
+                    <label><input type="radio" name="scaleType" value="progressive" checked> Adventure notes</label>
                     <label><input type="radio" name="scaleType" value="custom"> 🎨 My Own Notes</label>
                     <label><input type="checkbox" id="muteCheeringSound" checked> 🔊 Sound FX</label>
                 </div>
                 <div class="game-mode-options" style="margin-top: 10px;">
-                    <button class="game-mode-toggle" id="gameModeToggle">� Normal Mode</button>
+                    <button class="game-mode-toggle" id="gameModeToggle">Adventure Mode</button>
                 </div>
                 <div class="custom-scale" id="customScaleContainer" style="display: none;">
                     <div class="note-toggles">
@@ -108,52 +249,41 @@
                         <label><input type="checkbox" id="noteA"> A</label>
                         <label><input type="checkbox" id="noteAsharp"> A#</label>
                         <label><input type="checkbox" id="noteB"> B</label>
+                         <label><input type="checkbox" id="noteC4"> C4</label>
                     </div>
                 </div>
             </div>
         </header>
 
-        <main class="game-board">
-            <div class="notes-container">
-                <!-- 12 Colored lights for chromatic scale notes -->
-                <div class="light" id="light-0" data-note="C">
-                    <span class="light-number">C</span>
-                </div>
-                <div class="light" id="light-1" data-note="C#">
-                    <span class="light-number">C#</span>
-                </div>
-                <div class="light" id="light-2" data-note="D">
-                    <span class="light-number">D</span>
-                </div>
-                <div class="light" id="light-3" data-note="D#">
-                    <span class="light-number">D#</span>
-                </div>
-                <div class="light" id="light-4" data-note="E">
-                    <span class="light-number">E</span>
-                </div>
-                <div class="light" id="light-5" data-note="F">
-                    <span class="light-number">F</span>
-                </div>
-                <div class="light" id="light-6" data-note="F#">
-                    <span class="light-number">F#</span>
-                </div>
-                <div class="light" id="light-7" data-note="G">
-                    <span class="light-number">G</span>
-                </div>
-                <div class="light" id="light-8" data-note="G#">
-                    <span class="light-number">G#</span>
-                </div>
-                <div class="light" id="light-9" data-note="A">
-                    <span class="light-number">A</span>
-                </div>
-                <div class="light" id="light-10" data-note="A#">
-                    <span class="light-number">A#</span>
-                </div>
-                <div class="light" id="light-11" data-note="B">
-                    <span class="light-number">B</span>
-                </div>
+        <main class="game-board show" aria-label="Copy-Cat piano game">
+            <div class="keyboard-heading"><span>PIANO · C3–C4</span><div class="keyboard-tools"><span id="keyboardHint">Tap a key to hear it</span><button type="button" id="audioSettingsBtn" class="audio-settings-btn" aria-label="Audio and MIDI settings" aria-controls="midiPanel" aria-expanded="false" title="Audio and MIDI settings">⚙</button></div></div>
+            <div class="notes-container" id="pianoKeyboard" role="group" aria-label="One octave piano keyboard, C3 through C4">
+                <button type="button" class="light piano-key white" id="light-0" data-note="C" data-midi="48" aria-label="C3" style="left:0.0%;"><span class="light-number">C3</span></button>
+                <button type="button" class="light piano-key black" id="light-1" data-note="C#" data-midi="49" aria-label="C♯3" style="left:8.65%;"><span class="light-number">C♯3</span></button>
+                <button type="button" class="light piano-key white" id="light-2" data-note="D" data-midi="50" aria-label="D3" style="left:12.5%;"><span class="light-number">D3</span></button>
+                <button type="button" class="light piano-key black" id="light-3" data-note="D#" data-midi="51" aria-label="D♯3" style="left:21.15%;"><span class="light-number">D♯3</span></button>
+                <button type="button" class="light piano-key white" id="light-4" data-note="E" data-midi="52" aria-label="E3" style="left:25.0%;"><span class="light-number">E3</span></button>
+                <button type="button" class="light piano-key white" id="light-5" data-note="F" data-midi="53" aria-label="F3" style="left:37.5%;"><span class="light-number">F3</span></button>
+                <button type="button" class="light piano-key black" id="light-6" data-note="F#" data-midi="54" aria-label="F♯3" style="left:46.15%;"><span class="light-number">F♯3</span></button>
+                <button type="button" class="light piano-key white" id="light-7" data-note="G" data-midi="55" aria-label="G3" style="left:50.0%;"><span class="light-number">G3</span></button>
+                <button type="button" class="light piano-key black" id="light-8" data-note="G#" data-midi="56" aria-label="G♯3" style="left:58.65%;"><span class="light-number">G♯3</span></button>
+                <button type="button" class="light piano-key white" id="light-9" data-note="A" data-midi="57" aria-label="A3" style="left:62.5%;"><span class="light-number">A3</span></button>
+                <button type="button" class="light piano-key black" id="light-10" data-note="A#" data-midi="58" aria-label="A♯3" style="left:71.15%;"><span class="light-number">A♯3</span></button>
+                <button type="button" class="light piano-key white" id="light-11" data-note="B" data-midi="59" aria-label="B3" style="left:75.0%;"><span class="light-number">B3</span></button>
+                <button type="button" class="light piano-key white" id="light-12" data-note="C4" data-midi="60" aria-label="C4" style="left:87.5%;"><span class="light-number">C4</span></button>
             </div>
+            <div class="keyboard-legend"><span><i class="legend-dot available"></i> Available</span><span><i class="legend-dot unavailable"></i> CPU won't use</span><span><i class="legend-dot lit"></i> Playing</span></div>
         </main>
+        <section id="midiPanel" class="midi-panel" aria-label="Sound and MIDI settings" hidden>
+            <div class="midi-panel-header"><strong>Audio & MIDI</strong><button type="button" id="closeAudioSettingsBtn" class="audio-settings-close" aria-label="Close audio and MIDI settings">Close</button><span id="midiStatus" role="status" aria-live="polite">Onboard audio ready · MIDI not connected</span></div>
+            <div class="midi-controls">
+                <label class="midi-field"><span>MIDI IN</span><select id="midiInput" aria-label="MIDI input device" disabled><option value="">No input</option></select></label>
+                <label class="midi-field"><span>MIDI OUT</span><select id="midiOutput" aria-label="MIDI output device" disabled><option value="">No output</option></select></label>
+                <button type="button" class="btn midi-connect" id="connectMidiBtn">Connect MIDI</button>
+                <label class="midi-checkbox"><input type="checkbox" id="onboardAudio" checked> Onboard sound</label>
+                <label class="midi-checkbox"><input type="checkbox" id="midiThru"> MIDI Thru</label>
+            </div>
+        </section>
     </div>
 
     <script>// Memory Rhythm Game - Main JavaScript File
@@ -191,14 +321,14 @@
                 this.usingCustomScale = false; // Track if using custom scale
                 this.customNotes = ['C', 'E', 'G']; // Default custom scale
                 this.customNoteSelectionMode = false; // Track if in interactive note selection mode
-                this.enabledRhythms = ['quarter', 'eighth']; // Start with quarters and eighths for testing
+                this.enabledRhythms = ['quarter']; // Synced from the controls
                 this.currentLevel = 1; // Current level (affects available notes)
                 this.correctInRow = 0; // Track consecutive correct answers
                 this.lastNoteIndex = -1; // Track last note to avoid repetition
                 this.lives = 3; // Start with 3 lives
 
                 // Game mode settings
-                this.gameMode = 'normal'; // 'normal', 'pitch-training', 'call-response', 'both'
+                this.gameMode = 'adventure'; // 'adventure', 'normal', 'pitch-training', 'call-response'
                 this.callResponseMode = false; // 2-player call and response mode
                 this.pitchTrainingMode = false; // Pitch training mode
                 this.isPlayer1Turn = true; // Track whose turn in call and response
@@ -229,7 +359,7 @@
 
                 // Note cycling system for quick access
                 this.noteOptions = [
-                    'progression', // Fun Levels progression
+                    'progression', // Adventure progression
                     'custom'       // Custom notes
                 ];
                 this.currentNoteOptionIndex = 0; // Start with progression
@@ -240,6 +370,8 @@
                 this.rhythmAccuracy = 0;
                 this.perfectTimingCount = 0;
                 this.totalTimingAttempts = 0;
+                this.levelTimingAttempts = 0;
+                this.levelRhythmAccuracySum = 0;
                 this.sessionRhythmAccuracySum = 0; // Sum of all rhythm accuracy scores this session
                 this.currentLevelRhythmBonus = 0; // Track rhythm bonus for current level only
                 this.listenAgainUsed = false; // Track if Listen Again has been used this level
@@ -288,8 +420,8 @@
                     16: ['C', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'B'], // Level 16: Add F# (10 notes)
                     17: ['C', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], // Level 17: Add A# (11 notes)
                     18: ['C', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], // Level 18: Add A# (11 notes)
-                    19: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], // Level 19: Add C# (12 notes - full chromatic)
-                    20: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] // Level 20: Full chromatic
+                    19: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], // Level 19: all 12 pitch classes
+                    20: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', 'C4'] // Level 20: Full chromatic
                 };
 
                 // Rhythm definitions - simplified
@@ -302,13 +434,29 @@
 
                 // Shepard tone frequencies for one octave
                 this.notes = {
-                    'C': 261.63, 'C#': 277.18, 'D': 293.66, 'D#': 311.13,
-                    'E': 329.63, 'F': 349.23, 'F#': 369.99, 'G': 392.00,
-                    'G#': 415.30, 'A': 440.00, 'A#': 466.16, 'B': 493.88
+                    'C': 130.81, 'C#': 138.59, 'D': 146.83, 'D#': 155.56,
+                    'E': 164.81, 'F': 174.61, 'F#': 185.00, 'G': 196.00,
+                    'G#': 207.65, 'A': 220.00, 'A#': 233.08, 'B': 246.94, 'C4': 261.63
                 };
 
+                this.pendingTimers = new Set();
+                this.midiAccess = null;
+                this.midiInPort = null;
+                this.midiOutPort = null;
+                this.midiOnNotes = new Set();
+                this.pointerNotes = new Set();
+                this.midiOutChannel = 0;
+                this.midiEnabled = false;
+                this.midiRequestPending = false;
+                this.pitchAttempts = 0;
+                this.pitchCorrect = 0;
+                this.sequenceCompletionPending = false;
+                this.adventureTargetSequence = [];
+                this.lastAdventureFirstNote = null;
+                this.midiInHandler = event => this.handleMIDIMessage(event);
                 this.initializeAudio();
                 this.initializeEventListeners();
+                this.initializeMIDIControls();
                 this.updateEnabledRhythms(); // Initialize rhythm settings
                 this.updateDisplay();
                 this.updateNoteDisplay();
@@ -316,7 +464,7 @@
                 this.updateLightColors(); // Initialize level 1 colors (blue)
 
                 // Add interactive styles for option tags
-                this.addInteractiveOptionStyles();
+                // Interactive option styles are in the single head stylesheet.
 
                 // Track active oscillators for cleanup
                 this.activeOscillators = [];
@@ -331,9 +479,14 @@
                 this.showWelcomeScreen();
             }
 
+            escapeHTML(value) {
+                return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+            }
+
             // Player data management
             loadPlayerData() {
-                const savedData = localStorage.getItem('musicMatchPlayerData');
+                let savedData = null;
+                try { savedData = localStorage.getItem('musicMatchPlayerData'); } catch (error) { /* storage disabled */ }
                 if (savedData) {
                     try {
                         const data = JSON.parse(savedData);
@@ -362,7 +515,7 @@
                     playerStats: this.playerStats,
                     gameStarted: this.gameStarted
                 };
-                localStorage.setItem('musicMatchPlayerData', JSON.stringify(data));
+                try { localStorage.setItem('musicMatchPlayerData', JSON.stringify(data)); } catch (error) { /* storage disabled */ }
             }
 
             updatePlayerStats(gameScore, gameLevel, rhythmAccuracy, pitchAccuracy) {
@@ -405,68 +558,43 @@
             // Welcome screen
             showWelcomeScreen() {
                 const overlay = document.createElement('div');
-                overlay.style.cssText = `
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: linear-gradient(135deg, #667eea, #764ba2);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 10001;
-                    backdrop-filter: blur(10px);
-                `;
-
+                overlay.className = 'game-overlay welcome-overlay';
                 const modal = document.createElement('div');
-                modal.style.cssText = `
-                    background: linear-gradient(135deg, #ffeaa7, #fab1a0);
-                    border-radius: 20px;
-                    padding: 40px;
-                    text-align: center;
-                    color: #2d3436;
-                    border: 3px solid white;
-                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-                    max-width: 500px;
-                    width: 90%;
-                    animation: fadeInUp 0.6s ease-out;
-                `;
+                modal.className = 'welcome-dialog';
 
                 const welcomeMessage = this.playerName ?
-                    `Welcome back, <strong>${this.playerName}</strong>! 🎉` :
+                    `Welcome back, <strong>${this.escapeHTML(this.playerName)}</strong>! 🎉` :
                     'Welcome to Copy-Cat! 🎵';
 
                 modal.innerHTML = `
-                    <img src="Copycat logo.png" alt="Copy-Cat" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 20px;">
+                    <img class="welcome-logo" src="Copycat logo.png" alt="Copy-Cat">
                     
-                    <div style="font-size: 1.2rem; margin-bottom: 25px; line-height: 1.6;">
+                    <div class="welcome-greeting">
                         ${welcomeMessage}
                     </div>
                     
-                    <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 15px; margin-bottom: 25px; text-align: left;">
-                        <p style="margin: 0 0 15px 0; font-size: 1.1rem;"><strong>🎮 How to Play:</strong></p>
-                        <p style="margin: 0 0 10px 0;">• Listen to the musical pattern and repeat it back</p>
-                        <p style="margin: 0 0 10px 0;">• Match both the notes and rhythm timing</p>
-                        <p style="margin: 0 0 10px 0;">• Progress through levels with more complex patterns</p>
-                        <p style="margin: 0;">• Challenge friends in 2-Player mode! 👥</p>
+                    <div class="welcome-instructions">
+                        <p><strong>🎮 How to Play:</strong></p>
+                        <p>• Listen to the musical pattern and repeat it back</p>
+                        <p>• Match both the notes and rhythm timing</p>
+                        <p>• Adventure starts with one note, grows the chain, then changes the notes each round</p>
+                        <p>• Challenge friends in 2-Player mode! 👥</p>
                     </div>
 
                     <div id="nameInputSection">
-                        <div style="margin-bottom: 20px;">
-                            <input type="text" id="playerNameInput" placeholder="Enter your name" 
-                                value="${this.playerName}" 
-                                style="padding: 12px 20px; border: 2px solid #ddd; border-radius: 25px; font-size: 1.1rem; width: 70%; text-align: center; margin-bottom: 15px;">
+                        <div class="welcome-name-row">
+                            <input class="welcome-name-input" type="text" id="playerNameInput" placeholder="Enter your name" 
+                                value="${this.escapeHTML(this.playerName)}">
                         </div>
                         
-                        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                        <div class="welcome-actions">
                             ${this.playerName ?
-                        `<button id="continueAsBtn" style="background: linear-gradient(45deg, #00b894, #00cec9); color: white; border: none; padding: 12px 20px; border-radius: 25px; font-size: 1rem; font-weight: bold; cursor: pointer;">Continue as ${this.playerName}</button>` :
+                        `<button id="continueAsBtn" style="background: linear-gradient(45deg, #00b894, #00cec9); color: white; border: none; padding: 9px 14px; border-radius: 25px; font-size: 1rem; font-weight: bold; cursor: pointer;">Continue as ${this.escapeHTML(this.playerName)}</button>` :
                         ''
                     }
-                            <button id="newPlayerBtn" style="background: linear-gradient(45deg, #fd79a8, #e84393); color: white; border: none; padding: 12px 20px; border-radius: 25px; font-size: 1rem; font-weight: bold; cursor: pointer;">${this.playerName ? 'New Player' : 'Start Playing'}</button>
+                            <button id="newPlayerBtn" style="background: linear-gradient(45deg, #fd79a8, #e84393); color: white; border: none; padding: 9px 14px; border-radius: 25px; font-size: 1rem; font-weight: bold; cursor: pointer;">${this.playerName ? 'New Player' : 'Start Playing'}</button>
                             ${this.playerName ?
-                        '<button id="viewStatsBtn" style="background: linear-gradient(45deg, #6c5ce7, #a29bfe); color: white; border: none; padding: 12px 20px; border-radius: 25px; font-size: 1rem; font-weight: bold; cursor: pointer;">📊 View Progress</button>' :
+                        '<button id="viewStatsBtn" style="background: linear-gradient(45deg, #6c5ce7, #a29bfe); color: white; border: none; padding: 9px 14px; border-radius: 25px; font-size: 1rem; font-weight: bold; cursor: pointer;">📊 View Progress</button>' :
                         ''
                     }
                         </div>
@@ -474,23 +602,10 @@
                 `;
 
                 // Add fade in animation
-                const style = document.createElement('style');
-                style.textContent = `
-                    @keyframes fadeInUp {
-                        from {
-                            opacity: 0;
-                            transform: translateY(30px);
-                        }
-                        to {
-                            opacity: 1;
-                            transform: translateY(0);
-                        }
-                    }
-                `;
-                document.head.appendChild(style);
+
 
                 overlay.appendChild(modal);
-                document.body.appendChild(overlay);
+                 document.body.appendChild(overlay);
 
                 // Event listeners
                 const nameInput = modal.querySelector('#playerNameInput');
@@ -668,6 +783,7 @@
                 `;
 
                 overlay.appendChild(modal);
+                overlay.classList.add('game-overlay');
                 document.body.appendChild(overlay);
 
                 // Event listeners
@@ -789,6 +905,7 @@
                 `;
 
                 overlay.appendChild(modal);
+                overlay.classList.add('game-overlay');
                 document.body.appendChild(overlay);
 
                 const nameInput = modal.querySelector('#player2NameInput');
@@ -814,86 +931,189 @@
             }
 
             // Add interactive styles for option tags
-            addInteractiveOptionStyles() {
-                const style = document.createElement('style');
-                style.textContent = `
-                    .option-tag {
-                        cursor: pointer;
-                        transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
-                        user-select: none;
-                    }
-                    
-                    .option-tag:hover {
-                        transform: translateY(-2px);
-                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-                        background-color: rgba(255, 255, 255, 0.1);
-                    }
-                    
-                    .option-tag:active {
-                        transform: translateY(0);
-                        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-                    }
-                    
-                    .rhythm-tag:hover {
-                        background-color: rgba(102, 126, 234, 0.2);
-                    }
-                    
-                    .note-tag:hover {
-                        background-color: rgba(0, 184, 148, 0.2);
-                    }
-                    
-                    .sound-tag:hover {
-                        background-color: rgba(253, 121, 168, 0.2);
-                    }
-                    
-                    .game-mode-tag:hover {
-                        background-color: rgba(108, 92, 231, 0.2);
-                    }
-
-                    @keyframes rhythmPulse {
-                        0% { 
-                            transform: scale(1);
-                            box-shadow: 0 2px 6px rgba(139, 92, 246, 0.2);
-                        }
-                        50% { 
-                            transform: scale(1.1);
-                            box-shadow: 0 6px 16px rgba(139, 92, 246, 0.6);
-                        }
-                        100% { 
-                            transform: scale(1);
-                            box-shadow: 0 2px 6px rgba(139, 92, 246, 0.2);
-                        }
-                    }
-
-                    .rhythm-tag.pulse {
-                        animation: rhythmPulse 0.6s ease-in-out;
-                    }
-
-                    @keyframes slideInRight {
-                        from {
-                            transform: translateX(100%);
-                            opacity: 0;
-                        }
-                        to {
-                            transform: translateX(0);
-                            opacity: 1;
-                        }
-                    }
-                `;
-                document.head.appendChild(style);
-            }
 
             async initializeAudio() {
+                // Creating an AudioContext is safe here, but resume is always attempted on gesture.
                 try {
-                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const Context = window.AudioContext || window.webkitAudioContext;
+                    if (!Context) return;
+                    this.audioContext = new Context();
                     this.masterGain = this.audioContext.createGain();
+                    this.masterGain.gain.value = 0.55;
                     this.masterGain.connect(this.audioContext.destination);
-                    this.masterGain.gain.setValueAtTime(0.8, this.audioContext.currentTime); // Increased volume
                 } catch (error) {
-                    console.error('Error initializing audio:', error);
-                    alert('Audio initialization failed. Please try refreshing the page.');
+                    console.warn('Onboard audio unavailable:', error);
                 }
             }
+
+            async resumeAudio() {
+                if (this.audioContext && this.audioContext.state === 'suspended') {
+                    try { await this.audioContext.resume(); } catch (error) { console.warn('Audio resume:', error); }
+                }
+            }
+
+            schedule(callback, milliseconds) {
+                const id = window.setTimeout(() => { this.pendingTimers.delete(id); callback(); }, milliseconds);
+                this.pendingTimers.add(id);
+                return id;
+            }
+
+            initializeMIDIControls() {
+                const settingsButton = document.getElementById('audioSettingsBtn');
+                const settingsPanel = document.getElementById('midiPanel');
+                const setSettingsOpen = open => {
+                    settingsPanel.hidden = !open;
+                    settingsButton.setAttribute('aria-expanded', String(open));
+                };
+                settingsButton.addEventListener('click', () => setSettingsOpen(settingsPanel.hidden));
+                document.getElementById('closeAudioSettingsBtn').addEventListener('click', () => setSettingsOpen(false));
+                document.addEventListener('pointerdown', event => {
+                    if (!settingsPanel.hidden && !settingsPanel.contains(event.target) &&
+                        event.target !== settingsButton) setSettingsOpen(false);
+                });
+                document.addEventListener('keydown', event => {
+                    if (event.key === 'Escape' && !settingsPanel.hidden) {
+                        setSettingsOpen(false);
+                        settingsButton.focus();
+                    }
+                });
+                const connect = document.getElementById('connectMidiBtn');
+                connect.addEventListener('click', () => this.connectMIDI());
+                document.getElementById('midiInput').addEventListener('change', e => this.selectMIDIInput(e.target.value));
+                document.getElementById('midiOutput').addEventListener('change', e => this.selectMIDIOutput(e.target.value));
+                document.getElementById('onboardAudio').addEventListener('change', e => {
+                    this.onboardEnabled = e.target.checked;
+                    if (this.onboardEnabled) this.resumeAudio();
+                });
+                document.getElementById('midiThru').addEventListener('change', e => {
+                    this.midiThru = e.target.checked;
+                    this.updateMIDIStatus();
+                });
+                this.onboardEnabled = true;
+                this.midiThru = false;
+                if (!navigator.requestMIDIAccess) {
+                    connect.disabled = true;
+                    connect.textContent = 'MIDI unavailable';
+                    this.updateMIDIStatus('Web MIDI is unavailable here. Onboard piano works.');
+                } else if (!window.isSecureContext) {
+                    connect.disabled = true;
+                    connect.textContent = 'HTTPS required';
+                    this.updateMIDIStatus('Open via HTTPS or localhost to connect MIDI.');
+                }
+            }
+
+            updateMIDIStatus(message) {
+                const status = document.getElementById('midiStatus');
+                if (!status) return;
+                status.textContent = message || (this.midiEnabled
+                    ? `MIDI connected · ${this.midiInPort?.name || 'No input'} → ${this.midiOutPort?.name || 'No output'}${this.midiThru ? ' · Thru on' : ''}`
+                    : 'Onboard audio ready · MIDI not connected');
+            }
+
+            async connectMIDI() {
+                if (this.midiRequestPending || !navigator.requestMIDIAccess || !window.isSecureContext) return;
+                this.midiRequestPending = true;
+                await this.resumeAudio();
+                try {
+                    this.midiAccess = await navigator.requestMIDIAccess({ sysex: false });
+                    this.midiEnabled = true;
+                    this.midiAccess.onstatechange = () => this.refreshMIDIPorts();
+                    this.refreshMIDIPorts();
+                    document.getElementById('connectMidiBtn').textContent = 'Refresh MIDI';
+                } catch (error) {
+                    this.updateMIDIStatus('MIDI permission denied or not supported. Onboard sound still works.');
+                } finally {
+                    this.midiRequestPending = false;
+                }
+            }
+
+            refreshMIDIPorts() {
+                if (!this.midiAccess) return;
+                const inp = document.getElementById('midiInput');
+                const out = document.getElementById('midiOutput');
+                const previousIn = this.midiInPort?.id || inp.value;
+                const previousOut = this.midiOutPort?.id || out.value;
+                const rebuild = (element, ports, none) => {
+                    element.replaceChildren(new Option(none, ''));
+                    for (const port of ports) element.add(new Option(port.name || port.id, port.id));
+                    element.disabled = false;
+                };
+                rebuild(inp, this.midiAccess.inputs.values(), 'No input');
+                rebuild(out, this.midiAccess.outputs.values(), 'No output');
+                const inputs = [...this.midiAccess.inputs.values()];
+                const outputs = [...this.midiAccess.outputs.values()];
+                const chosenIn = inputs.some(p => p.id === previousIn) ? previousIn : (inputs[0]?.id || '');
+                const chosenOut = outputs.some(p => p.id === previousOut) ? previousOut : (outputs[0]?.id || '');
+                inp.value = chosenIn;
+                out.value = chosenOut;
+                this.selectMIDIInput(chosenIn);
+                this.selectMIDIOutput(chosenOut);
+            }
+
+            selectMIDIInput(id) {
+                if (this.midiInPort) this.midiInPort.onmidimessage = null;
+                this.midiHeld?.clear();
+                this.midiInPort = this.midiAccess?.inputs.get(id) || null;
+                if (this.midiInPort) this.midiInPort.onmidimessage = this.midiInHandler;
+                this.updateMIDIStatus();
+            }
+
+            selectMIDIOutput(id) {
+                this.allMIDINotesOff();
+                this.midiOutPort = this.midiAccess?.outputs.get(id) || null;
+                this.updateMIDIStatus();
+            }
+
+            handleMIDIMessage(event) {
+                const [status, pitch, velocity] = event.data || [];
+                const command = status & 0xf0;
+                if (pitch < 48 || pitch > 60) return; // C3 through C4, actual MIDI note numbers
+                const keyIndex = pitch - 48;
+                if (command === 0x90 && velocity > 0) {
+                    // Ignore MIDI auto-repeat on a held key; each note-on is scored once.
+                    if (this.midiHeld?.has(pitch)) return;
+                    if (!this.midiHeld) this.midiHeld = new Set();
+                    this.midiHeld.add(pitch);
+                    this.onLightPress(keyIndex, null, 'midi');
+                } else if (command === 0x80 || (command === 0x90 && velocity === 0)) {
+                    this.midiHeld?.delete(pitch);
+                    this.onLightRelease(keyIndex, null, 'midi');
+                } else return;
+                // Optional thru to a *different* port. Same port could create a MIDI feedback loop.
+                if (this.midiThru && this.midiOutPort && this.midiInPort?.id !== this.midiOutPort?.id) {
+                    try { this.midiOutPort.send([...event.data]); } catch (error) { this.updateMIDIStatus('MIDI output disconnected.'); }
+                }
+            }
+
+            sendMIDINote(index, on, velocity = 104) {
+                const midiPitch = 48 + index;
+                if (!this.midiOutPort) return;
+                try {
+                    this.midiOutPort.send([on ? 0x90 | this.midiOutChannel : 0x80 | this.midiOutChannel, midiPitch, on ? velocity : 0]);
+                    if (on) this.midiOnNotes.add(midiPitch);
+                    else this.midiOnNotes.delete(midiPitch);
+                } catch (error) {
+                    this.updateMIDIStatus('MIDI output disconnected; check the selected port.');
+                }
+            }
+
+            allMIDINotesOff() {
+                if (this.midiOutPort) {
+                    for (const pitch of this.midiOnNotes) {
+                        try { this.midiOutPort.send([0x80 | this.midiOutChannel, pitch, 0]); } catch (error) {}
+                    }
+                    try { this.midiOutPort.send([0xb0 | this.midiOutChannel, 123, 0]); } catch (error) {}
+                }
+                this.midiOnNotes.clear();
+            }
+
+            flashKey(index, milliseconds, className = 'playing') {
+                const key = document.getElementById(`light-${index}`);
+                if (!key) return;
+                key.classList.add(className);
+                this.schedule(() => key.classList.remove(className), milliseconds);
+            }
+
 
             initializeEventListeners() {
                 // Control buttons
@@ -984,7 +1204,7 @@
                 });
 
                 // Custom note controls
-                const noteCheckboxes = ['C', 'Csharp', 'D', 'Dsharp', 'E', 'F', 'Fsharp', 'G', 'Gsharp', 'A', 'Asharp', 'B'];
+                const noteCheckboxes = ['C', 'Csharp', 'D', 'Dsharp', 'E', 'F', 'Fsharp', 'G', 'Gsharp', 'A', 'Asharp', 'B', 'C4'];
                 noteCheckboxes.forEach(note => {
                     const checkbox = document.getElementById(`note${note}`);
                     if (checkbox) {
@@ -1008,23 +1228,34 @@
                     }
                 });
 
-                // Light click events
-                document.querySelectorAll('.light').forEach((light, index) => {
-                    light.addEventListener('mousedown', (e) => this.onLightPress(index, e));
-                    light.addEventListener('mouseup', (e) => this.onLightRelease(index, e));
-                    light.addEventListener('mouseleave', (e) => this.onLightRelease(index, e));
-
-                    // Touch events for mobile
-                    light.addEventListener('touchstart', (e) => {
+                // Pointer Events work with mouse, touch, pen, and multi-touch on modern browsers.
+                document.querySelectorAll('.light').forEach((key, index) => {
+                    key.addEventListener('pointerdown', e => {
+                        if (e.button !== 0 && e.pointerType === 'mouse') return;
                         e.preventDefault();
-                        this.onLightPress(index, e);
+                        key.setPointerCapture?.(e.pointerId);
+                        if (this.pointerNotes.has(index)) return;
+                        this.pointerNotes.add(index);
+                        this.onLightPress(index, e, 'pointer');
                     });
-                    light.addEventListener('touchend', (e) => {
-                        e.preventDefault();
-                        this.onLightRelease(index, e);
-                    });
+                    const release = e => {
+                        if (!this.pointerNotes.has(index)) return;
+                        this.pointerNotes.delete(index);
+                        this.onLightRelease(index, e, 'pointer');
+                    };
+                    key.addEventListener('pointerup', release);
+                    key.addEventListener('pointercancel', release);
+                    key.addEventListener('lostpointercapture', release);
+                });
+                window.addEventListener('blur', () => {
+                    this.pointerNotes.clear();
+                    this.midiHeld?.clear();
+                    this.allMIDINotesOff();
+                    document.querySelectorAll('.light.active').forEach(key => key.classList.remove('active'));
                 });
             }
+
+
 
             // Stop all active audio
             stopAllAudio() {
@@ -1038,60 +1269,22 @@
                     }
                 });
                 this.activeOscillators = [];
+                this.allMIDINotesOff();
             }
 
             // Update light colors based on current level - cycling through spectrum
             updateLightColors() {
-                // Calculate hue shift based on level (30 degrees per level around the color wheel)
-                // Level 1 = 240° (blue), Level 2 = 270° (violet), Level 3 = 300° (magenta), etc.
-                const baseHue = 240; // Start with blue
-                const hueShift = (this.currentLevel - 1) * 30; // 30 degrees per level
-                const currentHue = (baseHue + hueShift) % 360; // Wrap around after 360°
-
-                // Update background gradient to match the current level's hue
-                const backgroundHue1 = currentHue;
-                const backgroundHue2 = (currentHue + 20) % 360; // Slightly different hue for gradient
-                const backgroundHue3 = (currentHue + 40) % 360; // Third color for richer gradient
-
-                // Create a sophisticated gradient background that complements the light colors
-                const background = `linear-gradient(135deg, 
-                    hsl(${backgroundHue1}, 70%, 15%), 
-                    hsl(${backgroundHue2}, 75%, 20%), 
-                    hsl(${backgroundHue3}, 80%, 25%)
-                )`;
-
-                // Apply background to body with smooth transition
-                document.body.style.background = background;
-
-                // Define 12 equally spaced hues around the color wheel for the 12 lights
-                const lights = document.querySelectorAll('.light');
-                lights.forEach((light, index) => {
-                    // Spread the 12 lights evenly around the color wheel from the current level's base hue
-                    const lightHue = (currentHue + (index * 30)) % 360; // 30° spacing between lights
-
-                    // Use consistent saturation and lightness for good visibility
-                    const saturation = 85; // High saturation for vibrant colors
-                    const lightness = 58; // Good contrast against white text
-
-                    // Create the gradient using HSL
-                    const color1 = `hsl(${lightHue}, ${saturation}%, ${lightness}%)`;
-                    const color2 = `hsl(${lightHue}, ${saturation}%, ${lightness - 10}%)`; // Slightly darker for gradient
-
-                    // Apply the new gradient background
-                    light.style.background = `linear-gradient(45deg, ${color1}, ${color2}) !important`;
+                // A stable ROYGBIV mapping. Only the keys being played light up.
+                const palette = ['#f3374f','#f57126','#f9ca3e','#91dc53','#39d98a','#24c4c8','#2995f5','#6a76ed','#9253dc','#b451ce','#ce5bbf','#e65c97','#f3374f'];
+                document.querySelectorAll('.light').forEach((key, index) => {
+                    key.style.setProperty('--note-glow', palette[index]);
                 });
-
-                // Optional: Add a visual feedback animation when colors change
-                lights.forEach(light => {
-                    light.style.transition = 'background 1s ease-in-out';
-                });
-
-                console.log(`🎨 Level ${this.currentLevel}: Updated to hue ${currentHue}° with matching background`);
+                this.updateNoteDisplay();
             }
 
             // User feedback tone with proper duration matching the rhythm
             playUserFeedbackTone(frequency, rhythmData) {
-                if (!this.audioContext) return;
+                if (!this.audioContext || !this.onboardEnabled) return;
 
                 try {
                     // Calculate the full duration this rhythm should have
@@ -1153,7 +1346,7 @@
 
             // Shepard tone generator with proper note durations
             playTone(frequency, noteDurationMs) {
-                if (!this.audioContext) return;
+                if (!this.audioContext || !this.onboardEnabled) return;
 
                 try {
                     // Convert milliseconds to seconds
@@ -1228,7 +1421,7 @@
                 const noteMap = {
                     'C': 'C', 'Csharp': 'C#', 'D': 'D', 'Dsharp': 'D#',
                     'E': 'E', 'F': 'F', 'Fsharp': 'F#', 'G': 'G',
-                    'Gsharp': 'G#', 'A': 'A', 'Asharp': 'A#', 'B': 'B'
+                    'Gsharp': 'G#', 'A': 'A', 'Asharp': 'A#', 'B': 'B', 'C4': 'C4'
                 };
 
                 Object.keys(noteMap).forEach(checkboxId => {
@@ -1249,87 +1442,157 @@
 
             // Update note display based on available notes
             updateNoteDisplay() {
-                const lights = document.querySelectorAll('.light');
-                const container = document.querySelector('.notes-container');
-                const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+                const selecting = this.customNoteSelectionMode;
+                const allowed = new Set(selecting ? this.customNotes : this.getAvailableNotesForLevel(this.currentLevel));
+                const container = document.getElementById('pianoKeyboard');
+                if (!container) return;
+                container.classList.toggle('custom-note-selection-mode', selecting);
+                document.querySelectorAll('.light').forEach(key => {
+                    const included = allowed.has(key.dataset.note);
+                    key.classList.toggle('out-of-scale', !included);
+                    key.classList.toggle('ghosted', selecting && !included);
+                    key.classList.toggle('selected', selecting && included);
+                    // Keep every key on screen with stable dimensions, even when unavailable.
+                    key.style.removeProperty('display');
+                    key.style.removeProperty('opacity');
+                    key.style.removeProperty('pointer-events');
+                });
+                document.getElementById('keyboardHint').textContent = selecting ? 'Choose your notes, then Save My Notes' :
+                    (this.gameState === 'playing' ? 'Listen to the pattern' : this.gameState === 'listening' ? 'Copy the pattern' : 'Tap a key to hear it');
+                if (selecting) this.showSaveCustomNotesButton();
+                else this.hideSaveCustomNotesButton();
+            }
 
-                // Always use linear layout (horizontal) - remove any circular layout
-                container.classList.remove('circular-layout');
-                container.classList.add('linear-layout');
-                container.style.width = 'auto';
-                container.style.height = '180px';
+            // Each Adventure round defines a note pool and target chain length.
+            // The actual note order is shuffled, so repeated games are not scripted.
+            getAdventureNotes(round = this.currentRound) {
+                const opening = [
+                    ['C', 'E', 'G'], ['F', 'A', 'C'], ['G', 'B', 'D'],
+                    ['E', 'F', 'B', 'C'], ['A', 'F', 'C', 'B'], ['D', 'F', 'E', 'B', 'A']
+                ];
+                if (round <= opening.length) return [...opening[Math.max(0, round - 1)]];
+                const pool = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+                const additions = [
+                    [11, 'F#'], [16, 'A#'], [21, 'C#'],
+                    [26, 'D#'], [31, 'G#'], [36, 'C4']
+                ];
+                additions.forEach(([at, note]) => { if (round >= at) pool.push(note); });
+                return pool;
+            }
 
-                if (this.customNoteSelectionMode) {
-                    // Custom note selection mode - show all notes, some ghosted
-                    container.classList.add('custom-note-selection-mode');
+            getAdventureTargetLength(round = this.currentRound) {
+                const openingLengths = [3, 3, 3, 4, 4, 5];
+                return round <= 6 ? openingLengths[Math.max(0, round - 1)] :
+                    Math.min(10, 5 + Math.floor((round - 6) / 6));
+            }
 
-                    lights.forEach((light, index) => {
-                        const note = chromaticScale[index];
-                        light.dataset.note = note;
-                        light.querySelector('.light-number').textContent = note;
-                        light.style.display = 'flex';
-                        light.style.opacity = '1';
-                        light.style.pointerEvents = 'auto';
+            getAdventureRhythms(round = this.currentRound) {
+                // Introduce one more selected rhythm each round. A set of 3
+                // appears in full by round 3, and a set of 4 by round 4.
+                const order = ['quarter', 'eighth', 'triplet', 'sixteenth'];
+                const selected = order.filter(name => this.enabledRhythms.includes(name));
+                const rhythms = selected.length ? selected : ['quarter'];
+                return rhythms.slice(0, Math.min(Math.max(1, round), rhythms.length));
+            }
 
-                        // Clear any inline positioning styles
-                        light.style.left = '';
-                        light.style.top = '';
-                        light.style.transform = '';
-
-                        // Add classes based on selection state
-                        if (this.customNotes.includes(note)) {
-                            light.classList.add('selected');
-                            light.classList.remove('ghosted');
-                        } else {
-                            light.classList.add('ghosted');
-                            light.classList.remove('selected');
-                        }
-                    });
-
-                    // Show save button
-                    this.showSaveCustomNotesButton();
-                } else {
-                    // Normal mode - show only available notes
-                    container.classList.remove('custom-note-selection-mode');
-                    const availableNotes = this.getAvailableNotesForLevel(this.currentLevel);
-
-                    let visibleIndex = 0;
-                    lights.forEach((light, index) => {
-                        const note = chromaticScale[index];
-                        light.dataset.note = note;
-                        light.querySelector('.light-number').textContent = note;
-
-                        // Remove custom selection classes
-                        light.classList.remove('selected', 'ghosted');
-
-                        if (availableNotes.includes(note)) {
-                            light.style.display = 'flex';
-                            light.style.opacity = '1';
-                            light.style.pointerEvents = 'auto';
-
-                            // Clear any inline positioning styles
-                            light.style.left = '';
-                            light.style.top = '';
-                            light.style.transform = '';
-
-                            visibleIndex++;
-                        } else {
-                            light.style.display = 'none';
-                        }
-                    });
-
-                    // Hide save button
-                    this.hideSaveCustomNotesButton();
+            generateAdventureSequence(round = this.currentRound) {
+                const pool = this.getAdventureNotes(round);
+                const length = this.getAdventureTargetLength(round);
+                const notes = [];
+                // Shuffle each group of pitches so notes do not repeat within a group.
+                // When the chain is longer than the pool, reshuffle and continue.
+                while (notes.length < length) {
+                    const bag = [...pool];
+                    for (let i = bag.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [bag[i], bag[j]] = [bag[j], bag[i]];
+                    }
+                    if (bag.length > 1 && (notes.length ? notes[notes.length - 1] : this.lastAdventureFirstNote) === bag[0]) {
+                        const swap = bag.findIndex(note => note !== bag[0]);
+                        [bag[0], bag[swap]] = [bag[swap], bag[0]];
+                    }
+                    notes.push(...bag.slice(0, length - notes.length));
                 }
-            }            // Get available notes for current level
+                this.lastAdventureFirstNote = notes[0];
+                const rhythms = this.getAdventureRhythms(round);
+                const selected = ['quarter', 'eighth', 'triplet', 'sixteenth']
+                    .filter(name => this.enabledRhythms.includes(name));
+                const introduced = selected[Math.min(round, Math.max(1, selected.length)) - 1] || 'quarter';
+                const chromatic = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B','C4'];
+                return notes.map((note, index) => {
+                    // Guarantee the newly introduced selected rhythm is actually heard.
+                    const rhythm = index === 0 && round <= selected.length ? introduced :
+                        rhythms[Math.floor(Math.random() * rhythms.length)];
+                    return { lightIndex: chromatic.indexOf(note), note, rhythm,
+                        rhythmData: this.rhythms[rhythm] };
+                });
+            }
+
+            beginAdventureRound() {
+                this.adventureTargetSequence = this.generateAdventureSequence(this.currentRound);
+                this.gameSequence = this.adventureTargetSequence.slice(0, 1);
+                this.playerSequence = [];
+                this.currentSequenceIndex = 0;
+                this.currentTapCount = 0;
+                this.currentItemTapTimes = [];
+                this.isPlayerTurn = false;
+                this.sequenceCompletionPending = false;
+                this.updateNoteDisplay();
+                this.updateDisplay();
+                this.updateControls();
+            }
+
+            advanceAdventureChain() {
+                if (this.gameState === 'stopped' || this.gameMode !== 'adventure') return;
+                if (!this.adventureTargetSequence || this.gameSequence.length >= this.adventureTargetSequence.length) return;
+                this.gameSequence.push(this.adventureTargetSequence[this.gameSequence.length]);
+                this.playerSequence = [];
+                this.currentSequenceIndex = 0;
+                this.currentTapCount = 0;
+                this.currentItemTapTimes = [];
+                this.isPlayerTurn = false;
+                this.sequenceCompletionPending = false;
+                this.gameState = 'playing';
+                this.updateDisplay();
+                this.updateControls();
+                this.playSequence();
+            }
+
+            getRhythmDifficulty(sequence = this.gameSequence) {
+                // Reward the rhythms actually reproduced and additional variety;
+                // selecting every box without playing those rhythms grants no bonus.
+                const weights = {quarter:1, eighth:1.5, triplet:2.25, sixteenth:3};
+                if (!sequence.length) return 1;
+                const distinct = new Set(sequence.map(item => item.rhythm));
+                const average = sequence.reduce((sum, item) =>
+                    sum + (weights[item.rhythm] || 1), 0) / sequence.length;
+                return Math.round((average + (distinct.size - 1) * 0.35) * 100) / 100;
+            }
+
+            awardAdventureRound() {
+                const noteCount = this.gameSequence.length;
+                const noteDifficulty = Math.max(1, this.getAdventureNotes(this.currentRound).length - 2);
+                const rhythmDifficulty = this.getRhythmDifficulty();
+                const accuracyBonus = this.rhythmAccuracy >= .9 ? 90 :
+                    this.rhythmAccuracy >= .75 ? 65 : this.rhythmAccuracy >= .55 ? 35 : 0;
+                const points = Math.round((100 + 50 * noteCount + accuracyBonus) *
+                    noteDifficulty * rhythmDifficulty);
+                this.levelScore = points;
+                this.totalScore += points;
+                this.updateDisplay();
+                return points;
+            }
+
+            // Get available notes for current level
             getAvailableNotesForLevel(level = null) {
                 if (this.usingCustomScale) {
                     return this.customNotes;
                 }
-                // Use current level, not round
+                if (this.gameMode === 'adventure') return this.getAdventureNotes(this.currentRound);
+                // Pitch Training and custom notes retain their existing level progression.
                 const currentLevel = level || this.currentLevel;
-                const clampedLevel = Math.min(currentLevel, 10);
-                return this.levelNotes[clampedLevel] || this.levelNotes[10];
+                const clampedLevel = Math.max(1, Math.min(currentLevel, 20));
+                return this.levelNotes[clampedLevel] || this.levelNotes[20];
             }
 
             // Show save button for custom note selection
@@ -1360,7 +1623,7 @@
             handleCustomNoteSelection(noteIndex) {
                 if (!this.customNoteSelectionMode) return;
 
-                const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+                const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', 'C4'];
                 const note = chromaticScale[noteIndex];
                 const light = document.getElementById(`light-${noteIndex}`);
 
@@ -1424,7 +1687,7 @@
                 message.textContent = `✅ Saved ${this.customNotes.length} notes: ${this.customNotes.join(', ')}`;
                 document.body.appendChild(message);
 
-                setTimeout(() => {
+                this.schedule(() => {
                     message.remove();
                 }, 2000);
             }
@@ -1434,7 +1697,7 @@
                 const noteMap = {
                     'C': 'noteC', 'C#': 'noteCsharp', 'D': 'noteD', 'D#': 'noteDsharp',
                     'E': 'noteE', 'F': 'noteF', 'F#': 'noteFsharp', 'G': 'noteG',
-                    'G#': 'noteGsharp', 'A': 'noteA', 'A#': 'noteAsharp', 'B': 'noteB'
+                    'G#': 'noteGsharp', 'A': 'noteA', 'A#': 'noteAsharp', 'B': 'noteB', 'C4': 'noteC4'
                 };
 
                 Object.entries(noteMap).forEach(([note, checkboxId]) => {
@@ -1448,7 +1711,7 @@
             // Generate random sequence item - only from available notes and enabled rhythms
             generateSequenceItem() {
                 const availableNotes = this.getAvailableNotesForLevel(this.currentLevel);
-                const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+                const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', 'C4'];
 
                 // Find positions that have available notes
                 const availablePositions = [];
@@ -1571,10 +1834,9 @@
                     return; // Don't start the game yet, wait for name input
                 }
 
-                if (this.audioContext.state === 'suspended') {
-                    await this.audioContext.resume();
-                }
+                await this.resumeAudio();
 
+                this.clearAllTimeouts();
                 this.gameState = 'playing';
                 this.playerSequence = [];
                 this.currentRound = 1;
@@ -1595,6 +1857,7 @@
                 if (this.callResponseMode) {
                     this.isPlayer1Turn = true; // Start with Player 1 in call & response
                     this.player1Sequence = [];
+                    this.callResponseResolved = false;
                     this.callResponseRound = 1; // Reset to round 1
                 } else {
                     this.isPlayer1Turn = false; // Not relevant for other modes
@@ -1604,15 +1867,23 @@
                     this.pitchTrainingListenCount = 0; // Reset listen count for pitch training
                 }
 
-                // Start with one simple item
-                this.gameSequence = [this.generateSequenceItem()];
+                // Adventure reveals one note at a time; each round has a new shuffled phrase.
+                this.lastAdventureFirstNote = null;
+                if (this.gameMode === 'adventure') this.beginAdventureRound();
+                else { this.adventureTargetSequence = []; this.gameSequence = [this.generateSequenceItem()]; }
 
                 // Reset scoring
+                this.pitchAttempts = 0;
+                this.pitchCorrect = 0;
+                this.sequenceCompletionPending = false;
                 this.totalScore = 0;
                 this.levelScore = 0;
                 this.perfectTimingCount = 0;
                 this.totalTimingAttempts = 0;
                 this.currentLevelRhythmBonus = 0; // Reset rhythm bonus for new game
+                this.levelTimingAttempts = 0;
+                this.levelRhythmAccuracySum = 0;
+                this.sessionRhythmAccuracySum = 0;
                 this.listenAgainUsed = false; // Reset Listen Again for new game
 
                 this.updateDisplay();
@@ -1626,7 +1897,7 @@
                     this.startCallResponseTurn();
                 } else {
                     // Normal mode or pitch training - start playing sequence
-                    setTimeout(() => {
+                    this.schedule(() => {
                         // Play start round sound only if Sound FX is enabled
                         const soundFxEnabled = document.getElementById('muteCheeringSound').checked;
                         if (soundFxEnabled) {
@@ -1655,8 +1926,10 @@
 
                 if (this.isPlayer1Turn) {
                     // Player 1's turn - they create the call
+                    if (this.gameState === 'stopped') return;
                     this.gameState = 'listening';
                     this.isPlayerTurn = true;
+                    this.updateNoteDisplay();
                     this.playerSequence = [];
                     this.currentSequenceIndex = 0;
                     this.currentTapCount = 0;
@@ -1674,8 +1947,10 @@
                     }
                 } else {
                     // Player 2's turn - they respond to Player 1's call
+                    if (this.gameState === 'stopped') return;
                     this.gameState = 'listening';
                     this.isPlayerTurn = true;
+                    this.updateNoteDisplay();
                     this.playerSequence = [];
                     this.currentSequenceIndex = 0;
                     this.currentTapCount = 0;
@@ -1777,7 +2052,7 @@
                 };
 
                 // Auto-dismiss after 1.5 seconds
-                setTimeout(() => {
+                this.schedule(() => {
                     if (document.body.contains(overlay)) {
                         document.body.removeChild(overlay);
                         // Start the actual turn after auto-dismiss
@@ -1793,6 +2068,7 @@
                 modal.appendChild(messageElement);
                 modal.appendChild(readyButton);
                 overlay.appendChild(modal);
+                overlay.classList.add('game-overlay');
                 document.body.appendChild(overlay);
             }
 
@@ -1837,7 +2113,7 @@
                 this.playerSequence = [];
 
                 // Set timeout for Player 2's entire response (10 seconds)
-                this.callResponseTimeout = setTimeout(() => {
+                this.callResponseTimeout = this.schedule(() => {
                     this.compareCallResponse();
                 }, 10000);
             }
@@ -1851,9 +2127,15 @@
             // Stop game
             stopGame() {
                 this.gameState = 'stopped';
+                this.isPlayerTurn = false;
+                this.sequenceCompletionPending = false;
                 this.stopAllAudio(); // Stop any playing audio
                 this.clearAllTimeouts();
                 this.clearAllLights();
+                this.pointerNotes.clear();
+                this.midiHeld?.clear();
+                document.querySelectorAll('.game-overlay').forEach(el => el.remove());
+                this.updateNoteDisplay();
 
                 // Clear call and response specific timers
                 if (this.silenceCheckInterval) {
@@ -1895,6 +2177,11 @@
                 this.perfectTimingCount = 0;
                 this.totalTimingAttempts = 0;
                 this.sessionRhythmAccuracySum = 0;
+                this.levelTimingAttempts = 0;
+                this.levelRhythmAccuracySum = 0;
+                this.pitchAttempts = 0;
+                this.pitchCorrect = 0;
+                this.sequenceCompletionPending = false;
                 this.currentLevelRhythmBonus = 0;
 
                 // Reset Listen Again bonus system
@@ -1938,16 +2225,19 @@
             // Special sequence playback for pitch training mode - only shows first note visually
             playSequenceWithPitchTraining() {
                 this.gameState = 'playing';
+                this.sequenceCompletionPending = false;
+                this.isPlayerTurn = false;
+                this.updateNoteDisplay();
                 this.updateDisplay();
 
                 let delay = 0;
                 const beatDuration = 60000 / this.bpm; // Duration of one beat in ms
 
                 this.gameSequence.forEach((item, index) => {
-                    setTimeout(() => {
+                    this.schedule(() => {
                         if (index === 0) {
                             // Only animate the first note of the entire sequence visually
-                            this.playSequenceItem(item, true);
+                            this.playSequenceItem(item, 'first-only');
                         } else {
                             // Play audio only for all other notes (no visual animation)
                             this.playSequenceItem(item, false);
@@ -1959,9 +2249,11 @@
                 });
 
                 // Switch to player turn after sequence completes - no extra delay
-                setTimeout(() => {
+                this.schedule(() => {
+                    if (this.gameState === 'stopped') return;
                     this.gameState = 'listening';
                     this.isPlayerTurn = true;
+                    this.updateNoteDisplay();
                     this.playerSequence = [];
                     this.currentSequenceIndex = 0;
                     this.currentTapCount = 0;
@@ -1973,13 +2265,16 @@
             // Play sequence - each round is exactly 1 beat duration
             playSequence() {
                 this.gameState = 'playing';
+                this.sequenceCompletionPending = false;
+                this.isPlayerTurn = false;
+                this.updateNoteDisplay();
                 this.updateDisplay();
 
                 let delay = 0;
                 const beatDuration = 60000 / this.bpm; // Duration of one beat in ms
 
                 this.gameSequence.forEach((item, index) => {
-                    setTimeout(() => {
+                    this.schedule(() => {
                         this.playSequenceItem(item);
                     }, delay);
 
@@ -1988,9 +2283,11 @@
                 });
 
                 // Switch to player turn after sequence completes - no extra delay
-                setTimeout(() => {
+                this.schedule(() => {
+                    if (this.gameState === 'stopped') return;
                     this.gameState = 'listening';
                     this.isPlayerTurn = true;
+                    this.updateNoteDisplay();
                     this.playerSequence = [];
                     this.currentSequenceIndex = 0;
                     this.currentTapCount = 0;
@@ -2001,38 +2298,22 @@
 
             // Play individual sequence item - subdivisions within one beat with proper timing
             playSequenceItem(item, visual = true) {
-                const light = document.getElementById(`light-${item.lightIndex}`);
-                const frequency = this.notes[item.note];
-                const tapsToPlay = item.rhythmData.taps;
-                const beatDuration = 60000 / this.bpm; // Duration of one beat in ms
-
-                // Calculate subdivision timing within the beat
-                let subdivisionDuration = beatDuration / tapsToPlay; // Each tap gets equal share of the beat
-
-                // Set minimum subdivision duration to prevent overlapping (especially for 16th notes)
-                const minSubdivisionDuration = 150; // Minimum 150ms between notes
-                if (subdivisionDuration < minSubdivisionDuration) {
-                    subdivisionDuration = minSubdivisionDuration;
-                }
-
-                const noteDuration = subdivisionDuration * 0.6; // 60% of subdivision for note (reduced to prevent overlap)
-                const gapDuration = subdivisionDuration * 0.4; // 40% gap (increased for cleaner separation)
-
-                // Visual and audio for each subdivision
-                for (let i = 0; i < tapsToPlay; i++) {
-                    setTimeout(() => {
-                        // Visual flash - duration matches note duration (only 'playing' class for sequence)
-                        if (visual) {
-                            light.classList.add('playing');
-                            setTimeout(() => {
-                                light.classList.remove('playing');
-                            }, noteDuration);
-                        }
-                        // Audio with Shepard tone and proper duration
-                        this.playTone(frequency, noteDuration); // Use noteDuration instead of subdivisionDuration
-                    }, i * subdivisionDuration);
+                if (this.gameState === 'stopped') return;
+                const taps = Math.max(1, item.rhythmData.taps);
+                const subdivisionMs = (60000 / this.bpm) / taps;
+                const noteDurationMs = Math.max(150, subdivisionMs) * 0.6;
+                for (let i = 0; i < taps; i++) {
+                    this.schedule(() => {
+                        if (this.gameState === 'stopped') return;
+                        if (visual === true || (visual === 'first-only' && i === 0))
+                            this.flashKey(item.lightIndex, noteDurationMs, 'playing');
+                        this.playUserFeedbackTone(this.notes[item.note], item.rhythmData);
+                        this.sendMIDINote(item.lightIndex, true);
+                        this.schedule(() => this.sendMIDINote(item.lightIndex, false), noteDurationMs);
+                    }, i * subdivisionMs);
                 }
             }
+
 
             // Play sequence item audio only (no visual animation) - for pitch training mode
             playSequenceItemAudioOnly(item) {
@@ -2076,128 +2357,111 @@
             }
 
             // Handle light press - simplified validation with timing tolerance
-            onLightPress(lightIndex, event) {
-                // Prevent default touch behavior to avoid glitches
-                if (event) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-
-                // Resume audio context if suspended (required for mobile browsers)
-                if (this.audioContext && this.audioContext.state === 'suspended') {
-                    this.audioContext.resume();
-                }
-
-                // Handle custom note selection mode
-                if (this.customNoteSelectionMode) {
+            onLightPress(lightIndex, event, source = 'pointer') {
+                if (event) { event.preventDefault(); event.stopPropagation(); }
+                this.resumeAudio();
+                const key = document.getElementById(`light-${lightIndex}`);
+                if (!key) return;
+                if (this.customNoteSelectionMode && this.gameState === 'stopped') {
                     this.handleCustomNoteSelection(lightIndex);
+                    this.updateNoteDisplay();
                     return;
                 }
-
-                // If game is active and waiting for player input, handle as gameplay
-                if (this.gameState === 'listening' && this.isPlayerTurn) {
-                    // Handle different game modes
-                    if (this.callResponseMode) {
-                        this.handleCallResponsePress(lightIndex);
-                    } else {
-                        this.handleNormalGamePress(lightIndex);
-                    }
-                    return;
+                const canPlay = this.gameState === 'stopped' ||
+                    (this.gameState === 'listening' && this.isPlayerTurn && !this.sequenceCompletionPending);
+                if (!canPlay) return;
+                key.classList.add('active');
+                if (this.gameState === 'listening') {
+                    if (this.callResponseMode) this.handleCallResponsePress(lightIndex);
+                    else this.handleNormalGamePress(lightIndex);
+                } else {
+                    this.playTone(this.notes[key.dataset.note], 270);
                 }
-
-                // If no game is active (stopped state), just play the note for preview
-                if (this.gameState === 'stopped') {
-                    const light = document.getElementById(`light-${lightIndex}`);
-                    const note = light.dataset.note;
-                    const frequency = this.notes[note];
-
-                    // Play note with visual feedback
-                    light.classList.add('active');
-                    this.playTone(frequency, 300); // Play for 300ms (corrected units)
-
-                    // Remove visual feedback after 300ms
-                    setTimeout(() => {
-                        light.classList.remove('active');
-                    }, 300);
-
-                    return;
+                if (source === 'pointer') {
+                    this.sendMIDINote(lightIndex, true);
+                    // Safety release for lost pointerup, without cutting normally held notes.
+                    this.schedule(() => {
+                        if (this.pointerNotes.has(lightIndex)) {
+                            this.pointerNotes.delete(lightIndex);
+                            this.onLightRelease(lightIndex, null, 'pointer');
+                        }
+                    }, 2000);
                 }
-
-                // During sequence playback or other game states, ignore input
-                return;
+                if (source === 'midi' && this.gameState === 'stopped') {
+                    this.schedule(() => key.classList.remove('active'), 270);
+                }
             }
+
 
             // Handle input for normal game mode (including pitch training)
             handleNormalGamePress(lightIndex) {
-                const expectedItem = this.gameSequence[this.currentSequenceIndex];
-                if (!expectedItem) return;
-
-                // Check correct light
-                if (lightIndex !== expectedItem.lightIndex) {
+                const expected = this.gameSequence[this.currentSequenceIndex];
+                if (!expected || this.sequenceCompletionPending) return;
+                this.pitchAttempts++;
+                if (lightIndex !== expected.lightIndex) {
                     this.loseLife();
+                    // Greyed keys are playable: the CPU will not choose them, but
+                    // a wrong player note still sounds and briefly lights up.
+                    this.playTone(this.notes[document.getElementById(`light-${lightIndex}`).dataset.note], 270);
+                    this.flashKey(lightIndex, 220, 'playing');
                     return;
                 }
-
-                const light = document.getElementById(`light-${lightIndex}`);
-                light.classList.add('active');
-
-                // PLAY AUDIO FEEDBACK with proper duration matching the expected rhythm
-                const note = light.dataset.note;
-                const frequency = this.notes[note];
-                this.playUserFeedbackTone(frequency, expectedItem.rhythmData);
-
-                // Track timing for validation - start timing from first note press
+                this.pitchCorrect++;
+                const now = performance.now();
+                const key = document.getElementById(`light-${lightIndex}`);
+                this.playUserFeedbackTone(this.notes[key.dataset.note], expected.rhythmData);
                 if (this.currentTapCount === 0) {
-                    this.tapStartTime = Date.now();
-                    this.currentItemStartTime = Date.now(); // Track when this item started
-                    this.currentItemTapTimes = []; // Track individual tap times for this item
+                    this.tapStartTime = now;
+                    this.currentItemStartTime = now;
+                    this.currentItemTapTimes = [];
                 }
-
-                // Record this tap time
-                this.currentItemTapTimes.push(Date.now());
+                this.currentItemTapTimes.push(now);
                 this.currentTapCount++;
-
-                // Check if we've got enough taps
-                const requiredTaps = expectedItem.rhythmData.taps;
-                if (this.currentTapCount >= requiredTaps) {
-                    // Basic validation - ensure correct number of taps
-                    if (this.currentTapCount > 1) {
-                        const totalTime = Date.now() - this.tapStartTime;
-                        const beatDuration = 60000 / this.bpm; // Duration of one beat in ms
-                        const expectedTime = (requiredTaps - 1) * (beatDuration / requiredTaps); // Subdivisions within beat
-
-                        // Basic acceptance tolerance (50%) - too slow fails
-                        const basicTolerance = expectedTime * 0.5;
-                        if (totalTime > expectedTime + basicTolerance) {
-                            this.loseLife();
+                if (this.currentTapCount < expected.rhythmData.taps) return;
+                const taps = expected.rhythmData.taps;
+                if (taps > 1) {
+                    const expectedMs = (taps - 1) * (60000 / this.bpm / taps);
+                    const observedMs = now - this.tapStartTime;
+                    if (Math.abs(observedMs - expectedMs) > Math.max(90, expectedMs * 0.38)) {
+                        this.loseLife();
+                        return;
+                    }
+                }
+                this.playerSequence.push({
+                    lightIndex,
+                    note: key.dataset.note,
+                    rhythm: expected.rhythm,
+                    tapCount: taps,
+                    startTime: this.currentItemStartTime,
+                    endTime: now,
+                    tapTimes: [...this.currentItemTapTimes]
+                });
+                this.currentSequenceIndex++;
+                this.currentTapCount = 0;
+                this.currentItemTapTimes = [];
+                if (this.currentSequenceIndex >= this.gameSequence.length) {
+                    this.sequenceCompletionPending = true;
+                    this.isPlayerTurn = false;
+                    const isAdventure = this.gameMode === 'adventure';
+                    const lastInRound = !isAdventure ||
+                        this.gameSequence.length >= this.adventureTargetSequence.length;
+                    if (lastInRound) {
+                        this.calculateSequenceRhythmBonus();
+                        if (isAdventure) this.awardAdventureRound();
+                    }
+                    this.updateControls();
+                    const nextStep = () => {
+                        if (this.gameState === 'stopped' || !this.sequenceCompletionPending) return;
+                        if (isAdventure && !lastInRound &&
+                            (this.pointerNotes?.has(lightIndex) || this.midiHeld?.has(48 + lightIndex))) {
+                            this.schedule(nextStep, 50); // Wait for the actual note release too.
                             return;
                         }
-                    }
-
-                    // Success! Move to next item
-                    this.playerSequence.push({
-                        lightIndex,
-                        note: light.dataset.note,
-                        rhythm: expectedItem.rhythm,
-                        tapCount: this.currentTapCount,
-                        startTime: this.currentItemStartTime,
-                        endTime: Date.now(),
-                        tapTimes: [...this.currentItemTapTimes] // Store all individual tap times
-                    });
-
-                    this.currentSequenceIndex++;
-                    this.currentTapCount = 0;
-                    this.currentItemTapTimes = []; // Reset for next item
-
-                    // Check if sequence complete
-                    if (this.currentSequenceIndex >= this.gameSequence.length) {
-                        // Calculate rhythm bonus for the ENTIRE sequence timing
-                        this.calculateSequenceRhythmBonus();
-                        setTimeout(() => this.nextRound(), 500);
-                    }
+                        if (isAdventure && !lastInRound) this.advanceAdventureChain();
+                        else this.nextRound();
+                    };
+                    this.schedule(nextStep, isAdventure && !lastInRound ? 1000 : 550);
                 }
-
-                this.playerPressedLight = lightIndex;
             }
 
             // Handle input for call and response mode
@@ -2283,6 +2547,10 @@
 
             // Compare Player 2's response to Player 1's call
             compareCallResponse() {
+                if (this.callResponseResolved || this.gameState === 'stopped') return;
+                this.callResponseResolved = true;
+                this.isPlayerTurn = false;
+                this.gameState = 'playing';
                 clearTimeout(this.callResponseTimeout);
 
                 if (this.playerSequence.length === 0) {
@@ -2406,10 +2674,11 @@
                 `;
 
                 overlay.appendChild(feedbackText);
+                overlay.classList.add('game-overlay');
                 document.body.appendChild(overlay);
 
                 // Remove after 3 seconds and start new round
-                setTimeout(() => {
+                this.schedule(() => {
                     document.body.removeChild(overlay);
                     this.startNewCallResponseRound();
                 }, 3000);
@@ -2418,7 +2687,8 @@
             // Start a new round in call and response mode
             startNewCallResponseRound() {
                 this.currentRound++;
-                this.callResponseRound++; // Increment call & response round
+                this.callResponseRound++;
+                this.callResponseResolved = false; // Increment call & response round
                 this.isPlayer1Turn = true;
                 this.player1Sequence = [];
                 this.playerSequence = [];
@@ -2427,281 +2697,51 @@
             }
 
             // Handle light release - No beeping
-            onLightRelease(lightIndex, event) {
-                if (!this.isPlayerTurn || this.playerPressedLight !== lightIndex) return;
-
-                const light = document.getElementById(`light-${lightIndex}`);
-                light.classList.remove('active');
-
-                this.playerPressedLight = null;
+            onLightRelease(lightIndex, event, source = 'pointer') {
+                const key = document.getElementById(`light-${lightIndex}`);
+                key?.classList.remove('active');
+                if (source === 'pointer') this.sendMIDINote(lightIndex, false);
+                if (this.playerPressedLight === lightIndex) this.playerPressedLight = null;
             }
+
 
             // Calculate rhythm bonus for the ENTIRE sequence timing - called only after complete sequence
             calculateSequenceRhythmBonus() {
-                if (this.playerSequence.length === 0) {
-                    return;
-                }
-
-                const beatDuration = 60000 / this.bpm; // Duration of one beat in ms
-                let rhythmAccuracy = 0; // Initialize rhythm accuracy variable
-                console.log(`=== COMPLETE SEQUENCE RHYTHM ANALYSIS ===`);
-                console.log(`BPM: ${this.bpm}, Beat duration: ${beatDuration}ms`);
-                console.log(`Sequence length: ${this.gameSequence.length} items`);
-
-                // Collect ALL tap times from the entire sequence
-                let allPlayerTaps = [];
-                let sequenceItemTypes = [];
-
-                for (let i = 0; i < this.playerSequence.length; i++) {
-                    const playerItem = this.playerSequence[i];
-                    const gameItem = this.gameSequence[i];
-
-                    if (playerItem.tapTimes && playerItem.tapTimes.length > 0) {
-                        // Add all taps from this item
-                        for (let tapTime of playerItem.tapTimes) {
-                            allPlayerTaps.push({
-                                time: tapTime,
-                                itemIndex: i,
-                                tapWithinItem: allPlayerTaps.filter(t => t.itemIndex === i).length,
-                                expectedTaps: gameItem.rhythmData.taps,
-                                rhythm: gameItem.rhythm
-                            });
+                const actual = this.playerSequence.flatMap(item => item.tapTimes || []);
+                const beatMs = 60000 / this.bpm;
+                const expected = [];
+                this.gameSequence.forEach((item, index) => {
+                    const taps = item.rhythmData.taps;
+                    for (let j = 0; j < taps; j++) expected.push((index + j / taps) * beatMs);
+                });
+                // Compare distances between attacks: the player's reaction to the first
+                // playback is excluded. Use one tolerance for every rhythm and BPM.
+                let accuracy = 0;
+                if (expected.length === actual.length) {
+                    if (expected.length < 2) accuracy = 1;
+                    else {
+                        let sum = 0;
+                        for (let i = 1; i < expected.length; i++) {
+                            const target = expected[i] - expected[i - 1];
+                            const played = actual[i] - actual[i - 1];
+                            const relativeError = Math.abs(played - target) / target;
+                            sum += Math.max(0, 1 - relativeError / 0.4);
                         }
-                        sequenceItemTypes.push({
-                            rhythm: gameItem.rhythm,
-                            taps: gameItem.rhythmData.taps
-                        });
+                        accuracy = sum / (expected.length - 1);
                     }
                 }
-
-                console.log(`Total taps collected: ${allPlayerTaps.length}`);
-                console.log(`Player tap times: [${allPlayerTaps.map((t, i) => i === 0 ? '0ms' : (t.time - allPlayerTaps[0].time).toFixed(0) + 'ms').join(', ')}]`);
-
-                // Calculate expected tap count
-                const expectedTapCount = this.gameSequence.reduce((total, item) => total + item.rhythmData.taps, 0);
-                console.log(`Expected total taps: ${expectedTapCount}, Got: ${allPlayerTaps.length}`);
-
-                // STRICT VALIDATION: Wrong number of taps = 0% accuracy
-                if (allPlayerTaps.length !== expectedTapCount) {
-                    rhythmAccuracy = 0;
-                    console.log(`❌ WRONG TAP COUNT: Expected ${expectedTapCount}, got ${allPlayerTaps.length} - 0% accuracy`);
-                } else if (allPlayerTaps.length < 2) {
-                    // Single tap sequences can't measure rhythm pattern
-                    if (this.gameSequence.length === 1 && expectedTapCount === 1) {
-                        // Single note sequence - give reasonable score for timing
-                        rhythmAccuracy = 0.6; // 60% for single notes (can't measure rhythm)
-                        console.log(`Single note sequence - 60% accuracy (no rhythm pattern to measure)`);
-                    } else {
-                        rhythmAccuracy = 0;
-                        console.log(`❌ Single tap in multi-note sequence - 0% accuracy`);
-                    }
-                } else {
-                    // Build expected timing pattern for the entire sequence
-                    let expectedTapTimes = [];
-                    let currentBeatStart = 0;
-
-                    for (let i = 0; i < this.gameSequence.length; i++) {
-                        const gameItem = this.gameSequence[i];
-                        const tapsInThisBeat = gameItem.rhythmData.taps;
-
-                        // Add expected tap times for this beat
-                        for (let tap = 0; tap < tapsInThisBeat; tap++) {
-                            const positionInBeat = tap / tapsInThisBeat; // 0, 0.25, 0.5, 0.75 for sixteenth notes
-                            const expectedTime = currentBeatStart + (positionInBeat * beatDuration);
-                            expectedTapTimes.push(expectedTime);
-                        }
-
-                        currentBeatStart += beatDuration; // Move to next beat
-                    }
-
-                    console.log(`Expected tap times: [${expectedTapTimes.map(t => t.toFixed(0) + 'ms').join(', ')}]`);
-
-                    // Calculate actual timing relative to first tap
-                    let actualTapTimes = allPlayerTaps.map(tap => tap.time - allPlayerTaps[0].time);
-
-                    console.log(`\n=== STRICT EDUCATIONAL RHYTHM VALIDATION ===`);
-
-                    // STEP 1: Anti-cheating validation - Check for obviously wrong patterns
-                    const expectedTotalTime = expectedTapTimes[expectedTapTimes.length - 1];
-                    const actualTotalTime = actualTapTimes[actualTapTimes.length - 1];
-                    const overallTempoError = Math.abs(actualTotalTime - expectedTotalTime) / expectedTotalTime;
-
-                    console.log(`Expected total time: ${expectedTotalTime.toFixed(0)}ms`);
-                    console.log(`Actual total time: ${actualTotalTime.toFixed(0)}ms`);
-                    console.log(`Overall tempo error: ${(overallTempoError * 100).toFixed(1)}%`);
-
-                    // ANTI-CHEAT: Detect common gaming attempts
-                    let cheatDetected = false;
-
-                    // Cheat detection 1: Playing way too fast (double speed or faster)
-                    if (actualTotalTime > 0 && actualTotalTime < expectedTotalTime * 0.4) {
-                        cheatDetected = true;
-                        console.log(`🚫 CHEAT DETECTED: Playing too fast (${(actualTotalTime / expectedTotalTime * 100).toFixed(0)}% of expected speed)`);
-                    }
-
-                    // Cheat detection 2: Playing way too slow (half speed or slower)  
-                    if (actualTotalTime > expectedTotalTime * 2.5) {
-                        cheatDetected = true;
-                        console.log(`🚫 CHEAT DETECTED: Playing too slow (${(actualTotalTime / expectedTotalTime * 100).toFixed(0)}% of expected speed)`);
-                    }
-
-                    // Cheat detection 3: Suspiciously uniform timing (like rapid clicking)
-                    if (actualTapTimes.length > 2) {
-                        let actualGaps = [];
-                        for (let i = 1; i < actualTapTimes.length; i++) {
-                            actualGaps.push(actualTapTimes[i] - actualTapTimes[i - 1]);
-                        }
-                        const minGap = Math.min(...actualGaps);
-                        const maxGap = Math.max(...actualGaps);
-                        if (maxGap > 0 && minGap < 50 && maxGap / minGap > 10) {
-                            cheatDetected = true;
-                            console.log(`🚫 CHEAT DETECTED: Suspicious timing pattern (gaps from ${minGap}ms to ${maxGap}ms)`);
-                        }
-                    }
-
-                    if (cheatDetected) {
-                        rhythmAccuracy = 0;
-                        console.log(`❌ CHEAT PREVENTION: 0% accuracy due to gaming attempt`);
-                    } else if (overallTempoError > 0.20) {
-                        // STRICT: If overall tempo is off by more than 20%, fail immediately
-                        rhythmAccuracy = 0;
-                        console.log(`❌ TEMPO FAIL: ${(overallTempoError * 100).toFixed(1)}% error > 20% threshold - 0% accuracy`);
-                    } else {
-                        // STEP 2: Check individual gap accuracy (rhythm pattern)
-                        let actualGaps = [];
-                        let expectedGaps = [];
-
-                        for (let i = 1; i < actualTapTimes.length; i++) {
-                            actualGaps.push(actualTapTimes[i] - actualTapTimes[i - 1]);
-                            expectedGaps.push(expectedTapTimes[i] - expectedTapTimes[i - 1]);
-                        }
-
-                        console.log(`CPU gaps: [${expectedGaps.map(g => g.toFixed(0) + 'ms').join(', ')}]`);
-                        console.log(`Player gaps: [${actualGaps.map(g => g.toFixed(0) + 'ms').join(', ')}]`);
-
-                        // ULTRA-STRICT: Each gap must be within 10% of expected
-                        let failedGaps = 0;
-                        let gapAccuracySum = 0;
-                        const gapTolerance = 0.10; // 10% tolerance per gap (STRICT)
-
-                        for (let i = 0; i < expectedGaps.length; i++) {
-                            const expectedGap = expectedGaps[i];
-                            const actualGap = actualGaps[i];
-                            const gapError = Math.abs(actualGap - expectedGap) / expectedGap;
-
-                            console.log(`Gap ${i + 1}: Expected=${expectedGap.toFixed(0)}ms, Actual=${actualGap.toFixed(0)}ms, Error=${(gapError * 100).toFixed(1)}%`);
-
-                            if (gapError > gapTolerance) {
-                                failedGaps++;
-                                console.log(`  ❌ GAP FAIL: ${(gapError * 100).toFixed(1)}% > ${(gapTolerance * 100)}% tolerance`);
-                                gapAccuracySum += 0; // 0% for failed gaps
-                            } else {
-                                // Linear scoring within tolerance: 0% error = 100%, 10% error = 0%
-                                const gapScore = Math.max(0, 1 - (gapError / gapTolerance));
-                                gapAccuracySum += gapScore;
-                                console.log(`  ✓ Gap OK: ${(gapScore * 100).toFixed(1)}% accuracy`);
-                            }
-                        }
-
-                        // Calculate rhythm accuracy as average of gap accuracies
-                        rhythmAccuracy = gapAccuracySum / expectedGaps.length;
-
-                        console.log(`\nGap Analysis: ${failedGaps}/${expectedGaps.length} gaps failed`);
-                        console.log(`Average gap accuracy: ${(rhythmAccuracy * 100).toFixed(1)}%`);
-
-                        // STEP 3: Additional penalties for educational purposes
-
-                        // Penalty for inconsistent rhythm patterns
-                        if (expectedGaps.length > 1) {
-                            // Check if gaps should be equal (like quarter notes)
-                            const expectedGapConsistency = this.calculateGapConsistency(expectedGaps);
-                            const actualGapConsistency = this.calculateGapConsistency(actualGaps);
-
-                            if (expectedGapConsistency > 0.9) { // CPU played consistent rhythm
-                                if (actualGapConsistency < 0.7) { // Player was inconsistent
-                                    const consistencyPenalty = 0.5; // 50% penalty for inconsistency
-                                    rhythmAccuracy *= consistencyPenalty;
-                                    console.log(`❌ CONSISTENCY PENALTY: Player rhythm inconsistent (${(actualGapConsistency * 100).toFixed(1)}% vs expected ${(expectedGapConsistency * 100).toFixed(1)}%)`);
-                                    console.log(`Applied 50% consistency penalty. New accuracy: ${(rhythmAccuracy * 100).toFixed(1)}%`);
-                                }
-                            }
-                        }
-
-                        // Penalty for rushing or dragging
-                        if (overallTempoError > 0.10) { // More than 10% tempo error
-                            const tempoPenalty = Math.max(0.3, 1 - (overallTempoError / 0.15)); // Penalty scales with error
-                            rhythmAccuracy *= tempoPenalty;
-                            console.log(`❌ TEMPO PENALTY: ${(overallTempoError * 100).toFixed(1)}% tempo error`);
-                            console.log(`Applied ${((1 - tempoPenalty) * 100).toFixed(1)}% tempo penalty. New accuracy: ${(rhythmAccuracy * 100).toFixed(1)}%`);
-                        }
-                    }
-                }
-
-                // Final validation and reporting
-                console.log(`\n🎯 FINAL EDUCATIONAL RHYTHM SCORE: ${(rhythmAccuracy * 100).toFixed(1)}%`);
-
-                if (rhythmAccuracy < 0.1) {
-                    console.log(`📚 Educational feedback: Rhythm needs significant improvement`);
-                } else if (rhythmAccuracy < 0.5) {
-                    console.log(`📚 Educational feedback: Rhythm partially correct but needs work`);
-                } else if (rhythmAccuracy < 0.8) {
-                    console.log(`📚 Educational feedback: Good rhythm with minor timing issues`);
-                } else {
-                    console.log(`📚 Educational feedback: Excellent rhythm accuracy!`);
-                }
-
-                // Store rhythm accuracy for stats
-                this.rhythmAccuracy = rhythmAccuracy;
-
-                // Award rhythm bonus based on STRICT accuracy - Educational standards
-                let rhythmBonus = 0;
-
-                // STRICT EDUCATIONAL BONUS SYSTEM:
-                // Only reward genuinely good rhythm performance
-                if (rhythmAccuracy >= 0.9) {
-                    // Excellent rhythm (90%+) - Full bonus 
-                    const remainingLevelBonus = Math.max(0, 250 - this.currentLevelRhythmBonus);
-                    rhythmBonus = Math.min(250, remainingLevelBonus);
-                    console.log(`🏆 EXCELLENT RHYTHM: ${(rhythmAccuracy * 100).toFixed(1)}% - Full bonus ${rhythmBonus}`);
-                    this.perfectTimingCount++;
-                } else if (rhythmAccuracy >= 0.8) {
-                    // Very good rhythm (80-89%) - Large bonus
-                    const remainingLevelBonus = Math.max(0, 250 - this.currentLevelRhythmBonus);
-                    rhythmBonus = Math.min(200, remainingLevelBonus);
-                    console.log(`🥈 VERY GOOD RHYTHM: ${(rhythmAccuracy * 100).toFixed(1)}% - Large bonus ${rhythmBonus}`);
-                } else if (rhythmAccuracy >= 0.7) {
-                    // Good rhythm (70-79%) - Medium bonus
-                    const remainingLevelBonus = Math.max(0, 250 - this.currentLevelRhythmBonus);
-                    rhythmBonus = Math.min(100, remainingLevelBonus);
-                    console.log(`🥉 GOOD RHYTHM: ${(rhythmAccuracy * 100).toFixed(1)}% - Medium bonus ${rhythmBonus}`);
-                } else if (rhythmAccuracy >= 0.6) {
-                    // Fair rhythm (60-69%) - Small bonus
-                    const remainingLevelBonus = Math.max(0, 250 - this.currentLevelRhythmBonus);
-                    rhythmBonus = Math.min(50, remainingLevelBonus);
-                    console.log(`📈 FAIR RHYTHM: ${(rhythmAccuracy * 100).toFixed(1)}% - Small bonus ${rhythmBonus}`);
-                } else {
-                    // Poor rhythm (<60%) - No bonus (EDUCATIONAL: must earn the points)
-                    rhythmBonus = 0;
-                    console.log(`❌ POOR RHYTHM: ${(rhythmAccuracy * 100).toFixed(1)}% - No bonus awarded`);
-                    console.log(`📚 Educational note: Practice the rhythm more carefully to earn bonus points`);
-                }
-
-                console.log(`Current level bonus total: ${this.currentLevelRhythmBonus}/250`);
-                console.log(`Remaining level bonus available: ${Math.max(0, 250 - this.currentLevelRhythmBonus)}`);
-                console.log(`Final bonus awarded: ${rhythmBonus}`);
-
-                // Store bonus but DON'T add to total score yet - only track for level
-                if (rhythmBonus > 0) {
-                    // DON'T add to levelScore here - will be added at level completion
-                    this.currentLevelRhythmBonus += rhythmBonus; // Track rhythm bonus for this level
-                    console.log(`Added ${rhythmBonus} to level bonus tracking. New level bonus total: ${this.currentLevelRhythmBonus}/250`);
-                    // DON'T add to totalScore here - only at end of level
-                } else {
-                    console.log(`No bonus added to level tracking`);
-                }                // Accumulate rhythm accuracy for session statistics
-                this.sessionRhythmAccuracySum += rhythmAccuracy;
+                this.rhythmAccuracy = Math.max(0, Math.min(1, accuracy));
+                this.sessionRhythmAccuracySum += this.rhythmAccuracy;
                 this.totalTimingAttempts++;
+                this.levelRhythmAccuracySum += this.rhythmAccuracy;
+                this.levelTimingAttempts++;
+                if (this.rhythmAccuracy >= 0.9) this.perfectTimingCount++;
+                // Cap the level's accumulated rhythm bonus at 250, once per round.
+                const bonus = this.rhythmAccuracy >= 0.9 ? 90 : this.rhythmAccuracy >= 0.75 ? 65 :
+                    this.rhythmAccuracy >= 0.55 ? 35 : 0;
+                this.currentLevelRhythmBonus = Math.min(250, this.currentLevelRhythmBonus + bonus);
             }
+
 
             // Helper function to calculate how consistent gaps are (for rhythm accuracy)
             calculateGapConsistency(gaps) {
@@ -2747,18 +2787,38 @@
 
             // Advance to next round - Level progression based on sequence length
             nextRound() {
+                if (this.gameMode === 'adventure') {
+                    const oldStage = this.currentLevel;
+                    this.currentRound++;
+                    this.currentLevel = Math.floor((this.currentRound - 1) / 5) + 1;
+                    this.bpm = Math.min(50 + Math.floor((this.currentRound - 1) / 5) * 2, 85);
+                    if (this.currentLevel !== oldStage) {
+                        this.normalListenAgainCount = 1;
+                        this.listenAgainUsed = false;
+                        this.levelTimingAttempts = 0;
+                        this.levelRhythmAccuracySum = 0;
+                        this.currentLevelRhythmBonus = 0;
+                    }
+                    this.gameState = 'playing';
+                    this.beginAdventureRound();
+                    this.schedule(() => {
+                        if (this.gameState !== 'stopped') this.playSequence();
+                    }, 800);
+                    return;
+                }
                 // Check if we should advance to next level (based on sequence length)
                 const targetSequenceLength = this.levelRequirements[this.currentLevel];
-                if (this.gameSequence.length >= targetSequenceLength && this.currentLevel < 20) {
+                if (this.gameSequence.length >= targetSequenceLength) {
                     // Check for perfect accuracy bonus BEFORE advancing level
                     // Must have: 1) not used Listen Again, 2) level 5+, and 3) good rhythm accuracy
-                    const avgRhythmAccuracy = this.totalTimingAttempts > 0 ?
-                        (this.sessionRhythmAccuracySum / this.totalTimingAttempts) : 0;
+                    const avgRhythmAccuracy = this.levelTimingAttempts > 0 ?
+                        (this.levelRhythmAccuracySum / this.levelTimingAttempts) : 0;
                     const perfectAccuracy = !this.listenAgainUsed &&
                         this.currentLevel >= 5 &&
                         avgRhythmAccuracy >= 0.8; // Require 80%+ rhythm accuracy
 
-                    const newLevel = this.currentLevel + 1;
+                    const completedLevel = this.currentLevel;
+                    const newLevel = Math.min(20, this.currentLevel + 1);
                     this.currentLevel = newLevel;
                     this.correctInRow = 0; // Reset counter for new level
                     this.bpm = Math.min(50 + (newLevel - 1) * 2, 85); // 2 BPM per level, max 85
@@ -2766,7 +2826,7 @@
                     this.listenAgainUsed = false; // Reset Listen Again for new level
                     this.bonusListenAgainAwarded = false; // Reset bonus tracking for new level
 
-                    // Update light colors for the new level
+                    // Update available keyboard keys for the new level
                     this.updateLightColors();
 
                     // Update level display in UI
@@ -2781,7 +2841,7 @@
                     }
 
                     // Show level completion celebration
-                    this.showLevelCelebration(newLevel);
+                    this.showLevelCelebration(newLevel, completedLevel);
                     return; // Exit early, celebration will continue the game
                 } else {
                     // Same level, continue building sequence
@@ -2791,6 +2851,7 @@
                 }
 
                 // Reset player sequence for the new round
+                this.sequenceCompletionPending = false;
                 this.playerSequence = [];
                 this.currentSequenceIndex = 0;
                 this.currentTapCount = 0;
@@ -2799,7 +2860,7 @@
                 this.updateDisplay();
 
                 // Reduced pause before playing the ENTIRE sequence again
-                setTimeout(() => {
+                this.schedule(() => {
                     if (this.pitchTrainingMode) {
                         this.playSequenceWithPitchTraining();
                     } else {
@@ -2832,7 +2893,7 @@
                 message.innerHTML = `🎉 BONUS LISTEN AGAIN! 🎉<br><span style="font-size: 1rem;">Perfect accuracy unlocked an extra listen!</span>`;
                 document.body.appendChild(message);
 
-                setTimeout(() => {
+                this.schedule(() => {
                     if (document.body.contains(message)) {
                         message.remove();
                     }
@@ -2873,15 +2934,18 @@
                 this.gameState = 'stopped';
                 this.isPlayerTurn = false;
                 this.correctInRow = 0; // Reset on game over
-                this.lives = 3; // Reset lives for next game
-                // No metronome to stop
+                // Keep 0 lives visible until the next game starts.
+                this.stopAllAudio();
+                this.clearAllTimeouts();
 
                 // Record game statistics
                 // Use the accumulated rhythm accuracy from all sequences played this game
                 const totalRhythmAccuracy = this.totalTimingAttempts > 0 ?
                     (this.sessionRhythmAccuracySum / this.totalTimingAttempts) : 0; // Keep as decimal 0-1
-                const pitchAccuracy = this.currentRound > 1 ? ((this.currentRound - 1) / this.currentRound) : 1;
-                this.updatePlayerStats(this.totalScore, this.currentLevel, totalRhythmAccuracy, pitchAccuracy);
+                const pitchAccuracy = this.pitchAttempts ? this.pitchCorrect / this.pitchAttempts : 0;
+                this.updatePlayerStats(this.totalScore,
+                    this.gameMode === 'adventure' ? this.currentRound : this.currentLevel,
+                    totalRhythmAccuracy, pitchAccuracy);
 
                 this.updateDisplay();
                 this.updateControls();
@@ -2933,23 +2997,17 @@
                 `;
 
                 // Add pulse animation
-                const style = document.createElement('style');
-                style.textContent = `
-                    @keyframes pulse {
-                        from { transform: scale(1); }
-                        to { transform: scale(1.05); }
-                    }
-                `;
-                document.head.appendChild(style);
+
 
                 modal.appendChild(title);
                 overlay.appendChild(modal);
+                overlay.classList.add('game-overlay');
                 document.body.appendChild(overlay);
 
                 // Remove modal after 3 seconds and call the callback
-                setTimeout(() => {
+                this.schedule(() => {
                     document.body.removeChild(overlay);
-                    document.head.removeChild(style);
+                    
                     if (callback) callback();
                 }, 3000);
             }
@@ -3047,7 +3105,8 @@
                 `;
 
                 const finalLevel = document.createElement('div');
-                finalLevel.textContent = `Final Level: ${this.currentLevel}`;
+                finalLevel.textContent = this.gameMode === 'adventure' ?
+                    `Longest chain: ${this.gameSequence.length} notes` : `Final Level: ${this.currentLevel}`;
                 finalLevel.style.cssText = `
                     font-size: 1.2rem;
                     margin-bottom: 8px;
@@ -3131,12 +3190,17 @@
                     this.perfectTimingCount = 0;
                     this.totalTimingAttempts = 0;
                     this.sessionRhythmAccuracySum = 0;
+                    this.levelTimingAttempts = 0;
+                    this.levelRhythmAccuracySum = 0;
+                    this.pitchAttempts = 0;
+                    this.pitchCorrect = 0;
                     this.currentLevelRhythmBonus = 0;
 
                     // Reset game state
                     this.gameState = 'stopped';
                     this.isPlayerTurn = false;
 
+                    this.switchToPreGameUI();
                     this.updateDisplay();
                     this.updateControls();
                     this.updateNoteDisplay();
@@ -3182,7 +3246,9 @@
                     this.correctInRow = 0;
 
                     // Set BPM for the current level (not reset to level 1)
-                    this.bpm = Math.min(50 + (failedLevel - 1) * 2, 85); // 2 BPM per level, max 85
+                    this.bpm = this.gameMode === 'adventure' ?
+                        Math.min(50 + Math.floor((failedRound - 1) / 5) * 2, 85) :
+                        Math.min(50 + (failedLevel - 1) * 2, 85);
                     this.lastNoteIndex = -1; // Reset note tracking
 
                     // Reset Listen Again system
@@ -3193,7 +3259,8 @@
 
                     // Build a NEW sequence for the current level/round (not from level 1)
                     this.gameSequence = [];
-                    for (let i = 0; i < failedRound; i++) {
+                    if (this.gameMode === 'adventure') this.beginAdventureRound();
+                    else for (let i = 0; i < failedRound; i++) {
                         this.gameSequence.push(this.generateSequenceItem());
                     }
 
@@ -3209,11 +3276,16 @@
                     this.perfectTimingCount = 0;
                     this.totalTimingAttempts = 0;
                     this.sessionRhythmAccuracySum = 0;
+                    this.levelTimingAttempts = 0;
+                    this.levelRhythmAccuracySum = 0;
+                    this.pitchAttempts = 0;
+                    this.pitchCorrect = 0;
                     this.currentLevelRhythmBonus = 0;
 
                     // Reset game state and prepare to start
                     this.gameState = 'stopped';
                     this.isPlayerTurn = false;
+                    this.sequenceCompletionPending = false;
 
                     this.updateDisplay();
                     this.updateControls();
@@ -3224,7 +3296,7 @@
                     this.switchToInGameUI();
 
                     // Show "Get Ready!" modal then start the sequence
-                    setTimeout(() => {
+                    this.schedule(() => {
                         this.showGetReadyModal(() => {
                             if (this.pitchTrainingMode) {
                                 this.playSequenceWithPitchTraining();
@@ -3260,7 +3332,8 @@
                 };
                 quitBtn.onclick = () => {
                     document.body.removeChild(overlay);
-                    // Just close modal, leave game state as stopped
+                    this.switchToPreGameUI();
+                    // Leave the game stopped and return to the Start screen.
                 };
 
                 buttonContainer.appendChild(startAgainBtn);
@@ -3271,6 +3344,7 @@
                 modal.appendChild(scoreBreakdown);
                 modal.appendChild(buttonContainer);
                 overlay.appendChild(modal);
+                overlay.classList.add('game-overlay');
                 document.body.appendChild(overlay);
             }
 
@@ -3314,24 +3388,7 @@
                 `;
 
                 // Add scrollbar styles for webkit browsers
-                const scrollbarStyle = document.createElement('style');
-                scrollbarStyle.textContent = `
-                    .modal-with-scroll::-webkit-scrollbar {
-                        width: 8px;
-                    }
-                    .modal-with-scroll::-webkit-scrollbar-track {
-                        background: #f1f5f9;
-                        border-radius: 4px;
-                    }
-                    .modal-with-scroll::-webkit-scrollbar-thumb {
-                        background: #8b5cf6;
-                        border-radius: 4px;
-                    }
-                    .modal-with-scroll::-webkit-scrollbar-thumb:hover {
-                        background: #7c3aed;
-                    }
-                `;
-                document.head.appendChild(scrollbarStyle);
+
                 modal.classList.add('modal-with-scroll');
 
                 // Title
@@ -3378,14 +3435,13 @@
                     border-radius: 10px;
                     padding: 15px;
                 `;
-                const progressiveChecked = document.querySelector('input[name="scaleType"][value="progressive"]').checked;
                 const customChecked = document.querySelector('input[name="scaleType"][value="custom"]').checked;
                 gameModeSection.innerHTML = `
                     <h4 style="margin-bottom: 15px; color: #2d3436;">🎮 Game Modes:</h4>
                     <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                        <label style="display: flex; align-items: center; background: rgba(255,255,255,0.8); padding: 10px 15px; border-radius: 10px; cursor: pointer; transition: all 0.2s;">
-                            <input type="radio" name="gameMode" value="normal" ${this.gameMode === 'normal' && progressiveChecked ? 'checked' : ''} style="margin-right: 8px;">
-                            <span>😎 Fun Levels</span>
+                        <label title="Repeat the growing phrase. Selected rhythms join by rounds 1–4." style="display: flex; align-items: center; background: rgba(255,255,255,0.8); padding: 10px 15px; border-radius: 10px; cursor: pointer; transition: all 0.2s;">
+                            <input type="radio" name="gameMode" value="adventure" ${this.gameMode === 'adventure' ? 'checked' : ''} style="margin-right: 8px;">
+                            <span>Adventure</span>
                         </label>
                         <label style="display: flex; align-items: center; background: rgba(255,255,255,0.8); padding: 10px 15px; border-radius: 10px; cursor: pointer; transition: all 0.2s;">
                             <input type="radio" name="gameMode" value="custom" ${this.gameMode === 'normal' && customChecked ? 'checked' : ''} style="margin-right: 8px;">
@@ -3479,6 +3535,7 @@
                 modal.appendChild(gameModeSection);
                 modal.appendChild(buttonContainer);
                 overlay.appendChild(modal);
+                overlay.classList.add('game-overlay');
                 document.body.appendChild(overlay);
 
                 // Sync current values to modal
@@ -3537,9 +3594,10 @@
                         <h3>🎮 How to Play</h3>
                         <p>1. Press <strong>Start Game</strong></p>
                         <p>2. Listen carefully to the musical pattern</p>
-                        <p>3. Click the colored lights to copy the pattern</p>
+                        <p>3. Play the piano keys with touch, mouse, or MIDI to copy the pattern</p>
                         <p>4. Match the timing too - not just the notes!</p>
-                        <p>5. Get it right to advance to longer patterns</p>
+                        <p>5. In Adventure, copy one note, then two, then the whole growing chain to finish the round</p>
+                        <p>6. Selected rhythms appear within the first four rounds, and new notes are introduced as you progress</p>
                     </div>
 
                     <div style="background: rgba(255,255,255,0.8); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
@@ -3556,10 +3614,16 @@
                         <p><strong>👥 Call & Response:</strong> Two players take turns creating and copying patterns</p>
                     </div>
 
+                    <div style="background: rgba(255,255,255,0.8); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                        <h3>🎹 MIDI &amp; Audio</h3>
+                        <p>Open the gear beside the piano to access Audio &amp; MIDI. Use Connect MIDI on HTTPS or localhost to choose an input keyboard and output port for a VST, external synth or virtual MIDI cable. MIDI note numbers 48–60 play C3–C4. You can disable onboard sound or use MIDI Thru.</p>
+                        <p>MIDI availability depends on the browser and device. Touch and onboard audio work where Web MIDI is unsupported.</p>
+                    </div>
+
                     <div style="background: rgba(255,255,255,0.8); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
                         <h3>💡 Tips</h3>
                         <p>• Use <strong>Listen Again</strong> if you need to hear it once more</p>
-                        <p>• Watch the rhythm colors to know what pattern to play</p>
+                        <p>• Keys light up in rainbow colors as they play</p>
                         <p>• Perfect timing gives bonus points!</p>
                         <p>• You have 3 lives - use them wisely!</p>
                     </div>
@@ -3588,6 +3652,7 @@
                 };
 
                 overlay.appendChild(modal);
+                overlay.classList.add('game-overlay');
                 document.body.appendChild(overlay);
             }
 
@@ -3653,6 +3718,7 @@
                             // Other game modes
                             this.gameMode = radio.value;
                             switch (radio.value) {
+                                case 'adventure':
                                 case 'normal':
                                     this.pitchTrainingMode = false;
                                     this.callResponseMode = false;
@@ -3750,8 +3816,6 @@
                 modalGameModeRadios.forEach(radio => {
                     if (radio.value === 'custom') {
                         radio.checked = (this.gameMode === 'normal' && currentScaleType === 'custom');
-                    } else if (radio.value === 'normal') {
-                        radio.checked = (this.gameMode === 'normal' && currentScaleType === 'progressive');
                     } else {
                         radio.checked = (radio.value === this.gameMode);
                     }
@@ -3777,11 +3841,11 @@
                 this.updateOptionsIndicator();
 
                 // Add pulse animation to rhythm tag
-                setTimeout(() => {
+                this.schedule(() => {
                     const rhythmTag = document.querySelector('.rhythm-tag');
                     if (rhythmTag) {
                         rhythmTag.classList.add('pulse');
-                        setTimeout(() => rhythmTag.classList.remove('pulse'), 600);
+                        this.schedule(() => rhythmTag.classList.remove('pulse'), 600);
                     }
                 }, 50);
 
@@ -3804,11 +3868,11 @@
                 this.updateOptionsIndicator();
 
                 // Add pulse animation to rhythm tag
-                setTimeout(() => {
+                this.schedule(() => {
                     const rhythmTag = document.querySelector('.rhythm-tag');
                     if (rhythmTag) {
                         rhythmTag.classList.add('pulse');
-                        setTimeout(() => rhythmTag.classList.remove('pulse'), 600);
+                        this.schedule(() => rhythmTag.classList.remove('pulse'), 600);
                     }
                 }, 50);
 
@@ -3958,6 +4022,7 @@
                 modal.appendChild(rhythmContainer);
                 modal.appendChild(closeBtn);
                 overlay.appendChild(modal);
+                overlay.classList.add('game-overlay');
                 document.body.appendChild(overlay);
 
                 // Close on overlay click
@@ -3968,13 +4033,32 @@
                 };
             }
 
-            // Cycle through note options and game modes: Fun Levels → My Own Notes → Pitch Training → 2 Player
+            // Cycle through note options and game modes: Adventure → My Own Notes → Pitch Training → 2 Player
             cycleNoteAndGameModes() {
                 // Check current state and cycle through modes
                 const isUsingCustomNotes = document.querySelector('input[name="scaleType"][value="custom"]')?.checked;
 
-                if (!this.pitchTrainingMode && !this.callResponseMode && !isUsingCustomNotes) {
-                    // Currently Fun Levels → go to My Own Notes (if we have meaningful custom notes set)
+                if (this.gameMode === 'adventure') {
+                    // Adventure replaces the old progressive mode.
+                    const hasCustom = this.customNotes.length &&
+                        !(this.customNotes.length === 3 && ['C','E','G'].every(n => this.customNotes.includes(n)));
+                    if (hasCustom) {
+                        this.gameMode = 'normal';
+                        this.usingCustomScale = true;
+                        this.customNoteSelectionMode = false;
+                        document.querySelector('input[name="scaleType"][value="custom"]').checked = true;
+                        this.showNoteAndGameModeChangeMessage('🎨 My Own Notes');
+                    } else {
+                        this.gameMode = 'pitch-training';
+                        this.pitchTrainingMode = true;
+                        this.callResponseMode = false;
+                        this.usingCustomScale = false;
+                        document.querySelector('input[name="scaleType"][value="progressive"]').checked = true;
+                        this.showNoteAndGameModeChangeMessage('🎯 Pitch Training');
+                    }
+                    this.updateNoteDisplay();
+                } else if (!this.pitchTrainingMode && !this.callResponseMode && !isUsingCustomNotes) {
+                    // Currently Adventure → go to My Own Notes (if we have meaningful custom notes set)
                     const hasCustomNotes = this.customNotes && this.customNotes.length > 0;
                     const isDefaultCEG = hasCustomNotes && this.customNotes.length === 3 &&
                         this.customNotes.includes('C') && this.customNotes.includes('E') && this.customNotes.includes('G');
@@ -4018,7 +4102,7 @@
                         this.updateNoteDisplay();
 
                         // Show pitch training message after a brief delay
-                        setTimeout(() => {
+                        this.schedule(() => {
                             this.showNoteAndGameModeChangeMessage('🎯 Pitch Training');
                         }, 1500);
                     }
@@ -4048,10 +4132,10 @@
                     // Just show the mode change message, don't prompt for name yet
                     this.showNoteAndGameModeChangeMessage('👥 2 Player');
                 } else if (this.callResponseMode) {
-                    // 2 Player → Fun Levels
+                    // 2 Player → Adventure
                     this.pitchTrainingMode = false;
                     this.callResponseMode = false;
-                    this.gameMode = 'normal';
+                    this.gameMode = 'adventure';
 
                     // Make sure we're back to progressive scale (not custom)
                     document.querySelector('input[name="scaleType"][value="progressive"]').checked = true;
@@ -4064,7 +4148,7 @@
                     const customContainer = document.getElementById('customScaleContainer');
                     customContainer.style.display = 'none';
                     this.updateNoteDisplay();
-                    this.showNoteAndGameModeChangeMessage('😎 Fun Levels');
+                    this.showNoteAndGameModeChangeMessage('Adventure');
                 }
 
                 // Reset pitch training count and update everything
@@ -4095,7 +4179,7 @@
                 message.textContent = `Mode: ${mode}`;
                 document.body.appendChild(message);
 
-                setTimeout(() => {
+                this.schedule(() => {
                     if (document.body.contains(message)) {
                         message.remove();
                     }
@@ -4124,7 +4208,7 @@
                 message.textContent = 'Change Custom Notes in Options';
                 document.body.appendChild(message);
 
-                setTimeout(() => {
+                this.schedule(() => {
                     if (document.body.contains(message)) {
                         message.remove();
                     }
@@ -4222,7 +4306,7 @@
                 message.innerHTML = `🎵 Rhythms: <span style="font-size: 2.5rem; color: #000000;">${symbols}</span> 🎵`;
                 document.body.appendChild(message);
 
-                setTimeout(() => {
+                this.schedule(() => {
                     if (document.body.contains(message)) {
                         message.remove();
                     }
@@ -4254,7 +4338,7 @@
                 message.innerHTML = `🔄 Reset to <span style="font-size: 2.5rem; color: #000000;">♩</span> Quarter Notes 🔄`;
                 document.body.appendChild(message);
 
-                setTimeout(() => {
+                this.schedule(() => {
                     if (document.body.contains(message)) {
                         message.remove();
                     }
@@ -4263,7 +4347,7 @@
 
             // Show note option change feedback
             showNoteOptionChangeMessage(option) {
-                const optionText = option === 'progression' ? '😎 Fun Levels' : '🎨 My Own Notes';
+                const optionText = option === 'progression' ? 'Adventure' : '🎨 My Own Notes';
 
                 const message = document.createElement('div');
                 message.style.cssText = `
@@ -4284,7 +4368,7 @@
                 message.textContent = `Notes: ${optionText}`;
                 document.body.appendChild(message);
 
-                setTimeout(() => {
+                this.schedule(() => {
                     if (document.body.contains(message)) {
                         message.remove();
                     }
@@ -4314,7 +4398,7 @@
                 message.textContent = statusText;
                 document.body.appendChild(message);
 
-                setTimeout(() => {
+                this.schedule(() => {
                     if (document.body.contains(message)) {
                         message.remove();
                     }
@@ -4343,7 +4427,7 @@
                 message.textContent = `${mode}: ${notesType}`;
                 document.body.appendChild(message);
 
-                setTimeout(() => {
+                this.schedule(() => {
                     if (document.body.contains(message)) {
                         message.remove();
                     }
@@ -4362,13 +4446,15 @@
 
                 // Get note mode and game mode combined
                 let noteAndGameMode;
-                if (this.pitchTrainingMode) {
+                if (this.gameMode === 'adventure') {
+                    noteAndGameMode = 'Adventure';
+                } else if (this.pitchTrainingMode) {
                     noteAndGameMode = '🎯 Pitch Training';
                 } else if (this.callResponseMode) {
                     noteAndGameMode = '👥 2 Player';
                 } else {
                     const funLevels = document.querySelector('input[name="scaleType"][value="progressive"]').checked;
-                    noteAndGameMode = funLevels ? '😎 Fun Levels' : '🎨 Own Notes';
+                    noteAndGameMode = funLevels ? 'Adventure' : '🎨 Own Notes';
                 }
 
                 // Get other options
@@ -4376,11 +4462,12 @@
 
                 // Get game mode
                 const gameModeNames = {
-                    'normal': '🎮 Normal',
+                    'adventure': 'Adventure',
+                    'normal': '🎨 My Own Notes',
                     'pitch-training': '🎯 Pitch Training',
                     'call-response': '👥 Call & Response'
                 };
-                const gameMode = gameModeNames[this.gameMode] || '� Normal';
+                const gameMode = gameModeNames[this.gameMode] || 'Adventure';
 
                 // Update indicator
                 indicator.innerHTML = `
@@ -4398,7 +4485,7 @@
 
                     // Style based on current mode
                     if (!this.pitchTrainingMode && !this.callResponseMode && !this.usingCustomScale) {
-                        // Fun Levels mode - grey out
+                        // Adventure mode - grey out
                         checkboxContainer.style.opacity = '0.5';
                         checkboxContainer.style.cursor = 'not-allowed';
                         globalCheckbox.disabled = true;
@@ -4462,7 +4549,7 @@
                 this.updateNoteDisplay();
 
                 // Start playing the sequence
-                setTimeout(() => {
+                this.schedule(() => {
                     // Play start round sound only if Sound FX is enabled
                     const soundFxEnabled = document.getElementById('muteCheeringSound').checked;
                     if (soundFxEnabled) {
@@ -4506,13 +4593,17 @@
                 }
 
                 if (this.callResponseMode) {
-                    // Show current player with their role in Call & Response mode
-                    if (this.isPlayer1Turn) {
-                        document.getElementById('round').textContent = 'Player 1 - Call';
-                    } else {
-                        document.getElementById('round').textContent = 'Player 2 - Response';
-                    }
+                    document.getElementById('stageLabel').textContent = 'Round';
+                    document.getElementById('currentLevel').textContent = this.callResponseRound;
+                    document.getElementById('round').textContent = this.isPlayer1Turn ? 'Call' : 'Reply';
+                } else if (this.gameMode === 'adventure') {
+                    document.getElementById('stageLabel').textContent = 'Round';
+                    document.getElementById('currentLevel').textContent = this.currentRound;
+                    const target = this.adventureTargetSequence?.length || this.getAdventureTargetLength();
+                    document.getElementById('round').textContent = `Chain ${this.gameSequence.length}/${target}`;
                 } else {
+                    document.getElementById('stageLabel').textContent = 'Level';
+                    document.getElementById('currentLevel').textContent = this.currentLevel;
                     document.getElementById('round').textContent = this.currentRound;
                 }
 
@@ -4527,17 +4618,14 @@
             }
 
             // Level completion celebration with sound and visual effects
-            showLevelCelebration(newLevel) {
-                // Calculate score multipliers
-                const rhythmMultiplier = this.enabledRhythms.length; // 1-4x based on number of rhythms
+            showLevelCelebration(newLevel, completedLevel = newLevel) {
+                // Calculate score multipliers from the level just completed.
+                const rhythmMultiplier = this.getRhythmDifficulty(); // Actual rhythmic complexity and variety
 
-                const availableNotes = this.getAvailableNotesForLevel(this.currentLevel);
+                const availableNotes = this.getAvailableNotesForLevel(completedLevel);
                 const noteMultiplier = Math.max(1, availableNotes.length - 2); // 3 notes = x1, 4 notes = x2, etc.
 
-                let pitchTrainingMultiplier = 1;
-                if (this.pitchTrainingMode) {
-                    pitchTrainingMultiplier = this.gameSequence.length; // x number of notes in sequence
-                }
+                const pitchTrainingMultiplier = this.pitchTrainingMode ? 3 : 1;
 
                 // Calculate level scores
                 const baseScore = 100; // 100 points for completing level
@@ -4550,7 +4638,7 @@
 
                 // Apply all multipliers
                 const totalMultiplier = rhythmMultiplier * noteMultiplier * pitchTrainingMultiplier;
-                this.levelScore = (baseLevelScore + rhythmBonus) * totalMultiplier;
+                this.levelScore = Math.round((baseLevelScore + rhythmBonus) * totalMultiplier);
                 this.totalScore += this.levelScore; // Add ENTIRE level score to total at end of level
 
                 // Play kids cheering sound only if Sound FX is enabled
@@ -4610,7 +4698,7 @@
                     { text: `${this.gameSequence.length} Notes: +${noteBonus}`, delay: 600 },
                     rhythmBonus > 0 ? { text: `Rhythm Accuracy Bonus: +${rhythmBonus}`, delay: 1000 } : null,
                     { text: `Base Score: ${baseScoreBeforeMultiplier}`, delay: rhythmBonus > 0 ? 1200 : 1000 },
-                    { text: `${this.enabledRhythms.length} Rhythms: x${rhythmMultiplier}`, delay: rhythmBonus > 0 ? 1400 : 1200, isMultiplier: true },
+                    { text: `Rhythm difficulty: x${rhythmMultiplier.toFixed(2)}`, delay: rhythmBonus > 0 ? 1400 : 1200, isMultiplier: true },
                     { text: `${availableNotes.length} Notes: x${noteMultiplier}`, delay: rhythmBonus > 0 ? 1600 : 1400, isMultiplier: true },
                     this.pitchTrainingMode ? { text: `Pitch Training: x${pitchTrainingMultiplier}`, delay: rhythmBonus > 0 ? 1800 : 1600, isMultiplier: true } : null,
                     { text: `Final Multiplier: x${totalMultiplier}`, delay: rhythmBonus > 0 ? 2000 : 1800, isMultiplier: true, isFinalMultiplier: true },
@@ -4638,53 +4726,24 @@
                 });
 
                 // Add rainbow color cycling animation and score reveal animation
-                const style = document.createElement('style');
-                style.textContent = `
-                    @keyframes colorCycle {
-                        0% { color: #ff0000; }
-                        16.67% { color: #ff8000; }
-                        33.33% { color: #ffff00; }
-                        50% { color: #00ff00; }
-                        66.67% { color: #0080ff; }
-                        83.33% { color: #8000ff; }
-                        100% { color: #ff0080; }
-                    }
-                    @keyframes gradientShift {
-                        0% { background-position: 0% 50%; }
-                        50% { background-position: 100% 50%; }
-                        100% { background-position: 0% 50%; }
-                    }
-                    @keyframes scoreReveal {
-                        to {
-                            opacity: 1;
-                            transform: translateY(0);
-                        }
-                    }
-                    @keyframes bonusPulse {
-                        0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
-                        50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
-                        100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-                    }
-                    @keyframes slideInRight {
-                        0% { transform: translateX(100%); opacity: 0; }
-                        100% { transform: translateX(0); opacity: 1; }
-                    }
-                `;
-                document.head.appendChild(style);
+
 
                 overlay.appendChild(celebrationText);
                 overlay.appendChild(scoreContainer);
+                overlay.classList.add('game-overlay');
                 document.body.appendChild(overlay);
 
                 // Remove celebration after 3.5 seconds and continue game
-                setTimeout(() => {
+                this.schedule(() => {
                     document.body.removeChild(overlay);
-                    document.head.removeChild(style);
+                    
 
                     // Reset level scoring for next level
                     this.levelScore = 0;
                     this.perfectTimingCount = 0;
-                    this.totalTimingAttempts = 0;
+                    this.levelTimingAttempts = 0;
+                    this.levelRhythmAccuracySum = 0;
+                    this.pitchTrainingListenCount = 0;
                     this.currentLevelRhythmBonus = 0; // Reset rhythm bonus for new level
                     this.listenAgainUsed = false; // Reset Listen Again for new level
 
@@ -4695,7 +4754,7 @@
                     this.updateDisplay();
 
                     // Start the new level's sequence after a brief pause
-                    setTimeout(() => {
+                    this.schedule(() => {
                         // Play start round sound only if Sound FX is enabled
                         const soundFxEnabled = document.getElementById('muteCheeringSound').checked;
                         if (soundFxEnabled) {
@@ -4746,10 +4805,11 @@
                 `;
 
                 overlay.appendChild(modalText);
+                overlay.classList.add('game-overlay');
                 document.body.appendChild(overlay);
 
                 // Remove modal after 1.5 seconds and replay sequence
-                setTimeout(() => {
+                this.schedule(() => {
                     document.body.removeChild(overlay);
 
                     // Reset player input position but keep same sequence
@@ -4758,7 +4818,7 @@
                     this.gameState = 'playing';
 
                     // Replay the same sequence after brief pause
-                    setTimeout(() => {
+                    this.schedule(() => {
                         if (this.pitchTrainingMode) {
                             this.playSequenceWithPitchTraining();
                         } else {
@@ -4824,15 +4884,12 @@
 
             // Clear all timeouts
             clearAllTimeouts() {
-                if (this.sequenceTimeout) {
-                    clearTimeout(this.sequenceTimeout);
-                    this.sequenceTimeout = null;
-                }
-                if (this.playerTimeout) {
-                    clearTimeout(this.playerTimeout);
-                    this.playerTimeout = null;
-                }
+                for (const id of this.pendingTimers) window.clearTimeout(id);
+                this.pendingTimers.clear();
+                if (this.sequenceTimeout) { clearTimeout(this.sequenceTimeout); this.sequenceTimeout = null; }
+                if (this.playerTimeout) { clearTimeout(this.playerTimeout); this.playerTimeout = null; }
             }
+
 
             // Clear all light effects
             clearAllLights() {

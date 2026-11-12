@@ -7,7 +7,7 @@
     <title>Copy-Cat</title>
     <style>
 /* Copy-Cat 2026. Single authoritative responsive layout. */
-:root { color-scheme:dark; --bg:#0c1333; --panel:#161f42; --line:#35456d; --ink:#f5f7ff; --muted:#bdc8e4; --hot:#f7cf73; --keyheight:clamp(192px, 34vw, 320px); }
+:root { color-scheme:dark; --bg:#0c1333; --panel:#161f42; --line:#35456d; --ink:#f5f7ff; --muted:#bdc8e4; --hot:#f7cf73; --keyheight:clamp(120px, 24dvh, 260px); }
 *,*::before,*::after { box-sizing:border-box; }
 html { -webkit-text-size-adjust:100%; }
 body { margin:0; min-height:100vh; min-height:100dvh; background:radial-gradient(ellipse at 50% -20%,#303a78 0%,#141d46 44%,#090e29 100%); color:var(--ink); font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif; }
@@ -15,14 +15,11 @@ button,input,select { font:inherit; }
 button { -webkit-tap-highlight-color:transparent; }
 button:focus-visible,select:focus-visible,input:focus-visible,.option-tag:focus-visible { outline:3px solid #ffcf70; outline-offset:3px; }
 [hidden] { display:none!important; }
-.game-container { width:min(100%,1040px); margin:0 auto; padding:clamp(12px,2.8vw,28px) clamp(12px,2vw,22px) 38px; display:flex; flex-direction:column; gap:clamp(14px,2vw,24px); }
-.game-header { text-align:center; position:relative; height:auto; display:grid; grid-template-rows:auto 34px auto; grid-template-areas:"brand" "player" "controls"; justify-items:center; align-items:center; gap:8px; flex-shrink:0; }
-.brand { grid-area:brand; height:92px; width:100%; display:flex; align-items:center; justify-content:center; }
+.game-container { width:100%; min-height:100dvh; margin:0 auto; padding:10px 14px 14px; display:flex; flex-direction:column; gap:10px; }
+.brand { grid-area:brand; height:62px; width:100%; display:flex; align-items:center; justify-content:center; }
 .brand img { display:block; max-width:100%; max-height:90px; width:auto; object-fit:contain; filter:drop-shadow(0 7px 20px #0007); }
-.brand h1 { margin:0; letter-spacing:.10em; font-size:clamp(2.3rem,6vw,4.8rem); font-weight:900; color:#f5f7ff; text-shadow:0 4px 0 #293063,0 10px 24px #0008; }
+.brand h1 { margin:0; letter-spacing:.10em; font-size:clamp(1.8rem,4vw,3.2rem); font-weight:900; color:#f5f7ff; text-shadow:0 4px 0 #293063,0 10px 24px #0008; }
 .brand h1 span { color:#ffca62; }
-#playerNameDisplay { grid-area:player; width:fit-content; margin:0 auto!important; height:32px; max-width:100%; font-size:1rem!important; color:#c6d5ff!important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-#preGameUI,#inGameUI { grid-area:controls; width:100%; height:auto; min-height:0; flex-shrink:0; }
 .controls { display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap; padding:2px 0; min-height:49px; }
 .btn { cursor:pointer; border:1px solid #687cb0; background:#243665; color:white; border-radius:12px; padding:11px 17px; font-size:.95rem; font-weight:700; line-height:1.2; min-height:45px; transition:background-color .13s ease,border-color .13s ease; white-space:nowrap; }
 .btn:hover:not(:disabled) { background:#364e89; border-color:#bacbf4; }
@@ -36,17 +33,14 @@ button:focus-visible,select:focus-visible,input:focus-visible,.option-tag:focus-
 .game-info { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; padding:0 0 8px; }
 .game-info .score { flex:0 1 auto; min-width:114px; background:#111a39; color:#bfcce8; border:1px solid #3b4e77; border-radius:11px; padding:9px 12px; font-size:clamp(.82rem,2vw,1rem); }
 .game-info .score span { color:#fff; font-weight:800; }
-.options-indicator { display:flex; justify-content:center; flex-wrap:wrap; align-items:center; gap:8px; min-height:42px; padding:6px 0; }
-.option-tag { user-select:none; background:#1c2954; color:#dce8ff; border:1px solid #42547e; font-size:.82rem; font-weight:600; padding:8px 11px; border-radius:11px; cursor:pointer; }
-.option-tag:hover { background:#263968; }
-.option-tag.pulse { animation:rhythmPulse .6s ease-in-out; }
 #preGameUI > div[style*="text-align: center"] { margin:5px 0!important; }
 #myOwnNotesCheckboxContainer { border:1px solid #5a77a3!important; color:var(--ink)!important; background:#202d56!important; font-size:.87rem!important; }
 #myOwnNotesCheckboxContainer input { accent-color:#e8a84b; }
-.rhythm-controls,.scale-controls { display:none; }
-.game-board { display:flex!important; flex-direction:column; align-items:center; gap:12px; width:100%; margin:0; padding:clamp(12px,2vw,24px); background:#111a37; border:1px solid #3a4a75; box-shadow:0 12px 45px #0003; border-radius:20px; }
-.keyboard-heading,.keyboard-legend { width:100%; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center; }
-.keyboard-heading { font-weight:750; letter-spacing:.1em; font-size:.84rem; color:#e1e9ff; }
+.scale-controls { display:none; }
+.rhythm-controls { padding:12px 0; }
+.game-board { display:flex!important; flex-direction:column; align-items:center; gap:6px; width:100%; margin:auto auto 0; padding:8px 10px 14px; background:#111a37; border:1px solid #3a4a75; box-shadow:0 12px 45px #0003; border-radius:20px; }
+.keyboard-heading { width:100%; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center; }
+.keyboard-heading { width:auto; flex-wrap:nowrap; font-weight:750; letter-spacing:.1em; font-size:.84rem; color:#e1e9ff; }
 #keyboardHint { font-size:.81rem; letter-spacing:0; font-weight:500; color:#aebfe0; text-align:right; }
 .keyboard-tools { display:flex; align-items:center; gap:12px; }
 .audio-settings-btn { display:grid; place-items:center; width:36px; height:36px; flex:none; padding:0; border:1px solid #5e719d; background:#1c2954; color:#e8f0ff; border-radius:10px; font-size:1.48rem; line-height:1; cursor:pointer; }
@@ -55,7 +49,8 @@ button:focus-visible,select:focus-visible,input:focus-visible,.option-tag:focus-
 .piano-key { appearance:none; -webkit-appearance:none; padding:0; margin:0; position:absolute; top:0; border-radius:0 0 7px 7px; display:flex; justify-content:center; align-items:flex-end; overflow:hidden; cursor:pointer; touch-action:none; transition:none; transform:none!important; font-weight:700; }
 .piano-key.white { width:12.5%; height:100%; z-index:1; background:linear-gradient(180deg,#e9eaf1 0%,#fdfdff 58%,#d7d8df 100%); color:#27304b; border:1px solid #8c91a5; box-shadow:inset 0 -6px 6px #686e7930; }
 .piano-key.black { width:7.7%; height:64%; z-index:3; background:linear-gradient(100deg,#1e2442,#060914 60%,#30394f); color:#f3f6ff; border:1px solid #02030a; border-radius:0 0 6px 6px; box-shadow:2px 5px 6px #0009,inset 0 -3px 2px #5a6172; }
-.light-number { display:block; padding-bottom:clamp(10px,2vw,21px); font-size:clamp(.61rem,1.35vw,.96rem); pointer-events:none; white-space:nowrap; }
+.fade-note-hint {position:absolute;inset:0;background:var(--note-glow,#f2ae41);opacity:.8;pointer-events:none;border-radius:inherit}
+.light-number { position:relative;z-index:1;display:block; padding-bottom:clamp(10px,2vw,21px); font-size:clamp(.61rem,1.35vw,.96rem); pointer-events:none; white-space:nowrap; }
 .black .light-number { padding-bottom:clamp(8px,2vw,15px); font-size:clamp(.54rem,1.1vw,.79rem); }
 .piano-key.out-of-scale:not(.playing):not(.active):not(.selected) { filter:grayscale(1) brightness(.62); cursor:pointer; }
 .piano-key.black.out-of-scale:not(.playing):not(.active):not(.selected) { filter:grayscale(1) brightness(.75); }
@@ -63,11 +58,39 @@ button:focus-visible,select:focus-visible,input:focus-visible,.option-tag:focus-
 .piano-key.white.playing,.piano-key.white.active,.piano-key.black.playing,.piano-key.black.active { background:var(--note-glow,#f2ae41)!important; color:#0c1230; border-color:#fff9!important; box-shadow:inset 0 0 27px #ffffff88; filter:none!important; }
 .piano-key.white.playing,.piano-key.white.active { z-index:1; }
 .piano-key.black.playing,.piano-key.black.active { z-index:3; }
-.keyboard-legend { justify-content:center; gap:14px; font-size:.76rem; color:#a9b9dc; padding-top:5px; }
-.keyboard-legend span { display:flex; align-items:center; gap:5px; }
-.legend-dot { display:inline-block; width:9px; height:9px; border-radius:3px; background:#fafbff; }
-.legend-dot.unavailable { background:#787c8e; }
-.legend-dot.lit { background:linear-gradient(90deg,#f6534b,#ffd053,#41d996,#547cf5,#9869df); }
+
+
+
+
+
+
+.game-header {text-align:center;display:grid;grid-template-areas:"brand" "voices" "controls";justify-items:center;gap:6px;flex:none;min-height:190px}
+#preGameUI,#inGameUI {grid-area:controls;width:100%;min-height:66px}
+#inGameUI .controls,#inGameUI .game-info {display:inline-flex;vertical-align:middle;padding:0;min-height:45px}
+.top-toolbar {position:relative;padding-right:62px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:100%;flex:none}
+.top-toolbar > * {flex:1 0 auto}
+.top-toolbar #audioSettingsBtn {position:absolute;right:0;top:0;width:52px;height:52px}
+.top-toolbar .kbd-pill,.top-toolbar .keyboard-lights {min-height:48px;font-size:.95rem;padding:10px 15px;border-radius:16px;box-shadow:0 3px 0 #050b2455}
+.top-toolbar .keyboard-heading {gap:10px;justify-content:space-evenly}
+.keyboard-voices {grid-area:voices}
+.keyboard-voice {border:2px solid transparent;border-radius:12px;padding:4px;transition:background-color .12s}
+.keyboard-voice.is-turn {border-color:var(--hot);background:#f7cf7320;color:#fff}
+.versus {color:var(--hot);font-weight:900}
+.settings-group {border:1px solid var(--line);border-radius:12px;padding:12px}
+.settings-group summary {cursor:pointer;font-weight:750;min-height:28px}
+.settings-player {display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.setup-dialog {width:min(620px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;border:1px solid #7084b1;border-radius:18px;padding:24px;background:#121e42;color:var(--ink)}
+.setup-dialog::backdrop {background:#03081dcc}
+.setup-dialog h2 {margin:6px 0 12px;font-size:1.5rem}
+.setup-dialog p {line-height:1.5;color:var(--muted)}
+.setup-dialog a {color:#9cd9ff}
+.setup-dialog input[type=text] {width:100%;padding:12px;border-radius:9px;background:#1d2b56;color:white;border:1px solid #6179a7}
+.setup-mount {display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin:14px 0}
+.setup-mount .gm-bank-tools {width:100%}
+.setup-actions {display:flex;justify-content:space-between;gap:8px;margin-top:18px}
+.setup-dialog #setupStatus {min-height:3em}
+@media(max-width:650px){.game-header{min-height:170px}.top-toolbar{gap:8px}.top-toolbar .kbd-pill{font-size:.84rem;padding:10px}.keyboard-voices{width:100%}.game-container{min-height:100dvh}.game-board{padding:6px 6px 12px}}
+
 /* Floating settings do not resize or move the keyboard when opened. */
 .midi-panel { position:fixed; top:clamp(12px,15vh,170px); right:max(12px,calc((100vw - 1040px) / 2 + 16px)); z-index:60; width:min(600px,calc(100vw - 24px)); max-height:calc(100dvh - 32px); overflow-y:auto; padding:15px clamp(12px,2vw,20px); border:1px solid #7087b3; background:#131d40; border-radius:16px; box-shadow:0 18px 60px #000c; }
 .midi-panel-header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
@@ -116,23 +139,19 @@ button:focus-visible,select:focus-visible,input:focus-visible,.option-tag:focus-
 @keyframes slideInRight {from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
 @keyframes pulse { from {transform:scale(1)}to{transform:scale(1.04)} }
 @media (max-width:650px) {
- :root { --keyheight:clamp(175px,47vw,260px); }
  .game-container { padding:12px 9px 22px; gap:12px; }
- .game-header { height:332px; grid-template-rows:80px 34px 202px; }
  .brand {height:80px}
  .brand img {max-height:78px}
- #preGameUI,#inGameUI {height:202px}
  .controls {gap:7px}
  .btn {padding:10px 11px;font-size:.83rem;min-height:43px}
  .game-info {gap:5px}
  .game-info .score {min-width:96px;padding:8px 6px;font-size:.78rem}
- .option-tag {font-size:.73rem;padding:7px}
  .game-board {padding:11px 8px 17px;border-radius:12px}
  .keyboard-heading {font-size:.7rem}
  .keyboard-tools {gap:7px}
  .audio-settings-btn {width:34px;height:34px}
  #keyboardHint {font-size:.72rem}
- .keyboard-legend {font-size:.65rem;gap:8px}
+
  .light-number {font-size:.65rem}
  .black .light-number {font-size:.54rem;writing-mode:vertical-rl;transform:rotate(180deg);padding:0 0 7px}
  .midi-panel {padding:12px 10px}
@@ -141,23 +160,21 @@ button:focus-visible,select:focus-visible,input:focus-visible,.option-tag:focus-
  .game-overlay > div {padding:min(6vw,22px)!important;width:92vw!important}
 }
 @media (max-width:380px) {
- .game-header {height:341px;grid-template-rows:80px 34px 211px}
- #preGameUI,#inGameUI {height:211px}
  .midi-field {flex-basis:100%;}
 }
-@media (orientation:landscape) and (max-height:550px) { :root {--keyheight:185px;} .game-container{max-width:900px;} .game-header{height:280px;grid-template-rows:56px 34px 174px;} .brand{height:56px} .brand img{max-height:54px} #preGameUI,#inGameUI{height:174px} }
 @media (prefers-reduced-motion:reduce) {*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;} }
 
 
 /* MIDI lesson modes – dynamic 1–8 octave keyboard and lesson controls */
 .midi-mode-option{display:inline-flex;align-items:center;gap:7px;background:#fffc;border-radius:10px;padding:11px 14px;cursor:pointer;color:#263357;font-weight:750}
 .keyboard-scroll{width:100%;min-width:0;overflow-x:hidden;overflow-y:hidden;border-radius:8px}
-.lesson-octave-nav{display:none;align-items:center;gap:7px;width:100%;justify-content:space-between;color:#b9c9e4;font-size:.73rem}
+.lesson-octave-nav{display:flex;align-items:center;gap:7px;width:100%;justify-content:space-between;color:#b9c9e4;font-size:.73rem}
 .lesson-octave-nav .btn{font-size:.74rem;min-height:34px;padding:5px 12px}
 #pianoKeyboard:not(.lesson-keys) .extra-octave{display:none!important}
 #pianoKeyboard.lesson-keys .piano-key{min-width:0}
 .lesson-mode .keyboard-scroll{overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;touch-action:pan-x;scrollbar-width:thin;scrollbar-color:#6680aa #111a37}
-.lesson-mode .lesson-octave-nav{display:flex}
+.lesson-mode #keyboardHint{display:none}
+body:not(.lesson-mode) #lessonOctaveLabel,body:not(.lesson-mode) #lessonOctaveLow,body:not(.lesson-mode) #lessonOctaveHigh{display:none}
 .lesson-mode .notes-container{touch-action:pan-x}
 #lessonOctaveLabel{min-height:1.3em; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#b9c9e4; text-align:center; flex:1;}
 #lessonOctaveLabel.lesson-octave-celebrate{color:#dfe8ff; text-shadow:0 0 12px #9dc8ff66;}
@@ -200,7 +217,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,.option-tag:focus-
 .lesson-mode .rhythm-tag{display:none}
 .lesson-mode .keyboard-legend{display:none}
 
-.game-header .options-indicator,#preGameUI > div[style*="text-align: center"]{display:none!important}
+
 .keyboard-mode-bar{width:100%;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;padding-top:2px}
 .kbd-pill{appearance:none;-webkit-appearance:none;border:1px solid #5f74a4;background:#1d2b56;color:#eef4ff;border-radius:12px;padding:8px 12px;min-height:38px;font-weight:750;font-size:.84rem;cursor:pointer;line-height:1.15;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .kbd-pill:hover:not(:disabled){background:#314a82}
@@ -215,7 +232,6 @@ button:focus-visible,select:focus-visible,input:focus-visible,.option-tag:focus-
 .keyboard-voice:last-child{justify-content:flex-start}
 .keyboard-voice select{width:min(100%,185px);min-width:0;min-height:38px;border:1px solid #5f74a4;background:#1d2b56;color:#edf4ff;border-radius:10px;padding:7px 8px;font-size:.79rem;cursor:pointer;text-overflow:ellipsis}
 .keyboard-voice select:focus-visible{outline:3px solid #ffcf70;outline-offset:2px}
-.keyboard-voices #keyboardModeBtn{flex:0 0 auto}
 
 .rhythm-card-deck{width:100%;display:grid;grid-template-columns:minmax(94px,128px) minmax(0,1fr) minmax(94px,128px);align-items:stretch;gap:12px}
 .rhythm-card-stack{display:flex;flex-direction:column;gap:8px;justify-content:stretch;height:var(--keyheight);align-self:stretch}
@@ -238,19 +254,19 @@ button:focus-visible,select:focus-visible,input:focus-visible,.option-tag:focus-
 @keyframes copycatCardOut{from{opacity:1;transform:translate(-50%,-50%) scale(1)}to{opacity:0;transform:translate(-50%,-50%) scale(.92)}}
 @media(prefers-reduced-motion:reduce){.rhythm-card-preview:not(.is-leaving){animation:none!important;opacity:1!important;transform:translate(-50%,-50%) scale(1)!important}.rhythm-card-preview.is-leaving{animation:none!important;opacity:0!important}}
 .keyboard-lights{display:inline-flex;align-items:center;gap:7px;flex:0 0 auto;min-height:38px;padding:3px 8px;border:1px solid #667dac;border-radius:10px;background:#1a2e58;color:#f7dd8d;font-weight:750;font-size:.78rem}
-.keyboard-lights select{background:#18264b;color:#f6f7ff;border:0;max-width:140px;min-width:0;font-size:.77rem;font-weight:800;padding:4px 2px;cursor:pointer}
-@media(max-width:650px){.keyboard-lights{font-size:.68rem;min-height:33px;padding:3px 5px;gap:3px}.keyboard-lights select{font-size:.68rem;max-width:122px}}
+.keyboard-lights select{background:#18264b;color:#f6f7ff;border:0;max-width:140px;min-width:0;font-size:.92rem;font-weight:800;padding:4px 2px;cursor:pointer}
+@media(max-width:650px){.keyboard-lights{font-size:.84rem;min-height:44px;padding:6px 8px;gap:6px}.keyboard-lights select{font-size:.84rem;max-width:140px}}
 .rhythm-card .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
 @media(max-width:900px){.rhythm-card-deck{grid-template-columns:minmax(70px,108px) minmax(0,1fr) minmax(70px,108px);gap:8px}}
 @media(max-width:650px){.rhythm-card-deck{grid-template-columns:minmax(48px,64px) minmax(0,1fr) minmax(48px,64px);gap:6px}.rhythm-card-stack{gap:5px}.rhythm-card{border-radius:10px}}
 
-@media(max-width:650px){.keyboard-voices{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:5px}.keyboard-voice{flex-direction:column;gap:2px;font-size:.68rem;max-width:none}.keyboard-voice select{min-height:34px;width:100%;padding:5px 2px;font-size:.67rem}.keyboard-voices #keyboardModeBtn{font-size:.7rem;padding:7px 6px;min-width:0;white-space:normal;max-width:115px}.keyboard-voice:first-child,.keyboard-voice:last-child{justify-content:center}}
+@media(max-width:650px){.keyboard-voices{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:5px}.keyboard-voice{flex-direction:column;gap:2px;font-size:.68rem;max-width:none}.keyboard-voice select{min-height:34px;width:100%;padding:5px 2px;font-size:.67rem}.keyboard-voice:first-child,.keyboard-voice:last-child{justify-content:center}}
 .lesson-panel-open{overflow:hidden}
 .lesson-panel{position:fixed;left:50%;top:82px;transform:translateX(-50%);width:min(1200px,calc(100vw - 24px));max-height:calc(100dvh - 100px);overflow:auto;z-index:96;box-shadow:0 22px 60px #000c}
 .lesson-panel[hidden]{display:none!important}
 .lesson-header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-.lesson-header-actions .btn{min-height:40px}
+.lesson-header-actions .btn{min-height:48px;font-size:.95rem;padding:10px 15px;border-radius:16px;box-shadow:0 3px 0 #050b2455}
 .lesson-panel{width:100%;padding:18px;border:1px solid #455b87;border-radius:18px;background:#141e42;color:#f6f8ff;display:flex;flex-direction:column;gap:12px}
 .lesson-header,.lesson-details,.lesson-actions,.lesson-import{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .lesson-header{justify-content:space-between}
@@ -268,7 +284,6 @@ button:focus-visible,select:focus-visible,input:focus-visible,.option-tag:focus-
 .lesson-help{margin:0;line-height:1.55}
 .lesson-help code{white-space:normal;font-size:.78rem;background:#23345d;border-radius:3px;padding:2px}
 @media(max-width:650px){
- .game-header { grid-template-rows:auto 32px auto; }
  .keyboard-mode-bar{justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px;scrollbar-width:none}
  .keyboard-mode-bar::-webkit-scrollbar{display:none}
  .kbd-piece{max-width:72vw}
@@ -288,7 +303,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,.option-tag:focus-
 .keyboard-quick-choice:hover,.keyboard-quick-choice:focus-visible{background:#385488;outline:0}
 .keyboard-quick-choice[aria-selected="true"]{background:#375c72;color:#fff2bb}
 .keyboard-quick-choice:disabled{color:#aeb9d0;cursor:default}
-.keyboard-settings-shell{position:fixed;z-index:95;top:clamp(10px,9vh,90px);left:50%;transform:translateX(-50%);width:min(920px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;overscroll-behavior:contain;background:#121e42;color:#eef4ff;border:1px solid #7084b1;border-radius:18px;box-shadow:0 24px 70px #000c;padding:18px;display:flex;flex-direction:column;gap:18px}
+.keyboard-settings-shell{position:fixed;z-index:95;top:12px;left:50%;transform:translateX(-50%);width:min(920px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;overscroll-behavior:contain;background:#121e42;color:#eef4ff;border:1px solid #7084b1;border-radius:18px;box-shadow:0 24px 70px #000c;padding:18px;display:flex;flex-direction:column;gap:18px}
 .keyboard-settings-shell[hidden]{display:none!important}
 .keyboard-settings-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .keyboard-settings-head strong{font-size:1.08rem}
@@ -297,9 +312,6 @@ button:focus-visible,select:focus-visible,input:focus-visible,.option-tag:focus-
 .keyboard-settings-shell .lesson-panel{gap:12px}
 .keyboard-settings-shell .midi-panel[hidden],.keyboard-settings-shell .lesson-panel[hidden]{display:none!important}
 @media(max-width:650px){.keyboard-settings-shell{top:10px;padding:12px;gap:12px}.keyboard-settings-shell .midi-panel,.keyboard-settings-shell .lesson-panel{padding:10px}.keyboard-quick-menu{width:min(340px,calc(100vw - 16px));max-height:65dvh}}
-@media(max-height:820px) and (min-width:651px){:root{--keyheight:clamp(192px,32vh,270px)}.game-container{gap:12px;padding-top:12px}.game-board{gap:9px}.brand{height:75px}.brand img{max-height:74px}}
-@media(max-width:380px) and (max-height:800px){.game-header{height:280px;grid-template-rows:62px 30px 164px}.brand{height:60px}.brand img{max-height:60px}#preGameUI,#inGameUI{height:auto}.game-container{gap:9px;padding-top:8px}}
-@media(max-width:650px) and (max-height:720px){.game-header{height:230px;grid-template-rows:52px 26px 125px}.brand{height:50px}.brand img{max-height:50px}#preGameUI,#inGameUI{height:auto}.game-container{gap:8px;padding-top:8px}}
 
     /* Hidden level editor: created on demand by the private keyboard shortcut. */
 #cc-level-editor[hidden],#cc-level-test-stop[hidden]{display:none!important}
@@ -367,33 +379,25 @@ button:focus-visible,select:focus-visible,input:focus-visible,.option-tag:focus-
 
 <body>
     <div class="game-container">
+        <div class="top-toolbar" id="keyboardLessonBar"><button type="button" id="keyboardModeBtn" class="kbd-pill mode">SONG MODE</button><button type="button" id="keyboardPieceBtn" class="kbd-pill kbd-piece" aria-haspopup="listbox" aria-expanded="false">PIECE · Choose MIDI</button><button type="button" id="keyboardPracticeBtn" class="kbd-pill">CUMULATIVE</button><button type="button" id="keyboardShuffleBtn" class="kbd-pill">SHUFFLE OFF</button><button type="button" id="keyboardChunkBtn" class="kbd-pill" aria-haspopup="listbox" aria-expanded="false">CHUNK 1 BEAT</button><label class="keyboard-lights" for="keyboardLightMode">☼ Lights <select id="keyboardLightMode" aria-label="Keyboard hint lights"><option value="on">ON</option><option value="fade">FADE</option><option value="first">FIRST NOTE</option><option value="off">PERFECT PITCH</option></select></label><div class="keyboard-heading"><button type="button" id="keyboardRange" class="kbd-pill" aria-label="Key: C Major">C Major</button><div class="keyboard-tools"><select id="metronomeTempo" class="tempo-select" aria-label="Tempo marking" title="Select original MIDI tempo or an Italian tempo marking"><option value="original">Original MIDI</option></select><button type="button" id="quickMetronomeBtn" class="audio-settings-btn metro-quick" aria-label="Toggle metronome" aria-pressed="false" title="Metronome: off">♩</button></div></div><button type="button" id="audioSettingsBtn" class="audio-settings-btn" aria-label="Settings" aria-expanded="false" title="Settings">⚙</button></div>
         <header class="game-header">
             <div class="brand"><img src="Copycat logo.png" alt="Copy-Cat" onload="this.nextElementSibling.hidden=true" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><h1>COPY<span>CAT</span></h1></div>
 
-            <!-- Player name display -->
-            <div id="playerNameDisplay"
-                style="text-align: center; margin: 10px 0; font-size: 1.2rem; font-weight: bold; color: #6c5ce7; display: none; cursor: pointer; transition: all 0.2s; padding: 5px 10px; border-radius: 15px;"
-                onmouseover="this.style.backgroundColor='rgba(108, 92, 231, 0.1)'; this.style.transform='scale(1.05)'"
-                onmouseout="this.style.backgroundColor='transparent'; this.style.transform='scale(1)'"
-                title="Click to view your progress and statistics">
-                ⭐ <span id="currentPlayerName"></span>
-            </div>
+            
+            
 
+            <div class="keyboard-mode-bar keyboard-voices" id="keyboardModeBar"><label class="keyboard-voice"><span id="keyboardPlayerLabel">Player 1</span><select id="keyboardPlayerInstrument" aria-label="Player 1 General MIDI instrument"></select></label><span class="versus" aria-hidden="true">VS</span><label class="keyboard-voice"><span id="keyboardOtherVoiceLabel">Keytar Kitty</span><select id="keyboardCpuInstrument" aria-label="Keytar Kitty instrument"></select></label></div>
             <!-- PRE-GAME UI (shown when game is stopped) -->
             <div id="preGameUI">
                 <!-- Main controls for starting the game -->
                 <div class="controls">
                     <button id="startBtn" class="btn primary">🎮 Start Game</button>
-                    <button id="optionsBtn" class="btn special">⚙️ Options</button>
+                    
                     <button id="helpBtn" class="btn info">❓ Help</button>
                 </div>
 
                 <!-- Options indicator - pre-game -->
-                <div class="options-indicator" id="optionsIndicator">
-                    <div class="option-tag rhythm-tag">Rhythms: ♩</div>
-                    <div class="option-tag note-tag">Notes: Random</div>
-                    <div class="option-tag sound-tag">🔊 Sound FX</div>
-                </div>
+                
 
             </div>
 
@@ -407,10 +411,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,.option-tag:focus-
                 </div>
 
                 <!-- In-game options indicator - minimal -->
-                <div class="options-indicator in-game">
-                    <div class="option-tag rhythm-tag">Rhythms: ♩</div>
-                    <div class="option-tag sound-tag">🔊 Sound FX</div>
-                </div>
+                
 
                 <!-- In-game controls -->
                 <div class="controls">
@@ -419,24 +420,14 @@ button:focus-visible,select:focus-visible,input:focus-visible,.option-tag:focus-
                 </div>
             </div>
 
-            <!-- Hidden options (moved to modal) -->
-            <div class="rhythm-controls" style="display: none;">
-                <h4>🎵 Rhythm Options:</h4>
-                <div class="rhythm-toggles">
-                    <label><input type="checkbox" id="rhythmQuarter" checked> ♩ - ¹⁄₄ notes (🟣 PLUM) </label>
-                    <label><input type="checkbox" id="rhythmEighth"> ♫ - ¹⁄₈ notes (🍎APPLE) </label>
-                </div>
-                <div class="rhythm-toggles" style="margin-top: 10px;">
-                    <label><input type="checkbox" id="rhythmTriplet"> ³ - Triplets (🍍PINEAPPLE) </label>
-                    <label><input type="checkbox" id="rhythmSixteenth"> ♬ - ¹⁄₁₆ notes (🍉WATERMELON) </label>
-                </div>
-            </div>
+            <!-- Internal note-pool state; selected by double-tapping keys. -->
+            
             <div class="scale-controls" style="display: none;">
                 <h4>🎹 Note Options:</h4>
                 <div class="scale-options">
                     <label><input type="radio" name="scaleType" value="progressive" checked> Random notes</label>
                     <input type="radio" name="scaleType" value="custom" hidden aria-hidden="true" tabindex="-1">
-                    <label><input type="checkbox" id="muteCheeringSound" checked> 🔊 Sound FX</label>
+                    
                 </div>
                 <div class="game-mode-options" style="margin-top: 10px;">
                     <button class="game-mode-toggle" id="gameModeToggle">Random Mode</button>
@@ -461,12 +452,13 @@ button:focus-visible,select:focus-visible,input:focus-visible,.option-tag:focus-
             </div>
         </header>
 
+        
         <main class="game-board show" aria-label="Copy-Cat piano game">
-            <div class="keyboard-heading"><span id="keyboardRange">PIANO · C3–C4</span><div class="keyboard-tools"><span id="keyboardHint">Tap a key to hear it</span><select id="metronomeTempo" class="tempo-select" aria-label="Tempo marking" title="Select original MIDI tempo or an Italian tempo marking"><option value="original">Original MIDI</option></select><button type="button" id="quickMetronomeBtn" class="audio-settings-btn metro-quick" aria-label="Toggle metronome" aria-pressed="false" title="Metronome: off">♩</button><button type="button" id="audioSettingsBtn" class="audio-settings-btn" aria-label="Keyboard options" aria-expanded="false" title="Keyboard options">⚙</button></div></div>
-            <div class="keyboard-mode-bar keyboard-voices" id="keyboardModeBar"><label class="keyboard-voice"><span>Player 1</span><select id="keyboardPlayerInstrument" aria-label="Player 1 General MIDI instrument"></select></label><button type="button" id="keyboardModeBtn" class="kbd-pill mode">SONG MODE</button><label class="keyboard-voice"><span id="keyboardOtherVoiceLabel">Cat</span><select id="keyboardCpuInstrument" aria-label="Cat General MIDI instrument"></select></label></div>
-            <div class="keyboard-mode-bar" id="keyboardLessonBar"><label class="keyboard-lights" for="keyboardLightMode">☼ Lights <select id="keyboardLightMode" aria-label="Keyboard hint lights"><option value="on">ON</option><option value="first">FIRST NOTE</option><option value="off">PERFECT PITCH</option></select></label><button type="button" id="keyboardPieceBtn" class="kbd-pill kbd-piece" aria-haspopup="listbox" aria-expanded="false">PIECE · Choose MIDI</button><button type="button" id="keyboardPracticeBtn" class="kbd-pill">CUMULATIVE</button><button type="button" id="keyboardShuffleBtn" class="kbd-pill">SHUFFLE OFF</button><button type="button" id="keyboardChunkBtn" class="kbd-pill" aria-haspopup="listbox" aria-expanded="false">CHUNK 1 BEAT</button></div>
+            
+            
+            
             <div id="keyboardQuickMenu" class="keyboard-quick-menu" role="listbox" aria-label="Keyboard selection" hidden></div>
-            <div class="lesson-octave-nav" id="lessonOctaveNav"><button type="button" id="lessonOctaveLow" class="btn" aria-label="Sound one octave lower">− Octave</button><span id="lessonOctaveLabel">Swipe to reach other octaves</span><button type="button" id="lessonOctaveHigh" class="btn" aria-label="Sound one octave higher">Octave +</button></div>
+            <div class="lesson-octave-nav" id="lessonOctaveNav"><button type="button" id="lessonOctaveLow" class="btn" aria-label="Sound one octave lower">− Octave</button><span id="keyboardHint">Tap a key to hear it</span><span id="lessonOctaveLabel">Swipe to reach other octaves</span><button type="button" id="lessonOctaveHigh" class="btn" aria-label="Sound one octave higher">Octave +</button></div>
             <div id="rhythmCardDeck" class="rhythm-card-deck cards-hidden" aria-label="Piano keyboard and optional rhythm cards">
                 <div class="rhythm-card-stack">
                     <button type="button" class="rhythm-card" data-rhythm="quarter" aria-pressed="true" aria-label="Plum quarter note rhythm"><span class="sr-only">Plum quarter note rhythm</span></button>
@@ -503,29 +495,43 @@ button:focus-visible,select:focus-visible,input:focus-visible,.option-tag:focus-
                     <button type="button" class="rhythm-card" data-rhythm="sixteenth" aria-pressed="false" aria-label="Watermelon sixteenth note rhythm"><span class="sr-only">Watermelon sixteenth note rhythm</span></button>
                 </div>
             </div>
-            <div class="keyboard-legend"><span><i class="legend-dot available"></i> Available</span><span><i class="legend-dot unavailable"></i> Cat won't use</span><span><i class="legend-dot lit"></i> Playing</span></div>
+            
         </main>
         <div id="keyboardSettingsPanel" class="keyboard-settings-shell" role="dialog" aria-label="Keyboard settings" aria-modal="false" hidden>
-          <div class="keyboard-settings-head"><strong>Keyboard Settings</strong><div class="keyboard-settings-head-actions"><button type="button" class="btn" id="keyboardGameOptionsBtn">Game Options</button><button type="button" class="btn secondary" id="keyboardSettingsCloseBtn">Close</button></div></div>
+          <div class="keyboard-settings-head"><strong>Settings</strong><div class="keyboard-settings-head-actions"><button type="button" class="btn" id="setupAgainBtn">Setup guide</button><button type="button" class="btn secondary" id="keyboardSettingsCloseBtn">Close</button></div></div>
+        <div class="settings-player"><button class="btn" id="newUserBtn">New user</button><button class="btn" id="progressBtn">My progress</button><label><input type="checkbox" id="muteCheeringSound" checked> 🔊 Sound FX</label></div>
+        <details class="settings-group"><summary>Rhythms</summary><div class="rhythm-controls">
+                <h4>Rhythms for Random mode</h4>
+                <div class="rhythm-toggles">
+                    <label><input type="checkbox" id="rhythmQuarter" checked> ♩ - ¹⁄₄ notes (🟣 PLUM) </label>
+                    <label><input type="checkbox" id="rhythmEighth"> ♫ - ¹⁄₈ notes (🍎APPLE) </label>
+                </div>
+                <div class="rhythm-toggles" style="margin-top: 10px;">
+                    <label><input type="checkbox" id="rhythmTriplet"> ³ - Triplets (🍍PINEAPPLE) </label>
+                    <label><input type="checkbox" id="rhythmSixteenth"> ♬ - ¹⁄₁₆ notes (🍉WATERMELON) </label>
+                </div>
+            </div></details>
+        <details class="settings-group"><summary>Keyboard &amp; sound</summary>
         <section id="midiPanel" class="midi-panel" aria-label="Sound and MIDI settings" hidden>
             <div class="midi-panel-header"><strong>Audio & MIDI</strong><span id="midiStatus" role="status" aria-live="polite">Onboard audio ready · MIDI not connected</span></div>
             <div class="midi-controls">
-                <label class="midi-field"><span>MIDI IN</span><select id="midiInput" aria-label="MIDI input device" disabled><option value="">No input</option></select></label>
-                <label class="midi-field"><span>MIDI OUT</span><select id="midiOutput" aria-label="MIDI output device" disabled><option value="">No output</option></select></label>
+                <label class="midi-field"><span>Your keyboard</span><select id="midiInput" aria-label="MIDI input device" disabled><option value="">No input</option></select></label>
+                <label class="midi-field"><span>External sound device (optional)</span><select id="midiOutput" aria-label="MIDI output device" disabled><option value="">No output</option></select></label>
                 <button type="button" class="btn midi-connect" id="connectMidiBtn">Connect MIDI</button>
                 <label class="midi-checkbox"><input type="checkbox" id="onboardAudio" checked> Onboard sound</label>
-                <label class="midi-checkbox"><input type="checkbox" id="useGeneralMIDI" checked> Prefer General MIDI (try native synth first)</label>
+                <label class="midi-checkbox"><input type="checkbox" id="useGeneralMIDI" checked> Use instrument sounds</label>
                 <label class="midi-field gm-select"><span>Sound source</span><select id="gmSoundSource" aria-label="General MIDI sound source"><option value="auto">Automatic · native GM first</option><option value="soundfont" disabled>Selected local SoundFont</option><option value="basic">Built-in tones (offline)</option></select></label>
                 <button type="button" id="gmTestSound" class="btn midi-connect" title="Play one test note using the selected sound source">Test sound</button>
-                <label class="midi-field gm-select"><span>Cat instrument</span><select id="cpuInstrument" aria-label="Cat General MIDI instrument"><option value="file">Follow MIDI file (Piano if unset)</option></select></label>
+                <label class="midi-field gm-select"><span>Cat instrument</span><select id="cpuInstrument" aria-label="Keytar Kitty instrument"><option value="file">Follow MIDI file (Piano if unset)</option></select></label>
                 <label class="midi-field gm-select"><span>Player 1 instrument</span><select id="playerInstrument" aria-label="Player one General MIDI instrument"></select></label>
                 <label class="midi-field gm-select"><span>Player 2 instrument</span><select id="player2Instrument" aria-label="Player two General MIDI instrument"></select></label>
-                <div class="gm-bank-tools"><label class="lesson-pick">Choose local SoundFont (.sf2)<input id="gmSoundFont" type="file" accept=".sf2" aria-label="Browse your device for an SF2 SoundFont"></label><label class="midi-field gm-select"><span>Saved fonts</span><select id="gmSavedSoundFont" aria-label="Previously loaded SoundFonts"><option value="">No saved SoundFont</option></select></label><span id="gmStatus" role="status" aria-live="polite">Checking for a native GM output…</span><span id="gmHelp">For more realistic sounds, try <a href="https://www.schristiancollins.com/generaluser" target="_blank" rel="noopener noreferrer">GeneralUser GS</a> (the legacy SoftSynth version works best with simple renderers) or <a href="https://www.arachnosoft.com/main/soundfont.php" target="_blank" rel="noopener noreferrer">Arachno SoundFont</a>. Download a .sf2 file yourself and select it above. Check the creator's license; CopyCat never installs or uploads the file.</span></div>
+                <div class="gm-bank-tools"><label class="lesson-pick">Choose downloaded SoundFont<input id="gmSoundFont" type="file" accept=".sf2" aria-label="Browse your device for an SF2 SoundFont"></label><label class="midi-field gm-select"><span>Saved fonts</span><select id="gmSavedSoundFont" aria-label="Previously loaded SoundFonts"><option value="">No saved SoundFont</option></select></label><span id="gmStatus" role="status" aria-live="polite">Checking for a native GM output…</span><span id="gmHelp"><a href="https://github.com/mrbumpy409/GeneralUser-GS/raw/refs/heads/main/GeneralUser-GS.sf2" target="_blank" rel="noopener noreferrer">Download GeneralUser GS (.sf2, about 31 MB)</a> · <a href="https://www.schristiancollins.com/generaluser" target="_blank" rel="noopener noreferrer">Creator &amp; license</a><br>Save it in Downloads. Then press “Choose downloaded SoundFont” and select GeneralUser-GS.sf2. No special folder or installation needed. CopyCat remembers it here when browser storage is available. You can keep playing while it downloads.</span></div>
                 <label class="midi-checkbox"><input type="checkbox" id="midiThru"> MIDI Thru</label>
                 <label class="midi-checkbox"><input type="checkbox" id="metronomeEnabled"> Gentle metronome</label>
                 <label class="metro-volume" for="metronomeVolume">Click volume <input id="metronomeVolume" type="range" min="0" max="100" value="60" aria-label="Metronome volume"></label>
             </div>
         </section>
+        </details><details class="settings-group"><summary>Songs &amp; practice</summary>
         <section class="lesson-panel" id="lessonPanel" hidden aria-label="MIDI memory training library">
             <div class="lesson-header">
                 <div><strong id="lessonTitle">Select a MIDI learning piece</strong><div class="lesson-counter" id="lessonCount">0/0 completed</div></div>
@@ -547,18 +553,24 @@ button:focus-visible,select:focus-visible,input:focus-visible,.option-tag:focus-
                 <span class="lesson-speed" id="lessonSpeed">Speed 1.00×</span>
                 <span class="lesson-bonus" id="lessonBonus" role="status" aria-live="polite">Rhythm bonus: 0 pts</span>
                 <label class="lesson-rhythm"><input type="checkbox" id="lessonRhythm"> Check onset timing (optional)</label>
-                <label class="lesson-rhythm">Practice <select id="lessonPracticeMode"><option value="cumulative">CUMULATIVE</option><option value="continue">CONTINUE</option><option value="nested">NESTED</option></select></label>
+                <label class="lesson-rhythm">Practice <select id="lessonPracticeMode"><option value="cumulative">CUMULATIVE</option><option value="continue">CONTINUOUS</option><option value="nested">NESTED</option></select></label>
                 <button type="button" class="btn lesson-resume" id="lessonResume" hidden>Resume</button>
                 <button type="button" class="btn" id="lessonSave">Save progress</button>
                 <button type="button" class="btn" id="lessonNext">Next piece</button>
                 <button type="button" class="btn" id="lessonRestart">Restart piece</button>
             </div>
             <p id="lessonMessage" role="status" aria-live="polite">MIDI pieces are saved locally after import. Backing loops until the player finishes the response.</p>
-            <p class="lesson-help">ADVENTURE MIDI files: <code>ADVENTURE_1_Title.mid</code>. Only tracks named CONTROL contain silent level commands (in ADVENTURE, a C0 note of MIDI 24 under Cubase/Nuendo's labeling sets chunk length). Live MIDI C1–C9 always sounds, including pitches outside the current exercise. A C0 command note is a silent chunk-length command: its note duration sets the temporary number of beats per challenge, then the normal Chunk Length resumes. Random mode remains the generated challenge. Metronome: optional short click (under 100ms), count-in and flashing beat number (piano header ♩ or Audio & MIDI gear). You can start answering on your first note; the beat follows you. Closer rhythm earns more points; 90% accuracy earns 100 points, with a +250 super bonus for immediate near-perfect responses. Chunk Length is measured in the MIDI file's beats (e.g. four sixteenth notes within one quarter-note beat). Chords at the same onset count together. In 4/4, sixteen beats equals four bars. CUMULATIVE revises from the beginning after each chunk. CONTINUE moves to the next chunk. NESTED teaches individual chunks, joins pairs, then joins larger phrases until the entire piece is learned. Play at the MIDI's original rhythm, with optional onset checking. Pause automatically after 10 seconds without player input. Files: <code>SONG_1_title.mid</code>, <code>MELODY__4_title.mid</code>, <code>SCALE_9_title.mid</code>, <code>CHORD__23_title.mid</code>. For automatic website scanning, add filenames to <code>midi/manifest.json</code>. Your browser can also open a local folder.</p>
-        </section>
+            <details><summary>Teacher &amp; level author help</summary><p class="lesson-help">ADVENTURE MIDI files: <code>ADVENTURE_1_Title.mid</code>. Only tracks named CONTROL contain silent level commands (in ADVENTURE, a C0 note of MIDI 24 under Cubase/Nuendo's labeling sets chunk length). Live MIDI C1–C9 always sounds, including pitches outside the current exercise. A C0 command note is a silent chunk-length command: its note duration sets the number of beats per challenge and remains active until the next C0 or C#0 command. C#0 repeats adjacent marker durations as an irregular chunk pattern. D0 pulses toggle NESTED; a line longer than a bar selects CONTINUOUS until release. C1 pairs define a countdown and free-playing section. D#0–B0 set the level background gradient before play. Random mode remains the generated challenge. Metronome: optional short click (under 100ms), count-in and flashing beat number (piano header ♩ or Audio & MIDI gear). You can start answering on your first note; the beat follows you. Closer rhythm earns more points; 90% accuracy earns 100 points, with a +250 super bonus for immediate near-perfect responses. Chunk Length is measured in the MIDI file's beats (e.g. four sixteenth notes within one quarter-note beat). Chords at the same onset count together. In 4/4, sixteen beats equals four bars. CUMULATIVE revises from the beginning after each chunk. CONTINUOUS moves to the next chunk. NESTED teaches individual chunks, joins pairs, then joins larger phrases until the entire piece is learned. Play at the MIDI's original rhythm, with optional onset checking. Pause automatically after 10 seconds without player input. Files: <code>SONG_1_title.mid</code>, <code>MELODY__4_title.mid</code>, <code>SCALE_9_title.mid</code>, <code>CHORD__23_title.mid</code>. For automatic website scanning, add filenames to <code>midi/manifest.json</code>. Your browser can also open a local folder.</p></details>
+        </section></details>
         </div>
     </div>
 
+    <dialog id="setupDialog" class="setup-dialog" aria-labelledby="setupTitle">
+      <small id="setupStep"></small><h2 id="setupTitle" tabindex="-1"></h2>
+      <p id="setupText"></p><div id="setupName"><label>Your name <input id="setupPlayerName" type="text" maxlength="40" placeholder="Player 1" autocomplete="given-name"></label></div>
+      <div id="setupMount" class="setup-mount"></div><p id="setupStatus" role="status" aria-live="polite"></p>
+      <div class="setup-actions"><button id="setupBack" class="btn">Back</button><button id="setupSkip" class="btn">Later</button><button id="setupNext" class="btn primary">Next</button></div>
+    </dialog>
     <div id="lessonKeepGoingDialog" class="lesson-celebration" role="dialog" aria-modal="true" aria-labelledby="lessonKeepGoingTitle" hidden>
         <div class="lesson-celebration-card">
             <h2 id="lessonKeepGoingTitle">KEEP GOING!</h2>
@@ -853,7 +865,7 @@ class CopyCatMIDI {
         const fps = fpsCode === -29 ? 30000/1001 : -fpsCode;
         const ticksPerFrame = division & 0xff;
         if (!ppq && (!fps || !ticksPerFrame || ![24,25,29,30].includes(-fpsCode))) throw new Error('Unsupported SMPTE time division');
-        const editorEvents=[];
+        const editorEvents=[],fingerTargets=[];
         const events = [], tempos = [{tick:0,tempo:500000,order:-1}], meters=[{tick:0,numerator:4,denominator:4,order:-1}], trackNames=[], instrumentNames=new Map(), programs=[],controllers=[];
         let sequenceOrder = 0;
         for(let tr=0;tr<count;tr++) {
@@ -870,6 +882,9 @@ class CopyCatMIDI {
                 if(status === 0xff) {
                     const metaAt=at,type=u8(), size=vlq(end), first=at;
                     if(at+size>end) throw new Error('Invalid MIDI meta-event length');
+                    if(type===0x7f&&size===6&&bytes[at]===0x7d&&bytes[at+1]===67&&bytes[at+2]===70&&bytes[at+3]===1){
+                        fingerTargets.push({track:tr,tick,controlPitch:bytes[at+4],targetPitch:bytes[at+5]});
+                    }
                     if(type === 0x51 && size === 3) {
                         const tempo=(bytes[at]<<16)|(bytes[at+1]<<8)|bytes[at+2];
                         if(tempo>0) tempos.push({tick,tempo,order:sequenceOrder++});
@@ -943,6 +958,15 @@ class CopyCatMIDI {
                 const queue=open.get(key);if(queue?.length)queue.shift().endTick=e.tick;
             }
         }
+        const targetQueues=new Map();
+        for(const target of fingerTargets){
+            const key=`${target.track}/${target.tick}/${target.controlPitch}`;
+            if(!targetQueues.has(key))targetQueues.set(key,[]);targetQueues.get(key).push(target.targetPitch);
+        }
+        for(const note of notes){
+            const queue=targetQueues.get(`${note.track}/${note.startTick}/${note.pitch}`);
+            if(queue?.length)note.fingerTarget=queue.shift();
+        }
         const editorNotes=notes.map(n=>({...n}));
         // Exclude command pitches from ADVENTURE MIDI files only. In ordinary
         // songs, scales, chords and melodies those same pitches are musical.
@@ -989,7 +1013,7 @@ class CopyCatMIDI {
         for(const c of controllers){if(c.controller===64)sustainByChannel[c.channel].push(c);}
         for(const pedals of sustainByChannel)pedals.sort((a,b)=>a.tick-b.tick||a.order-b.order);
         for(const note of notes){
-            if(note.drums||note.endTick===null)continue;
+            if(note.drums||isControlPart(note)||note.endTick===null)continue;
             const pedal=sustainByChannel[note.channel],off=note.endTick;
             let low=0,high=pedal.length;
             while(low<high){const mid=(low+high)>>>1;if(pedal[mid].tick<=off)low=mid+1;else high=mid;}
@@ -1002,12 +1026,12 @@ class CopyCatMIDI {
             partId:`${n.track}:${n.channel}`,program:n.program,drums:n.drums,instrumentName:n.instrumentName,
             atMs:toMs(n.startTick),durationMs:Math.max(30,toMs(n.endTick===null ? Math.max(lastTick,n.startTick+ (ppq||480)) : Math.max(n.startTick+1,n.endTick))-toMs(n.startTick))}));
         noteEvents.sort((a,b)=>a.atMs-b.atMs || a.pitch-b.pitch);
-        const base=Math.min(noteEvents[0].atMs,...commandNotes.map(n=>toMs(n.startTick)));
+        const base=mode==='adventure-midi'?0:noteEvents[0].atMs;
         for(const note of noteEvents)note.atMs-=base;
         // Markers may last beyond the final musical note; preserve the beat grid
         // long enough to measure a 16-beat (or longer) boss phrase.
         const lengthMs=Math.max(noteEvents.reduce((max,n)=>Math.max(max,n.atMs+n.durationMs),0),
-            ...commandNotes.map(n=>toMs(n.endTick??lastTick)-base),0);
+            ...commandNotes.filter(n=>n.pitch===36).map(n=>toMs(n.endTick??lastTick)-base),0);
         const partsMap=new Map();
         for(const n of noteEvents){
             if(!partsMap.has(n.partId))partsMap.set(n.partId,{id:n.partId,track:n.track,channel:n.channel,
@@ -1017,7 +1041,7 @@ class CopyCatMIDI {
         }
         const parts=[...partsMap.values()].sort((a,b)=>a.track-b.track||a.channel-b.channel);
         const defaultPart=parts.find(p=>!p.drums)||parts[0];
-        const firstTick=Math.min(...playableNotes.map(n=>n.startTick),...commandNotes.map(n=>n.startTick));
+        const firstTick=mode==='adventure-midi'?0:Math.min(...playableNotes.map(n=>n.startTick));
         const signatureMap=meters.sort((a,b)=>a.tick-b.tick||a.order-b.order);
         const currentMeter=signatureMap.filter(m=>m.tick<=firstTick).at(-1)||signatureMap[0];
         const initialTickBeat=ppq?ppq*4/currentMeter.denominator:0;
@@ -1039,26 +1063,209 @@ class CopyCatMIDI {
                 beatNumber=beatNumber%meter.numerator+1;
             }
         }
-        const controlTimeline=controllers.map(c=>({...c,partId:`${c.track}:${c.channel}`,atMs:toMs(c.tick)-base}));
-        // Count the beats covered by the C0 note, using the same tempo/signature
-        // grid that drives the click. A 1-beat C0 gives a 1-beat challenge;
-        // a 16-beat C0 gives a 16-beat challenge.
-        // Only C0 changes chunk length. Other reserved C#0–G0 notes are
-        // silent placeholders for future ADVENTURE instructions.
+        const controlTimeline=controllers.filter(c=>!isControlPart(c)).map(c=>({...c,partId:`${c.track}:${c.channel}`,atMs:toMs(c.tick)-base}));
+        // CONTROL uses the editor's Cubase/Nuendo labels: C0=24, C1=36.
+        // Decode once, before playback. Pedal data never lengthens commands.
+        const beatPosition=tick=>{
+            let beats=0,from=0,meter=signatureMap[0];
+            for(const next of signatureMap){
+                if(next.tick>tick)break;
+                beats+=(next.tick-from)/(ppq*4/meter.denominator||480);
+                from=next.tick;meter=next;
+            }
+            return beats+(tick-from)/(ppq*4/meter.denominator||480);
+        };
         const controlEvents=commandNotes.map(n=>{
-            const atMs=toMs(n.startTick)-base;
-            const endMs=toMs(n.endTick===null?Math.max(lastTick,n.startTick+(ppq||480)):n.endTick)-base;
-            const beats=beatTimesMs.filter(t=>t>=atMs-.01 && t<endMs-.01).length;
-            return {type:(n.pitch===12||n.pitch===24)?'chunk-length':'control',pitch:n.pitch,
-                track:n.track,channel:n.channel,atMs,endMs,beats:Math.max(1,beats)};
-        }).sort((a,b)=>a.atMs-b.atMs);
-        const commands=controlEvents.filter(n=>n.type==='chunk-length');
-        const piece={steps:[],allNotes:noteEvents,parts,partId:defaultPart.id,backingNotes:[],commands,controlEvents,sourceMode:mode,
+            const endTick=n.endTick??Math.max(lastTick,n.startTick+(ppq||480));
+            const meter=signatureMap.findLast(m=>m.tick<=n.startTick)||currentMeter;
+
+            // Read the older MIDI-12 C0 alias without shifting any newer commands.
+            return {pitch:n.pitch===12?24:n.pitch,track:n.track,channel:n.channel,startTick:n.startTick,endTick,
+                atMs:toMs(n.startTick)-base,endMs:toMs(endTick)-base,
+                startBeat:beatPosition(n.startTick),endBeat:beatPosition(endTick),
+                beats:beatPosition(endTick)-beatPosition(n.startTick),barBeats:meter.numerator,
+                colorValue:CopyCatMIDI.colorByte(n.startTick,endTick,ppq||480,signatureMap)};
+        }).sort((a,b)=>a.atMs-b.atMs||a.pitch-b.pitch);
+        const fingerMarkers=controlNotes.filter(n=>n.pitch>=60&&n.pitch<=69).map(n=>({
+            pitch:n.pitch,atMs:toMs(n.startTick)-base,targetPitch:n.fingerTarget}));
+        const keyMarkers=controlNotes.filter(n=>n.pitch>=72&&n.pitch<=83).sort((a,b)=>a.startTick-b.startTick||a.pitch-b.pitch);
+        const tonic=keyMarkers.length?keyMarkers[0].pitch%12:0;
+        const keySignature={tonic,minor:keyMarkers.filter(n=>n.pitch===keyMarkers[0]?.pitch).length>=2,
+            fifths:[0,-5,2,-3,4,-1,6,1,-4,3,-2,5][tonic]};
+        const commands=[];
+        for(const n of controlEvents){
+            if(n.pitch===24)commands.push({...n,type:'chunk-length',pattern:[n.beats]});
+            if(n.pitch!==25)continue;
+            // Adjacent C#0 notes describe one pattern, read in full in advance.
+            const previous=commands.at(-1);
+            if(previous?.type==='split-chunk' && Math.abs(previous.endMs-n.atMs)<.01){
+                previous.pattern.push(n.beats);previous.endMs=n.endMs;
+            }else commands.push({...n,type:'split-chunk',pattern:[n.beats]});
+        }
+        commands.sort((a,b)=>a.atMs-b.atMs||(a.type==='chunk-length'?1:-1));
+        const modeEvents=[];let authoredMode='cumulative';
+        for(const n of controlEvents.filter(n=>n.pitch===26)){
+            if(n.beats<1-1e-7){
+                if(modeEvents.at(-1)?.atMs<=n.atMs)authoredMode=modeEvents.at(-1).mode;
+                authoredMode=authoredMode==='nested'?'cumulative':'nested';
+                modeEvents.push({atMs:n.atMs,mode:authoredMode});
+            }else if(n.beats>n.barBeats+1e-7){
+                modeEvents.push({atMs:n.atMs,mode:'continue'},{atMs:n.endMs,mode:'cumulative'});
+                authoredMode='cumulative';
+            }
+        }
+        modeEvents.sort((a,b)=>a.atMs-b.atMs);
+        const soloMarkers=controlEvents.filter(n=>n.pitch===36),solos=[];
+        for(let i=0;i+1<soloMarkers.length;i+=2){
+            const count=soloMarkers[i],solo=soloMarkers[i+1];
+            if(solo.atMs<count.endMs-.01)continue;
+            solos.push({atMs:count.atMs,countEndMs:count.endMs,soloAtMs:solo.atMs,
+                endMs:solo.endMs,countBeats:count.beats});
+        }
+        const {colors:background,defined:hasBackground}=CopyCatMIDI.backgroundColors(controlEvents);
+        const backgroundGradient=hasBackground?'linear-gradient(to bottom, '+background.map((rgb,i)=>
+            `rgb(${rgb.join(',')}) ${i*50}%`).join(', ')+')':null;
+        const piece={steps:[],allNotes:noteEvents,parts,partId:defaultPart.id,backingNotes:[],commands,controlEvents,modeEvents,solos,backgroundGradient,keySignature,fingerMarkers,fingeringPartId:defaultPart.id,sourceMode:mode,
             editorData:{notes:editorNotes,events:editorEvents,tempos,meters},
             tracks:count,format,ppq,programs,controllers:controlTimeline,tempoChanges:tempos.length-1,
             lengthMs,pitchRange:[0,0],basePitch:48,octaves:1,trackNames,beatMs,beatTimesMs,
             beatNumbers,beatMeters,meter:currentMeter.numerator,denominator:currentMeter.denominator};
         return CopyCatMIDI.selectPart(piece,defaultPart.id);
+    }
+    static controlInfo(pitch){
+        const fixed={
+            24:['Chunk length','Draw a note as long as each chunk should last.'],
+            25:['Split chunks','Draw touching notes with the chunk lengths you want to repeat.'],
+            26:['Practice mode','Tap under one beat: toggle NESTED. Hold over one bar: CONTINUOUS until release.'],
+            36:['Solo / together','Draw two notes: countdown length, then solo length.'],
+            40:['End bar','Mark the final bar with no answer. Not active yet.'],
+            48:['Repeat once','Stretch over the section to repeat once. Not active yet.'],
+            49:['Repeat forever','Stretch over the section to keep repeating. Not active yet.'],
+            50:['To coda','Place where playback should jump to CODA. Not active yet.'],
+            51:['Coda','Place at the jump destination. Not active yet.'],
+            52:['Pickup','Mark the pickup bar before the main tune. Not active yet.'],
+            84:['Key range','Start square sets the first octave; length sets octave count. Not active yet.'],
+            85:['Keep lights','Stretch over the passage whose lights should stay on. Not active yet.'],
+            86:['Preview','Stretch over the passage to preview before learning. Not active yet.']
+        };
+        if(fixed[pitch])return fixed[pitch];
+        if(pitch>=27&&pitch<=35){const i=35-pitch,band=['Top','Middle','Bottom'][Math.floor(i/3)],color=['red','green','blue'][i%3];
+            return [band+' '+color,'First and last squares covered set the hex digits (0–F). All three colour rows show the combined colour.'];}
+        if(pitch>=60&&pitch<=69){const i=pitch-60,name=['L pinky','L ring','L middle','L index','L thumb','R thumb','R index','R middle','R ring','R pinky'][i];
+            return [name,'Align with a main-track note. Shows '+CopyCatMIDI.fingerLabel(pitch)+'. Shortcut: Ctrl+'+((i+1)%10)+'.'];}
+        if(pitch>=72&&pitch<=83){const name=['C','Db','D','Eb','E','F','F#','G','Ab','A','Bb','B'][pitch%12];
+            return ['Key '+name,'One note: '+name+' Major. Two matching notes: '+name+' Minor. Read before play.'];}
+        if(pitch>=96&&pitch<=107)return ['Voice / text','Stack notes to match the audio/message filename. Not active yet.'];
+        if(pitch>=108&&pitch<=119)return ['Animation','Stack notes to match the animation filename; stretch for its duration. Not active yet.'];
+        if(pitch>=120&&pitch<=132)return ['BG image','Stack notes to match the background image filename. Not active yet.'];
+        return ['SPARE','Reserved for a future control. Leave empty for now.'];
+    }
+    static colorByte(start,end,ppq,meters){
+        const meter=[...meters].sort((a,b)=>a.tick-b.tick).findLast(m=>m.tick<=start)||{tick:0,numerator:4,denominator:4};
+        const bar=ppq*4/meter.denominator*meter.numerator;
+        const square=t=>Math.floor((((t-meter.tick)%bar+bar)%bar)/(bar/16)+1e-7);
+        return square(start)*16+square(end-bar/16*1e-4);
+    }
+    static backgroundColors(markers){
+        const colors=[[48,58,120],[20,29,70],[9,14,41]],seen=new Set();
+        for(const n of [...markers].sort((a,b)=>a.atMs-b.atMs||a.pitch-b.pitch)){
+            if(n.pitch<27||n.pitch>35)continue;
+            const i=35-n.pitch,band=Math.floor(i/3);
+            if(!seen.has(band)){colors[band]=[0,0,0];seen.add(band);}
+            colors[band][i%3]=n.colorValue;
+        }
+        return {colors,defined:seen.size>0};
+    }
+    static keyName(fifths,minor=false){
+        const names=['Gb','Db','Ab','Eb','Bb','F','C','G','D','A','E','B','F#','C#','G#','D#','A#'];
+        while(fifths< -6)fifths+=12;while(fifths>10)fifths-=12;
+        return names[fifths+6]+(minor?' Minor':' Major');
+    }
+    static transposePiece(source,fifths){
+        // Keep the chosen key close to the authored register; octave buttons remain independent.
+        let shift=((fifths-source.keySignature.fifths)*7%12+12)%12;
+        if(shift>6)shift-=12;
+        const pitched=source.allNotes.filter(n=>!n.drums&&n.channel!==9);
+        if(pitched.some(n=>n.pitch+shift<0))shift+=12;
+        if(pitched.some(n=>n.pitch+shift>127))shift-=12;
+        if(pitched.some(n=>n.pitch+shift<0||n.pitch+shift>127))throw new Error('This key exceeds the MIDI note range.');
+        const allNotes=source.allNotes.map(n=>({...n,pitch:n.drums||n.channel===9?n.pitch:n.pitch+shift}));
+        const fingerMarkers=(source.fingerMarkers||[]).map(n=>({...n,targetPitch:Number.isInteger(n.targetPitch)?n.targetPitch+shift:undefined}));
+        return CopyCatMIDI.selectPart({...source,allNotes,fingerMarkers,keyFifths:fifths,transposeSemitones:shift},source.partId);
+    }
+    static fingerLabel(pitch){
+        return pitch>=60&&pitch<=64?'L'+(65-pitch):pitch>=65&&pitch<=69?'R'+(pitch-64):null;
+    }
+    static fingerAssignments(notes,markers){
+        const result=new Map(),ordered=[...notes].sort((a,b)=>a.pitch-b.pitch);
+        for(const m of markers)if(Number.isInteger(m.targetPitch)&&ordered.some(n=>n.pitch===m.targetPitch))
+            result.set(m.targetPitch,CopyCatMIDI.fingerLabel(m.pitch));
+        const free=ordered.filter(n=>!result.has(n.pitch));
+        markers.filter(m=>!Number.isInteger(m.targetPitch)).sort((a,b)=>a.pitch-b.pitch).forEach((m,i)=>{
+            if(free[i])result.set(free[i].pitch,CopyCatMIDI.fingerLabel(m.pitch));
+        });
+        return result;
+    }
+    static beatTime(piece,beat){
+        const grid=piece.beatTimesMs,idx=Math.floor(beat),fraction=beat-idx;
+        const tail=grid.length>1?grid.at(-1)-grid.at(-2):piece.beatMs;
+        const at=i=>grid[i]??(grid.at(-1)||0)+(i-grid.length+1)*tail;
+        return at(idx)+(at(idx+1)-at(idx))*fraction;
+    }
+    static timeBeat(piece,time){
+        const grid=piece.beatTimesMs;let lo=0,hi=grid.length;
+        while(lo<hi){const mid=(lo+hi)>>>1;if(grid[mid]<=time)lo=mid+1;else hi=mid;}
+        const i=Math.max(0,lo-1),at=grid[i]||0;
+        const duration=(grid[i+1]??at+piece.beatMs)-at;
+        return i+(time-at)/Math.max(1,duration);
+    }
+    static lessonPlan(piece,chunkSize=1,from=0,override=null,review=false){
+        const eps=.01,end=piece.lengthMs,plan=[];
+        const indexAt=time=>{let lo=0,hi=piece.steps.length;
+            while(lo<hi){const m=(lo+hi)>>>1;if(piece.steps[m].atMs<time-eps)lo=m+1;else hi=m;}return lo;};
+        const modes=piece.modeEvents||[],solos=piece.solos||[];
+        const cuts=[from,end,...modes.map(n=>n.atMs),...solos.flatMap(n=>[n.atMs,n.endMs])]
+            .filter(n=>n>=from&&n<=end).sort((a,b)=>a-b).filter((n,i,a)=>!i||n-a[i-1]>eps);
+        const span=(startAt,endAt,mode)=>({startAt,endAt,mode,start:indexAt(startAt),end:indexAt(endAt),
+            startBeat:CopyCatMIDI.timeBeat(piece,startAt),endBeat:CopyCatMIDI.timeBeat(piece,endAt)});
+        for(let i=0;i<cuts.length-1;i++){
+            const start=cuts[i],stop=cuts[i+1];
+            const solo=solos.find(n=>n.atMs<=start+eps&&n.endMs>start+eps);
+            if(solo){
+                if(!plan.some(n=>n.solo===solo))plan.push({...span(start,solo.endMs,'continue'),solo});
+                continue;
+            }
+            const event=modes.findLast(n=>n.atMs<=start+eps);
+            const mode=override&&(!event||event.atMs<=override.atMs+eps)?override.mode:(event?.mode||'cumulative');
+            const chunks=[];let at=start;
+            while(at<stop-eps){
+                const command=piece.commands.findLast(n=>n.atMs<=at+eps);
+                const beat=CopyCatMIDI.timeBeat(piece,at);
+                let target;
+                if(command){
+                    const pattern=command.pattern.filter(n=>n>0),sum=pattern.reduce((a,b)=>a+b,0);
+                    const elapsed=Math.max(0,beat-command.startBeat);
+                    let next=command.startBeat+Math.floor((elapsed+1e-7)/sum)*sum;
+                    for(const length of pattern){next+=length;if(next>beat+1e-7)break;}
+                    target=CopyCatMIDI.beatTime(piece,next);
+                }else target=Number.isFinite(chunkSize)?CopyCatMIDI.beatTime(piece,beat+chunkSize):stop;
+                const next=piece.commands.find(n=>n.atMs>at+eps);
+                target=Math.min(stop,target,next?.atMs??Infinity);
+                if(target<=at+eps)break;
+                chunks.push(span(at,target,mode));at=target;
+            }
+            if(review){plan.push(span(start,stop,mode));continue;}
+            if(mode==='continue')plan.push(...chunks);
+            else if(mode==='cumulative')for(const c of chunks)plan.push({...c,startAt:start,start:indexAt(start),startBeat:CopyCatMIDI.timeBeat(piece,start)});
+            else {
+                const stack=[];
+                const merge=()=>{const r=stack.pop(),l=stack.pop(),joined={...l,end:r.end,endAt:r.endAt,endBeat:r.endBeat,count:l.count+r.count};plan.push(joined);stack.push(joined);};
+                for(const c of chunks){const leaf={...c,count:1};plan.push(leaf);stack.push(leaf);
+                    while(stack.length>1&&stack.at(-1).count===stack.at(-2).count)merge();}
+                while(stack.length>1)merge();
+            }
+        }
+        return plan;
     }
     static drumOctaveShift(notes){
         // MIDI pitch numbers are absolute even when DAWs display different
@@ -1100,6 +1307,13 @@ class CopyCatMIDI {
                 channel:note.channel,track:note.track,program:note.program,drums:note.drums,instrumentName:note.instrumentName});
         }
         if(!lead.length)throw new Error('This track contains no playable notes');
+        if(part.id===piece.fingeringPartId){
+            for(const step of grouped){
+                const markers=(piece.fingerMarkers||[]).filter(m=>Math.abs(m.atMs-step.atMs)<=12);
+                const assigned=CopyCatMIDI.fingerAssignments(step.notes,markers);
+                for(const note of step.notes)note.finger=assigned.get(note.pitch)||null;
+            }
+        }
         // Derive the playable pitch span from the filtered notes, never the
         // original track bounds or a command-only track, including cached data.
         let lowest=127,highest=0;
@@ -1151,7 +1365,7 @@ class CopyCatMetronome {
         return this.beatMeters[index]||this.meter;
     }
     setPracticeLoopBeats(chunkLength,callStartBeatIndex=null){
-        const next=Number.isFinite(chunkLength)&&chunkLength>=1&&chunkLength<4 ?
+        const next=Number.isInteger(chunkLength)&&chunkLength>=1&&chunkLength<4 ?
             Math.floor(chunkLength):null;
         if(next===this.practiceLoopBeats)return;
         // Rephase only the displayed accent number at Cat's next call. The
@@ -1389,6 +1603,17 @@ class CopyCatLessons {
         this.correctChunkCombo=0;this.fullRunStreak=0;this.currentPromptSteps=[];this.headerMessageTimer=null;this.headerMessage='';
         this.$=id=>document.getElementById(id);
         this.$('lessonFolder').addEventListener('change',e=>this.addFiles(e.target.files));
+        this.$('keyboardRange').addEventListener('click',e=>this.changeKey(e.shiftKey?-1:1));
+        this.$('keyboardRange').addEventListener('contextmenu',e=>{e.preventDefault();this.changeKey(-1);});
+        this.$('keyboardRange').addEventListener('wheel',e=>{
+            e.preventDefault();if(!e.deltaY||performance.now()-(this.lastKeyWheel??-Infinity)<120)return;
+            this.lastKeyWheel=performance.now();this.changeKey(e.deltaY<0?1:-1);
+        },{passive:false});
+        this.$('keyboardRange').addEventListener('keydown',e=>{
+            if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){
+                e.preventDefault();e.stopPropagation();this.changeKey(['ArrowRight','ArrowUp'].includes(e.key)?1:-1);
+            }
+        });
         this.$('lessonOctaveLow').addEventListener('click',()=>this.changeSoundOctave(-1));
         this.$('lessonOctaveHigh').addEventListener('click',()=>this.changeSoundOctave(1));
         this.originalKeyboard=Array.from(this.$('pianoKeyboard').querySelectorAll('.light'),key=>key.cloneNode(true));
@@ -1412,7 +1637,7 @@ class CopyCatLessons {
         });
         this.$('lessonRhythm').addEventListener('change',e=>{this.rhythmCheck=e.target.checked;this.save();});
         this.$('lessonPracticeMode').addEventListener('change',e=>{
-            if(this.active)this.pendingPracticeMode=e.target.value;
+            if(this.active){this.pendingPracticeMode=e.target.value;this.userModeOverride=true;}
             else this.practiceMode=e.target.value;
             this.save();this.update();this.game.updateKeyboardModeBar();
         });
@@ -1509,13 +1734,13 @@ class CopyCatLessons {
         this.update();
     }
     effectiveSpeed(){return Math.max(.1,this.game.getLessonSpeed(this.piece,this.speed)*this.assistFactor);}
-    currentChunkStart(){return this.practiceMode==='nested'&&!this.nestedReview?
+    currentChunkStart(){if(this.controlPlan)return this.controlPlan[this.controlIndex]?.start||0;return this.practiceMode==='nested'&&!this.nestedReview?
         (this.nestedPlan[this.nestedIndex]?.start||0):this.practiceMode==='continue'?this.learnedPrefix:0;}
     buildNestedPlan(){
         const plan=[],stack=[];let learned=0;
         const merge=()=>{const right=stack.pop(),left=stack.pop();const joined={...left,end:right.end,endBeat:right.endBeat,count:left.count+right.count};plan.push(joined);stack.push(joined);};
         // Binary carry order: 1, 2, 1+2, 3, 4, 3+4, 1+2+3+4, …
-        // Boundaries come from the existing beat/C0/sustain-aware chunker.
+        // Ordinary MIDI files use the beat/sustain-aware chunker.
         while(learned<this.steps.length){
             const end=this.nextTarget(learned);
             if(end<=learned)break;
@@ -1534,25 +1759,29 @@ class CopyCatLessons {
     }
     currentChunkSteps(){
         const start=this.currentChunkStart();
-        const steps=this.steps.slice(start,this.prefix).map(step=>({...step,notes:step.notes.map(n=>({...n}))}));
-        if(this.practiceMode==='cumulative' || start===0 || !steps.length || !this.piece)return steps;
+        let steps=this.steps.slice(start,this.prefix).map(step=>({...step,notes:step.notes.map(n=>({...n}))}));
+        if(!this.piece)return steps;
+        const job=this.controlPlan?.[this.controlIndex];
+        if(job?.solo)steps=steps.filter(step=>step.atMs>=job.solo.soloAtMs-.01);
+        if(job)for(const step of steps)for(const n of step.notes)n.durationMs=Math.min(n.durationMs,job.endAt-step.atMs);
+        if(!job&&(this.practiceMode==='cumulative'||start===0||!steps.length))return steps;
         // A held chord is still sounding when an excerpt starts in its middle.
         // Rearticulate held pitches at this chunk boundary so Cat lights them
         // and the player's response includes them, rather than silently
         // omitting their note-ons (which occurred in an earlier chunk).
         const beat=this.piece.beatTimesMs||[];
-        const startAt=beat[this.chunkStartBeatIndex]??steps[0].atMs;
+        const startAt=job?.solo?.soloAtMs??job?.startAt??beat[this.chunkStartBeatIndex]??steps[0]?.atMs??0;
         const carry=this.piece.allNotes.filter(n=>n.partId===this.piece.partId &&
             n.atMs<startAt-1 && n.atMs+n.durationMs>startAt+5);
         if(!carry.length)return steps;
         const first=steps[0];
-        const anchor=first.atMs>startAt+12?{atMs:startAt,notes:[]}:first;
+        const anchor=!first||first.atMs>startAt+12?{atMs:startAt,notes:[]}:first;
         if(anchor!==first)steps.unshift(anchor);
         for(const n of carry){
             if(anchor.notes.some(existing=>existing.pitch===n.pitch))continue;
-            anchor.notes.push({pitch:n.pitch,durationMs:Math.max(30,n.atMs+n.durationMs-startAt),
+            anchor.notes.push({pitch:n.pitch,durationMs:Math.max(1,Math.min(n.atMs+n.durationMs,job?.endAt??Infinity)-startAt),
                 velocity:n.velocity||96,channel:n.channel,track:n.track,program:n.program,
-                drums:n.drums,instrumentName:n.instrumentName,carried:true});
+                drums:n.drums,instrumentName:n.instrumentName,finger:this.steps.find(s=>Math.abs(s.atMs-n.atMs)<=12)?.notes.find(note=>note.pitch===n.pitch)?.finger,carried:true});
         }
         anchor.notes.sort((a,b)=>a.pitch-b.pitch);
         return steps;
@@ -1563,7 +1792,7 @@ class CopyCatLessons {
         // Use the call's already-booked click index, never re-identify its
         // start from a late Android timer. A one-beat mistake here previously
         // moved the player's response to the next full bar.
-        const covered=Math.max(1,Math.round(musicalBeats)||1);
+        const covered=Math.max(1,Math.ceil(musicalBeats)||1);
         if(metro.enabled && metro.running){
             const start=Number.isInteger(scheduledBeatIndex) ? scheduledBeatIndex :
                 // First call after the count-in starts the MIDI click at 0.
@@ -1747,6 +1976,38 @@ class CopyCatLessons {
         }
         return incomplete[0];
     }
+    loadKeyPiece(piece){
+        this.sourcePiece=piece;
+        const sourceKey=piece.keySignature.tonic+':'+piece.keySignature.minor;
+        const fifths=this.keySelection?.id===this.selected?.id&&this.keySelection.sourceKey===sourceKey?this.keySelection.fifths:piece.keySignature.fifths;
+        this.keySelection={id:this.selected?.id,fifths,sourceKey};this.pendingKeyFifths=null;
+        return CopyCatMIDI.transposePiece(piece,fifths);
+    }
+    updateKeyLabel(){
+        const button=this.$('keyboardRange');if(!button)return;
+        const key=this.piece?.keySignature||{fifths:0,minor:false};
+        const fifths=this.pendingKeyFifths??this.piece?.keyFifths??key.fifths;
+        button.textContent=CopyCatMIDI.keyName(fifths,key.minor);
+        button.disabled=!this.piece||!this.isMode();
+        button.title='Transpose by the circle of fifths. Click / wheel up: next sharp. Shift-click / right-click / wheel down: next flat.'+(this.pendingKeyFifths!==null&&this.pendingKeyFifths!==undefined?' Changes at the next Cat call.':'');
+        button.setAttribute('aria-label','Key: '+button.textContent);
+    }
+    changeKey(direction){
+        if(!this.piece||!this.isMode())return;
+        let fifths=(this.pendingKeyFifths??this.piece.keyFifths??this.piece.keySignature.fifths)+(direction>0?1:-1);
+        if(fifths>10)fifths-=12;if(fifths< -6)fifths+=12;
+        try{CopyCatMIDI.transposePiece(this.sourcePiece,fifths);}catch(e){this.message(e.message);return;}
+        this.keySelection={id:this.selected?.id,fifths,sourceKey:this.sourcePiece.keySignature.tonic+':'+this.sourcePiece.keySignature.minor};
+        if(this.active)this.pendingKeyFifths=fifths;
+        else this.applyKey(fifths);
+        this.updateKeyLabel();
+    }
+    applyKey(fifths){
+        this.clearFingerings();
+        this.piece=CopyCatMIDI.transposePiece({...this.sourcePiece,partId:this.piece.partId},fifths);
+        this.steps=this.piece.steps;this.pendingKeyFifths=null;
+        this.renderKeyboard(this.piece.basePitch,this.piece.octaves);
+    }
     changeSoundOctave(direction) {
         // Sound only: the MIDI note numbers used for the puzzle, its key lights,
         // and the C0 commands remain at their authored pitch. MIDI drums never shift.
@@ -1758,8 +2019,7 @@ class CopyCatLessons {
         const range=this.$('keyboardRange');
         if(!range)return;
         const shift=this.game.audioOctaveShift||0;
-        const base=range.dataset.originalRange||range.textContent;
-        range.textContent=base+(shift?` · SOUND ${shift>0?'+':''}${shift} OCT`:'');
+        this.updateKeyLabel();
         for(const [id,delta] of [['lessonOctaveLow',-1],['lessonOctaveHigh',1]]){
             const button=this.$(id);
             button.disabled=shift+delta < -4 || shift+delta > 4;
@@ -1784,7 +2044,7 @@ class CopyCatLessons {
         if(this.paused)return 'PAUSED';
         if(this.active && this.game.gameState==='playing')return 'LISTEN';
         if(this.active && this.game.gameState==='listening')return 'YOUR TURN';
-        if(this.selected)return this.practiceMode.toUpperCase();
+        if(this.selected)return this.practiceMode==='continue'?'CONTINUOUS':this.practiceMode.toUpperCase();
         return 'MIDI LESSONS';
     }
     clearHeaderMessage(){
@@ -1804,6 +2064,7 @@ class CopyCatLessons {
     }
     randomFrom(list){return list[Math.floor(Math.random()*list.length)]||'';}
     renderKeyboard(base=48,octaves=1) {
+        this.clearFingerings();
         this.keyboardBase=base;this.keyboardOctaves=octaves;
         const keyboard=this.$('pianoKeyboard');
         const scroll=this.$('keyboardScroll');
@@ -1813,7 +2074,7 @@ class CopyCatLessons {
         if(!on){
             for(const key of this.originalKeyboard.slice(0,13))keyboard.appendChild(key.cloneNode(true));
             keyboard.style.removeProperty('min-width');keyboard.style.removeProperty('width');
-            this.$('keyboardRange').textContent='PIANO · C3–C4';
+
             keyboard.setAttribute('aria-label','One-octave piano keyboard, C3 through C4');
         }else{
             // Twelve semitones per octave, plus the upper boundary C when valid.
@@ -1840,10 +2101,10 @@ class CopyCatLessons {
             keyboard.style.minWidth=`${Math.max(0,octaves*320)}px`;
             keyboard.style.width='100%';
             const first=Math.floor(base/12)-1,letter=pitchNames[base%12];
-            this.$('keyboardRange').textContent=`PIANO · ${letter}${first}–${letter}${first+octaves} · ${octaves} octave${octaves===1?'':'s'}`;
+
             keyboard.setAttribute('aria-label',`Piano keyboard spanning ${octaves} octaves from ${letter}${first} through ${letter}${first+octaves}`);
         }
-        this.$('keyboardRange').dataset.originalRange=this.$('keyboardRange').textContent;
+
         this.updateSoundOctaveLabel();
         scroll.scrollLeft=0;this.updateOctaveLabel(0);
         this.game.updateLightColors();
@@ -1867,13 +2128,14 @@ class CopyCatLessons {
         this.renderKeyboard(48,1);
         this.game.customNoteSelectionMode=false;
         this.game.updateNoteDisplay();
-        this.game.updateOptionsIndicator();
+        this.game.updateKeyboardModeBar();
         this.restore();
-        this.selected=null;this.steps=[];this.piece=null;
+        this.selected=null;this.steps=[];this.piece=null;this.pendingKeyFifths=null;
         this.update();
         this.game.updateDisplay();
     }
     update(){
+        this.updateKeyLabel();
         if(!this.isMode())return;
         const entries=this.byMode(),previous=this.selected?.id;
         if(!this.selected || !entries.some(e=>e.id===previous))this.selected=this.choose(true);
@@ -1906,7 +2168,7 @@ class CopyCatLessons {
         this.$('lessonTitle').textContent=this.selected?`${this.game.gameMode.toUpperCase()} · ${this.selected.title}`:
             `Add ${this.game.gameMode.toUpperCase()} MIDI files to begin`;
         const displayChunk=this.activeCommandChunkBeats??this.chunkSize;
-        this.$('lessonPosition').textContent=this.active?`${this.paused?'Paused · ':''}${this.practiceMode.toUpperCase()} ${this.prefix}/${this.steps.length} note/chord steps · ${Number.isFinite(displayChunk)?displayChunk+' beat chunk'+(this.activeCommandChunkBeats?' (C0)':''):'Entire piece'}`:
+        this.$('lessonPosition').textContent=this.active?`${this.paused?'Paused · ':''}${this.practiceMode==='continue'?'CONTINUOUS':this.practiceMode.toUpperCase()} ${this.prefix}/${this.steps.length} note/chord steps · ${Number.isFinite(displayChunk)?displayChunk+' beat chunk'+(this.controlPlan?' (CONTROL)':''):'Entire piece'}`:
             (this.selected?`${p.completed?'Completed · ':''}${p.prefix||0} steps learned · Continue when ready`:'Choose a MIDI folder or select files');
         this.$('lessonNext').disabled=entries.length<2;
         this.$('lessonRestart').disabled=!this.selected;
@@ -1933,8 +2195,8 @@ class CopyCatLessons {
         try{
             const parsed=CopyCatMIDI.fromArrayBuffer(await this.bufferFor(entry),entry.mode);
             if(this.selected?.id!==entry.id||this.active)return;
-            const piece=CopyCatMIDI.selectPart(parsed,this.partByFile[entry.id]||parsed.partId);
-            this.piece=piece;this.steps=piece.steps;
+            const piece=this.loadKeyPiece(CopyCatMIDI.selectPart(parsed,this.partByFile[entry.id]||parsed.partId));
+            this.piece=piece;this.steps=piece.steps;this.applyLevelBackground();
             this.renderKeyboard(piece.basePitch,piece.octaves);
             this.update();
         } catch(error){if(this.selected?.id===entry.id)this.message(`MIDI preview: ${error.message}`);}
@@ -1947,8 +2209,8 @@ class CopyCatLessons {
         this.stop();this.game.clearAllTimeouts();this.game.stopAllAudio();
         try {
             const parsed=CopyCatMIDI.fromArrayBuffer(await this.bufferFor(this.selected),this.selected.mode);
-            const piece=CopyCatMIDI.selectPart(parsed,this.partByFile[this.selected.id]||parsed.partId);
-            this.piece=piece;this.bonusPoints=0;this.lastRhythmMessage='';
+            const piece=this.loadKeyPiece(CopyCatMIDI.selectPart(parsed,this.partByFile[this.selected.id]||parsed.partId));
+            this.piece=piece;this.bonusPoints=0;this.lastRhythmMessage='';this.applyLevelBackground();
             const occupied=new Set(piece.parts.map(p=>p.channel));
             const free=[15,14,13,12,11,10,8,7,6,5,4,3,2,1,0].filter(ch=>!occupied.has(ch));
             this.game.gmPlayerChannels={player1:free[0]??14,player2:free[1]??15};
@@ -1960,7 +2222,11 @@ class CopyCatLessons {
             this.speed=1;this.assistFactor=1;this.correctChunkCombo=0;this.fullRunStreak=0;this.finalePending=false;
             this.game.lives=3;this.offbeatPenaltyUntil=0;
             this.mistakesInPassage=0;this.difficultStep=null;this.recoveryMessage=null;
-            if(this.practiceMode==='nested')this.buildNestedPlan();
+            this.controlPlan=null;this.controlIndex=0;this.userModeOverride=false;this.soloActive=false;
+            if(piece.sourceMode==='adventure-midi'){
+                const from=this.learnedPrefix?(this.steps[this.learnedPrefix]?.atMs||0):0;
+                this.controlPlan=CopyCatMIDI.lessonPlan(piece,this.chunkSize,from);this.setControlPrompt();
+            }else if(this.practiceMode==='nested')this.buildNestedPlan();
             else this.prefix=this.nextTarget(this.learnedPrefix);
             this.lastByMode[this.selected.mode]=this.selected.id;this.save();
             this.inputStep=0;this.active=true;this.retryPending=false;this.paused=false;
@@ -1971,8 +2237,11 @@ class CopyCatLessons {
             this.message(`Listen, then copy in chunks of ${Number.isFinite(this.chunkSize)?`${this.chunkSize} ${this.chunkSize===1?'beat':'beats'}`:'the entire piece'}. Each beat can contain multiple notes or chords. Start your response on an accompaniment downbeat.`);
             await this.game.resumeAudio();
             const session=++this.playSession;
-            this.game.schedule(()=>{if(this.active && session===this.playSession)
-                this.game.showGetReadyModal(()=>{if(this.active && session===this.playSession)this.playPrefix();},this.piece,this.effectiveSpeed());},350);
+            this.game.schedule(()=>{
+                if(!this.active||session!==this.playSession)return;
+                if(this.controlPlan?.[this.controlIndex]?.solo)this.playPrefix();
+                else this.game.showGetReadyModal(()=>{if(this.active&&session===this.playSession)this.playPrefix();},this.piece,this.effectiveSpeed());
+            },350);
         }catch(e){this.active=false;this.game.gameState='stopped';this.game.switchToPreGameUI();this.game.updateControls();this.message(`Could not open the MIDI: ${e.message}`);}
     }
     // Return the end of the next *time-based* chunk rather than adding a fixed
@@ -2002,21 +2271,10 @@ class CopyCatLessons {
             if(boundaries[mid]<=at+.001)left=mid+1;else right=mid;}
         let startBeat=Math.max(0,left-1);
         if(!boundaries.length)startBeat=Math.max(0,Math.floor(at/beatMs));
-        const commands=this.piece?.commands||[];
-        const active=[...commands].reverse().find(c=>c.atMs<=at+.01 && c.endMs>at+.01);
-        this.activeCommandChunkBeats=active?.beats??null;
+        this.activeCommandChunkBeats=null;
         this.chunkStartBeatIndex=startBeat;
-        const chunk=active?active.beats:
-            Number.isFinite(this.chunkSize)?Math.max(1,Math.min(16,this.chunkSize)):Infinity;
-        // A future marker within an ordinary chunk becomes the next boundary
-        // (provided there are already notes before it), so the marker's
-        // explicit difficulty level starts on the correct MIDI beat.
-        const nextCommand=active?null:commands.find(c=>c.atMs>at+.01 &&
-            (c.atMs<beatAt(startBeat+chunk)-.01 || !Number.isFinite(chunk)) &&
-            stepBefore(c.atMs)>learned);
-        let targetBeat=nextCommand ?
-            Math.max(startBeat+1,boundaries.findIndex(b=>b>=nextCommand.atMs-.01)):
-            startBeat+chunk;
+        const chunk=Number.isFinite(this.chunkSize)?Math.max(1,Math.min(16,this.chunkSize)):Infinity;
+        const targetBeat=startBeat+chunk;
         if(!Number.isFinite(targetBeat)){this.targetBeatIndex=null;return total;}
         const upper=Math.max(boundaries.length+256,startBeat+257);
         for(let beat=targetBeat;beat<=upper;beat++){
@@ -2043,12 +2301,84 @@ class CopyCatLessons {
         this.targetBeatIndex=null;
         return total;
     }
+    clearFingerings(){
+        for(const [key] of this.fingerLabels||[]){
+            const label=key.querySelector('.light-number');
+            if(label)label.textContent=key.dataset.note;
+            key.setAttribute('aria-label',key.dataset.note);
+        }
+        this.fingerLabels=new Map();
+    }
+    showFingerings(notes,duration=null){
+        for(const n of notes){
+            if(!n.finger)continue;
+            const key=this.$(`light-${n.pitch-48}`),label=key?.querySelector('.light-number');if(!label)continue;
+            this.fingerLabels??=new Map();const token={};this.fingerLabels.set(key,token);
+            label.textContent=n.finger;key.setAttribute('aria-label',`${key.dataset.note}, ${n.finger}`);
+            if(Number.isFinite(duration))this.game.schedule(()=>{
+                if(this.fingerLabels.get(key)!==token)return;
+                this.fingerLabels.delete(key);label.textContent=key.dataset.note;key.setAttribute('aria-label',key.dataset.note);
+            },duration);
+        }
+    }
+    showResponseFingerings(){
+        this.clearFingerings();this.showFingerings(this.currentPromptSteps[this.inputStep]?.notes||[]);
+    }
+    applyLevelBackground(){
+        const body=document.body;
+        if(this.levelBackground!==undefined&&body.style.backgroundImage===this.levelBackground)
+            body.style.backgroundImage=this.previousBackground||'';
+        this.levelBackground=undefined;
+        const current=body.style.backgroundImage||getComputedStyle(body).backgroundImage;
+        if(this.piece?.backgroundGradient&&!/url\(/i.test(current)){
+            this.previousBackground=body.style.backgroundImage;
+            body.style.backgroundImage=this.piece.backgroundGradient;
+            this.levelBackground=body.style.backgroundImage;
+        }
+    }
+    setControlPrompt(){
+        const job=this.controlPlan?.[this.controlIndex];if(!job)return;
+        this.prefix=job.end;this.practiceMode=job.mode;
+        this.chunkStartBeatIndex=job.startBeat;this.targetBeatIndex=job.endBeat;
+        this.activeCommandChunkBeats=job.endBeat-job.startBeat;
+        this.$('lessonPracticeMode').value=this.practiceMode;
+    }
+    advanceControlPrompt(){
+        const job=this.controlPlan[this.controlIndex];
+        this.learnedPrefix=Math.max(this.learnedPrefix,job.end);this.noteProgress(this.learnedPrefix);
+        this.controlIndex++;
+        if(this.controlIndex>=this.controlPlan.length){this.complete();return false;}
+        this.setControlPrompt();return true;
+    }
+    playFreeSection(job,clockStartAt,speed,session){
+        const game=this.game,solo=job.solo;
+        this.openResponseNow=null;this.soloActive=!!solo;
+        game.gameState=solo?'listening':'playing';game.isPlayerTurn=!!solo;
+        const together=solo&&this.piece.allNotes.some(n=>n.partId===this.piece.partId&&n.atMs<solo.endMs&&n.atMs+n.durationMs>solo.soloAtMs);
+        const show=text=>{this.message(text);this.showHeaderMessage(text,'celebrate',0);};
+        if(solo){
+            const countStart=CopyCatMIDI.timeBeat(this.piece,solo.atMs);
+            for(let beat=0;beat<solo.countBeats;beat++){
+                const due=clockStartAt+(CopyCatMIDI.beatTime(this.piece,countStart+beat)-job.startAt)/speed;
+                game.schedule(()=>{if(this.active&&session===this.playSession)show(`${together?'ALL TOGETHER':'Solo'} in ${Math.ceil(solo.countBeats-beat)}`);},Math.max(0,due-performance.now()));
+            }
+            game.schedule(()=>{if(this.active&&session===this.playSession)show(together?'ALL TOGETHER!':'Take it Away!!!');},Math.max(0,clockStartAt+(solo.soloAtMs-job.startAt)/speed-performance.now()));
+        }
+        game.updateControls();this.update();
+        const finishAt=clockStartAt+(job.endAt-job.startAt)/speed;
+        game.schedule(()=>{
+            if(!this.active||session!==this.playSession)return;
+            this.soloActive=false;this.clearHeaderMessage();game.isPlayerTurn=false;game.gameState='waiting';
+            this.responseGateAt=finishAt;this.responseGateBeatIndex=null;this.responseBeats=0;
+            if(this.advanceControlPrompt())this.playPrefix(true,finishAt);
+        },Math.max(0,finishAt-performance.now()));
+    }
     cancelIdle() {
         if(this.idleTimer!==null){clearTimeout(this.idleTimer);this.game.pendingTimers?.delete(this.idleTimer);this.idleTimer=null;}
     }
     armIdle() {
         this.cancelIdle();
-        if(!this.active||this.paused||this.game.gameState!=='listening')return;
+        if(!this.active||this.paused||this.soloActive||this.game.gameState!=='listening')return;
         // An audible backing loop is the waiting cue: never auto-pause it.
         if(this.responseBackingActive)return;
         const session=this.playSession;
@@ -2058,7 +2388,7 @@ class CopyCatLessons {
         },10000);
     }
     pauseIdle() {
-        this.stopResponseBacking();
+        this.clearFingerings();this.stopResponseBacking();
         this.cancelIdle();this.game.metronome.stop();this.paused=true;this.game.isPlayerTurn=false;
         this.game.gameState='waiting';
         if(this.chordTimer){clearTimeout(this.chordTimer);this.chordTimer=null;}
@@ -2068,7 +2398,7 @@ class CopyCatLessons {
     }
     resumeIdle() {
         if(!this.active||!this.paused)return;
-        this.paused=false;this.game.gameState='listening';this.game.isPlayerTurn=true;
+        this.paused=false;this.game.gameState='listening';this.game.isPlayerTurn=true;this.showResponseFingerings();
         this.game.metronome.startLesson(this.piece,this.effectiveSpeed());
         this.game.metronome.setPracticeLoopBeats(this.callPracticeBeats??
             this.activeCommandChunkBeats??this.chunkSize,0);
@@ -2076,13 +2406,17 @@ class CopyCatLessons {
         this.message(`Welcome back. Continue at step ${this.inputStep+1} of ${this.prefix}.`);
     }
     stop() {
-        this.releaseBandAudio();this.stopResponseBacking();
+        this.game.clearFadeHints?.();
+        this.clearFingerings();this.releaseBandAudio();this.stopResponseBacking();
+        if(this.levelBackground!==undefined&&document.body.style.backgroundImage===this.levelBackground)document.body.style.backgroundImage=this.previousBackground||'';
+        this.levelBackground=undefined;this.clearHeaderMessage();
         this.openResponseNow=null;
         this.cancelIdle();this.game.metronome.stop();this.$('lessonKeepGoingDialog').hidden=true;
         // If play stops before the next call, keep the user's selected settings.
         if(this.pendingChunkSize!==null){this.chunkSize=this.pendingChunkSize;this.pendingChunkSize=null;}
         if(this.pendingPracticeMode!==null){this.practiceMode=this.pendingPracticeMode;this.pendingPracticeMode=null;}
-        this.active=false;this.paused=false;this.retryPending=false;this.pressed.clear();
+        this.active=false;this.paused=false;this.soloActive=false;this.retryPending=false;this.pressed.clear();
+        if(this.sourcePiece&&this.pendingKeyFifths!==null&&this.pendingKeyFifths!==undefined)this.applyKey(this.pendingKeyFifths);
         this.playSession++;
         if(this.chordTimer){clearTimeout(this.chordTimer);this.chordTimer=null;}
         if(this.selected && this.steps.length) this.noteProgress(this.learnedPrefix);
@@ -2186,16 +2520,17 @@ class CopyCatLessons {
         const first=this.currentPromptSteps?.[0];
         if(!first)return;
         const speed=this.callSpeed||this.effectiveSpeed();
-        const firstAt=first.atMs;
+        const job=this.controlPlan?.[this.controlIndex];
+        const firstAt=job?.startAt??first.atMs;
         let startBeat=0;
         while(startBeat+1<sourceBeats.length && sourceBeats[startBeat+1]<=firstAt+.01)startBeat++;
         // Use the source beat grid for both the backing interval and its
         // repeated downbeat. This preserves relative drum/bass sync even in
         // songs with rests or tempo changes.
-        const from=sourceBeats[startBeat]??firstAt;
+        const from=job?.startAt??sourceBeats[startBeat]??firstAt;
         const endBeat=startBeat+Math.max(1,this.responseBeats||1);
         const nominalBeat=this.piece.beatMs||500;
-        const to=sourceBeats[endBeat]??(sourceBeats.length?
+        const to=job?.endAt??sourceBeats[endBeat]??(sourceBeats.length?
             sourceBeats.at(-1)+(endBeat-sourceBeats.length+1)*nominalBeat:
             from+Math.max(1,this.responseBeats||1)*nominalBeat);
         const length=Math.max(35,(to-from)/speed);
@@ -2214,7 +2549,7 @@ class CopyCatLessons {
         // Never re-anchor that grid to a player keypress or a delayed timer.
         const lapAt=(lap)=>{
             const metro=this.game.metronome;
-            if(metro.enabled&&metro.running&&Number.isInteger(this.responseGateBeatIndex))
+            if(!job&&metro.enabled&&metro.running&&Number.isInteger(this.responseGateBeatIndex))
                 return metro.origin+metro.beatAt(this.responseGateBeatIndex+lap*Math.max(1,this.responseBeats||1));
             return origin+lap*length;
         };
@@ -2239,10 +2574,17 @@ class CopyCatLessons {
     }
     playPrefix(seamless=false,expectedStartAt=null,scheduledBeatIndex=null) {
         if(!this.active)return;
+        this.clearFingerings();
+        if(this.pendingKeyFifths!==null&&this.pendingKeyFifths!==undefined)this.applyKey(this.pendingKeyFifths);
         if(this.pendingChunkSize!==null || this.pendingPracticeMode!==null){
             if(this.pendingChunkSize!==null){this.chunkSize=this.pendingChunkSize;this.pendingChunkSize=null;}
             if(this.pendingPracticeMode!==null){this.practiceMode=this.pendingPracticeMode;this.pendingPracticeMode=null;}
-            if(this.practiceMode==='nested')this.buildNestedPlan();
+            if(this.controlPlan){
+                const from=this.controlPlan[this.controlIndex]?.startAt??0;
+                const override=this.userModeOverride?{atMs:from,mode:this.practiceMode}:null;
+                this.controlPlan=CopyCatMIDI.lessonPlan(this.piece,this.chunkSize,from,override);
+                this.controlIndex=0;this.userModeOverride=false;this.setControlPrompt();
+            }else if(this.practiceMode==='nested')this.buildNestedPlan();
             else {
                 // A mode change after the final taught chunk starts a new pass.
                 if(this.learnedPrefix>=this.steps.length)this.learnedPrefix=0;
@@ -2274,16 +2616,19 @@ class CopyCatLessons {
         game.gameState='playing';game.isPlayerTurn=false;
         game.updateControls();this.update();
         const promptSteps=this.currentPromptSteps=this.currentChunkSteps();
-        const baseAt=promptSteps[0]?.atMs||0;
+        const job=this.controlPlan?.[this.controlIndex];
+        const baseAt=job?.startAt??promptSteps[0]?.atMs??0;
         const maxPlayback=promptSteps.reduce((end,step)=>Math.max(end,...step.notes.map(n=>(step.atMs-baseAt)+n.durationMs)),0);
         // Preserve the actual MIDI onset timing, including rests, dotted notes,
         // quintuplets, ties and tempo changes; never quantize to fixed taps.
         for(const [stepIndex,step] of promptSteps.entries()) {
+            if(job?.solo&&step.atMs<job.solo.soloAtMs-.01)continue;
             game.schedule(()=>{
                 if(!this.active || session!==this.playSession)return;
                 for(const [noteIndex,n] of step.notes.entries()) {
                     const index=n.pitch-48;
-                    const duration=Math.max(20,n.durationMs/effectiveSpeed);
+                    const duration=Math.max(1,n.durationMs/effectiveSpeed);
+                    this.showFingerings([n],duration);
                     if(game.showCpuNoteLight(stepIndex,noteIndex))game.flashKey(index,duration,'playing');
                     const program=game.gm?.roleProgram('cpu',n)??n.program??0;
                     const drums=game.gm?.roleDrums('cpu',n)??n.drums;
@@ -2309,7 +2654,7 @@ class CopyCatLessons {
             if(lo)return lo-1;
             return 0;
         };
-        const musicalBeats=Math.max(1,
+        const musicalBeats=job?job.endBeat-job.startBeat:Math.max(1,
             sourceBeat(lastOnset)-sourceBeat(baseAt)+1,
             Number.isInteger(this.targetBeatIndex) ? this.targetBeatIndex-sourceBeat(baseAt) : 0);
         // Snapshot the CURRENT call's entire beat span. The next chunk's C0
@@ -2325,7 +2670,10 @@ class CopyCatLessons {
         const backingEnd=endSourceBeat<grid.length?grid[endSourceBeat]:
             grid.length?grid.at(-1)+(endSourceBeat-grid.length+1)*tailBeatMs:
             baseAt+musicalBeats*tailBeatMs;
-        this.playBacking(baseAt,Math.max(baseAt+1,backingEnd),effectiveSpeed,session,clockStartAt);
+        this.playBacking(baseAt,job?.endAt??Math.max(baseAt+1,backingEnd),effectiveSpeed,session,clockStartAt);
+        if(job&&(job.solo||!promptSteps.length)){
+            this.playFreeSection(job,clockStartAt,effectiveSpeed,session);return;
+        }
         this.callPracticeBeats=this.activeCommandChunkBeats??this.chunkSize;
         // Listen for the ENTIRE final beat of Cat's last bar. That beat is
         // anticipated player beat 1; the metronome must still click 4 then 1.
@@ -2344,8 +2692,9 @@ class CopyCatLessons {
                 game.schedule(openResponse,Math.max(2,this.responseWindowAt-performance.now()));return;
             }
             game.gameState='listening';game.isPlayerTurn=true;
-            this.inputStep=0;this.pressed.clear();this.inputTimes=[];this.inputDynamics=[];
+            this.inputStep=0;this.pressed.clear();this.inputTimes=[];this.inputDynamics=[];this.showResponseFingerings();
             this.startResponseBacking(session);
+            game.armFadeHints(promptSteps.map(step=>({at:step.atMs,pitches:step.notes.map(n=>n.pitch),duration:Math.max(...step.notes.map(n=>n.durationMs))})),this.callSpeed||this.effectiveSpeed());
             game.updateControls();this.update();
             this.message(`Your turn · Copy ${promptSteps.length} ${promptSteps.length===1?'step':'steps'} at ${this.speed.toFixed(2)}×. Chords can be pressed together.`);
             // The same gate is used by a keypress and by its scheduled timer:
@@ -2397,6 +2746,11 @@ class CopyCatLessons {
     }
     press(pitch,velocity=100,source='pointer') {
         if(!this.active || this.paused || this.retryPending || this.game.gameState!=='listening')return;
+        if(this.soloActive){
+            this.game.playGMNote(pitch,{role:'player1',program:this.game.gm?.roleProgram('player1')??13,
+                drums:this.game.gm?.roleDrums('player1')||false,durationMs:350,velocity});
+            this.game.flashKey(pitch-48,350,'playing');return;
+        }
         // The entire final beat accepts anticipated correct notes. Do not
         // renumber beat 4; only a response one or more beats LATE may relabel.
         // Ignore incidental wrong keys during Cat's last sustained note.
@@ -2432,6 +2786,7 @@ class CopyCatLessons {
             drums:lead?.drums||this.game.gm?.roleDrums('player1')||false,durationMs:feedbackMs,velocity});
         this.game.flashKey(index,feedbackMs,'playing');
         if(!expected.includes(pitch) || this.pressed.has(pitch)) {this.gentleRetry();return;}
+        if(this.inputStep===0)this.game.startFadeHints();
         this.pressed.add(pitch);
         if(targetNote)this.inputDynamics.push({expected:targetNote.velocity||96,played:Math.max(1,Math.min(127,velocity||100)),source});
         if(expected.length>1 && !this.chordTimer) {
@@ -2451,7 +2806,7 @@ class CopyCatLessons {
                 // absolute tolerance accommodates expressive and unusual rhythms.
                 if(target>0 && Math.abs(actual-target)>Math.max(220,target*0.55)) {this.gentleRetry('The notes were right. Try following the rhythm a little closer.');return;}
             }
-            this.inputStep++;
+            this.inputStep++;this.showResponseFingerings();
             if(this.difficultStep!==null && this.inputStep>this.difficultStep){
                 this.recoveryMessage=this.randomFrom(['OVERCOME!!!','NEVER GIVE UP!!','I KNEW YOU COULD DO IT']);
                 this.showHeaderMessage(this.recoveryMessage,'celebrate',2100);
@@ -2462,7 +2817,9 @@ class CopyCatLessons {
         }
     }
     gentleRetry() {
+        this.game.clearFadeHints?.();
         if(this.retryPending||!this.active)return;
+        this.clearFingerings();
         // Keep backing alive through the retry transition until Cat's next call.
         // Pitch mistakes retain unlimited gentle retries; only clearly off-beat
         // backing entrances consume a life without interrupting the loop.
@@ -2550,7 +2907,7 @@ class CopyCatLessons {
         this.game.updateControls();
         this.learnedPrefix=Math.max(this.learnedPrefix,this.prefix);
         this.noteProgress(this.learnedPrefix);
-        const full=this.practiceMode==='nested'&&!this.nestedReview?
+        const full=this.controlPlan?this.controlIndex===this.controlPlan.length-1:this.practiceMode==='nested'&&!this.nestedReview?
             this.nestedIndex===this.nestedPlan.length-1:this.prefix>=this.steps.length;
         if(this.recoveryMessage){
             this.showHeaderMessage(this.recoveryMessage,'celebrate',2100);
@@ -2565,7 +2922,8 @@ class CopyCatLessons {
         // Note tails and key colours finish independently.
         if(full)this.complete();
         else {
-            if(this.practiceMode==='nested'){this.nestedIndex++;this.setNestedPrompt();}
+            if(this.controlPlan){this.advanceControlPrompt();}
+            else if(this.practiceMode==='nested'){this.nestedIndex++;this.setNestedPrompt();}
             else this.prefix=this.nextTarget(this.learnedPrefix);
             this.update();
             this.queueNextCall();
@@ -2584,6 +2942,7 @@ class CopyCatLessons {
         // will be installed at Cat's actual next call after every answer beat.
         this.prefix=this.steps.length;
         this.learnedPrefix=0;
+        if(this.controlPlan){this.controlPlan=CopyCatMIDI.lessonPlan(this.piece,this.chunkSize,0,null,true);this.controlIndex=0;this.setControlPrompt();}
         this.update();this.game.updateControls();
         this.message(`Completed ${this.selected.title}! Full piece again at ${this.speed.toFixed(2)}× speed.${this.lastRhythmMessage}`);
         this.showHeaderMessage(this.keepGoingPraise(),'celebrate',1550);
@@ -2836,7 +3195,7 @@ class CopyCatLessons {
                 this.updateEnabledRhythms(); // Initialize rhythm settings
                 this.updateDisplay();
                 this.updateNoteDisplay();
-                this.updateOptionsIndicator(); // Initialize options indicator
+                this.updateKeyboardModeBar(); // Initialize options indicator
                 this.updateLightColors(); // Initialize level 1 colors (blue)
 
                 // Add interactive styles for option tags
@@ -2853,8 +3212,104 @@ class CopyCatLessons {
                 // Get reference to game board and hide it initially until welcome screen is closed
                 this.gameBoard = document.querySelector('.game-board');
 
-                // Always show welcome screen on startup
-                this.showWelcomeScreen();
+                this.initializeSetup();
+                let setupDone=false;try{setupDone=localStorage.getItem('copycatSetupComplete')==='1';}catch(error){}
+                if(!setupDone)this.openSetup();
+                else {this.playerName=this.playerName||'Player 1';this.gameStarted=true;this.updateDisplay();}
+            }
+
+            updateTurnDisplay() {
+                const left=document.getElementById('keyboardPlayerLabel'),right=document.getElementById('keyboardOtherVoiceLabel');
+                if(!left||!right)return;
+                left.textContent=this.playerName||'Player 1';
+                right.textContent=this.callResponseMode?(this.player2Name||'Player 2'):'Keytar Kitty';
+                const running=this.gameState==='playing'||this.gameState==='listening';
+                const playerTurn=this.callResponseMode?this.isPlayer1Turn:!!this.isPlayerTurn;
+                for(const [label,active] of [[left,running&&playerTurn],[right,running&&!playerTurn]]){
+                    label.parentElement.classList.toggle('is-turn',active);
+                    label.parentElement.title=active?'Playing now':'Choose instrument';
+                }
+            }
+
+            initializeSetup() {
+                const $=id=>document.getElementById(id),dialog=$('setupDialog');
+                this.setupMoved=[];
+                $('setupBack').addEventListener('click',()=>{this.setupIndex=Math.max(0,this.setupIndex-1);this.renderSetup();});
+                $('setupNext').addEventListener('click',()=>{
+                    if(this.setupIndex===2)this.finishSetup(true);
+                    else {this.setupIndex++;this.renderSetup();}
+                });
+                $('setupSkip').addEventListener('click',()=>this.finishSetup(false));
+                dialog.addEventListener('cancel',e=>{e.preventDefault();this.finishSetup(false);});
+            }
+
+            openSetup() {
+                if(this.gameState!=='stopped')this.stopResetGame();
+                this.setKeyboardSettingsOpen(false);
+                this.setupIndex=0;this.setupNoteSeen=false;
+                document.getElementById('setupPlayerName').value=this.playerName||'';
+                document.getElementById('setupDialog').showModal();
+                this.renderSetup();
+            }
+
+            restoreSetupControls() {
+                this.setupObserver?.disconnect();this.setupObserver=null;
+                for(const [node,marker] of this.setupMoved||[])marker.replaceWith(node);
+                this.setupMoved=[];
+            }
+
+            setupStatusText() {
+                if(this.setupIndex===0){
+                    if(!navigator.requestMIDIAccess)return 'This browser cannot connect MIDI. Try Chrome or Edge, or play the on-screen keys.';
+                    if(!window.isSecureContext)return 'MIDI needs a secure page (HTTPS). You can still play the on-screen keys.';
+                    if(this.setupNoteSeen)return '✓ Your keyboard works! Press Next.';
+                    if(this.midiInPort)return 'Connected: '+(this.midiInPort.name||'keyboard')+'. Press a key to test it.';
+                    return this.midiAccess?'No keyboard found. Plug it in, switch it on, then press Refresh MIDI. Or continue with on-screen keys.':'Plug in your keyboard, then press Connect MIDI and allow access. No keyboard? Press Next.';
+                }
+                if(this.setupIndex===1)return document.getElementById('gmStatus').textContent;
+                const count=this.lesson?.entries.size||0;
+                return count?count+' pieces ready. Press Play to begin.':'Choose the midi folder from your CopyCat download. No folder yet? Play starts a simple Random round.';
+            }
+
+            renderSetup() {
+                this.restoreSetupControls();
+                const $=id=>document.getElementById(id),mount=$('setupMount'),step=this.setupIndex;
+                const steps=[
+                    ['Connect your keyboard','You can use a MIDI keyboard or tap the keys on screen. You do not need to choose a MIDI channel.'],
+                    ['Check your sound','Press Test sound. Built-in tones work straight away. For realistic instruments, download a SoundFont, then choose that file below.'],
+                    ['Choose your songs','Songs already found are ready to play. You can also choose a folder or add MIDI files. Listen to Kitty, then copy the notes.']
+                ];
+                $('setupStep').textContent=`${step+1} of 3`;
+                $('setupTitle').textContent=steps[step][0];$('setupText').textContent=steps[step][1];
+                $('setupName').hidden=step!==0;$('setupBack').disabled=step===0;
+                $('setupNext').textContent=step===2?'Play':'Next';
+                mount.replaceChildren();
+                const move=node=>{if(!node)return;const marker=document.createComment('setup control home');node.before(marker);this.setupMoved.push([node,marker]);mount.append(node);};
+                if(step===0){
+                    move($('connectMidiBtn'));move($('midiInput').closest('label'));move($('midiOutput').closest('label'));move($('midiStatus'));
+                }else if(step===1){
+                    move($('gmTestSound'));move($('onboardAudio').closest('label'));move($('gmSoundSource').closest('label'));move($('gmSoundFont').closest('.gm-bank-tools'));
+                }else {
+                    move($('lessonFolder').closest('label'));move($('lessonFiles').closest('label'));move($('lessonRefresh'));move($('lessonMessage'));
+                }
+                const refresh=()=>{$('setupStatus').textContent=this.setupStatusText();};refresh();
+                this.setupObserver=new MutationObserver(refresh);
+                for(const id of ['midiStatus','gmStatus','lessonList'])this.setupObserver.observe($(id),{childList:true,subtree:true,characterData:true});
+                $('setupTitle').focus();
+            }
+
+            finishSetup(play) {
+                const name=document.getElementById('setupPlayerName').value.trim();
+                this.playerName=name||this.playerName||'Player 1';this.gameStarted=true;this.savePlayerData();
+                this.restoreSetupControls();document.getElementById('setupDialog').close();
+                try{localStorage.setItem('copycatSetupComplete','1');}catch(error){}
+                if(play){
+                    const entries=[...this.lesson.entries.values()];
+                    const entry=entries.find(e=>e.mode==='song')||entries[0];
+                    this.setGameModeDirect(entry?.mode||'adventure');
+                    if(entry){this.lesson.selected=entry;this.lesson.piece=null;this.lesson.update();}
+                    this.resumeAudio();this.startGame();
+                }else {this.updateDisplay();document.getElementById('startBtn').focus();}
             }
 
             escapeHTML(value) {
@@ -3487,17 +3942,16 @@ class CopyCatLessons {
                 this.setKeyboardSettingsOpen=open=>{
                     shell.hidden=!open;
                     midiPanel.hidden=!open;
-                    lessonPanel.hidden=!open || !this.isLessonMode();
+                    lessonPanel.hidden=!open;
                     settingsButton.setAttribute('aria-expanded',String(!!open));
                     if(open)this.closeKeyboardQuickMenu();
                 };
                 this.setMidiPanelOpen=this.setKeyboardSettingsOpen;
                 settingsButton.addEventListener('click',()=>this.setKeyboardSettingsOpen(shell.hidden));
                 document.getElementById('keyboardSettingsCloseBtn').addEventListener('click',()=>this.setKeyboardSettingsOpen(false));
-                document.getElementById('keyboardGameOptionsBtn').addEventListener('click',()=>{
-                    this.setKeyboardSettingsOpen(false);
-                    if(this.gameState==='stopped')this.showOptionsModal();
-                });
+                document.getElementById('setupAgainBtn').addEventListener('click',()=>this.openSetup());
+                document.getElementById('newUserBtn').addEventListener('click',()=>{this.setKeyboardSettingsOpen(false);if(this.gameState!=='stopped')this.stopResetGame();this.startNewUser();});
+                document.getElementById('progressBtn').addEventListener('click',()=>{this.setKeyboardSettingsOpen(false);this.showProgressChart();});
                 document.addEventListener('pointerdown',event=>{
                     if(!shell.hidden && !shell.contains(event.target) && event.target!==settingsButton)
                         this.setKeyboardSettingsOpen(false);
@@ -3506,10 +3960,10 @@ class CopyCatLessons {
                     if(event.key==='Escape'&&!shell.hidden){this.setKeyboardSettingsOpen(false);settingsButton.focus();}
                 });
                 this.midiPrefs=this.loadAudioPreferences();
-                this.lightsMode=['on','first','off'].includes(this.midiPrefs.lightsMode)?this.midiPrefs.lightsMode:'on';
+                this.lightsMode=['on','fade','first','off'].includes(this.midiPrefs.lightsMode)?this.midiPrefs.lightsMode:'on';
                 const lightModeSelect=document.getElementById('keyboardLightMode');
                 lightModeSelect.value=this.lightsMode;
-                lightModeSelect.addEventListener('change',e=>{this.lightsMode=e.target.value;this.saveAudioPreferences();this.updateKeyboardModeBar();});
+                lightModeSelect.addEventListener('change',e=>{this.lightsMode=e.target.value;this.clearFadeHints();this.saveAudioPreferences();this.updateKeyboardModeBar();});
                 this.onboardEnabled=this.midiPrefs.onboard!==false;
                 this.useGeneralMIDI=this.midiPrefs.useGeneralMIDI!==false;
                 this.cpuInstrument=this.midiPrefs.cpuInstrument??'file';
@@ -3640,10 +4094,8 @@ class CopyCatLessons {
                     connect.disabled=true;connect.textContent='HTTPS required';
                     this.updateMIDIStatus('Web MIDI requires HTTPS or localhost. Built-in sounds still work.');
                 }else{
-                    this.updateMIDIStatus('Checking MIDI devices…');
-                    // Attempt discovery on app startup; if permission requires a gesture,
-                    // Connect MIDI remains available for the user to authorize it.
-                    Promise.resolve().then(()=>this.connectMIDI(true));
+                    this.updateMIDIStatus('Press Connect MIDI to find your keyboard.');
+                    try{if(localStorage.getItem('copycatSetupComplete')==='1')Promise.resolve().then(()=>this.connectMIDI(true));}catch(error){}
                 }
             }
 
@@ -3826,6 +4278,8 @@ class CopyCatLessons {
                 const [status, pitch, velocity] = event.data || [];
                 if(!Number.isInteger(pitch))return;
                 const command = status & 0xf0;
+                window.copycatLevelEditor?.hearUnlock(pitch,command,velocity);
+                if(window.copycatLevelEditor?.recordInput(pitch,command,velocity))return;
                 if(command!==0x80 && command!==0x90)return;
                 // All live MIDI pitches C1–C9 are audible, even outside the
                 // displayed octave or Cat's challenge pool. Never use the
@@ -3834,6 +4288,7 @@ class CopyCatLessons {
                 if(pitch<24||pitch>120)return;
                 const keyIndex = pitch - 48;
                 if (command === 0x90 && velocity > 0) {
+                    if(document.getElementById('setupDialog')?.open){this.setupNoteSeen=true;document.getElementById('setupStatus').textContent=this.setupStatusText();}
                     if (this.midiHeld?.has(pitch)) return;
                     if (!this.midiHeld) this.midiHeld = new Set();
                     this.midiHeld.add(pitch);
@@ -3945,14 +4400,6 @@ class CopyCatLessons {
                 document.getElementById('stopResetBtn').addEventListener('click', () => this.stopResetGame());
                 document.getElementById('listenAgainBtn').addEventListener('click', () => this.listenAgain());
 
-                // Options button - only works when stopped
-                document.getElementById('optionsBtn').addEventListener('click', () => {
-                    if (this.gameState === 'stopped') {
-                        this.showOptionsModal();
-                    }
-                    // Do nothing during gameplay
-                });
-
                 document.getElementById('helpBtn').addEventListener('click', () => this.showHelpModal());
                 document.getElementById('keyboardModeBtn').addEventListener('click', () => { if (this.gameState === 'stopped') this.cycleKeyboardMode(); });
                 document.getElementById('keyboardPieceBtn').addEventListener('click', () => {
@@ -4006,13 +4453,6 @@ class CopyCatLessons {
                 window.addEventListener('blur',()=>{for(const index of this.qwertyHeld.values())
                     this.onLightRelease(index,null,'qwerty');this.qwertyHeld.clear();});
 
-                // Player name display click - show progress chart
-                document.getElementById('playerNameDisplay').addEventListener('click', () => {
-                    if (this.playerName && this.gameStarted) {
-                        this.showProgressChart();
-                    }
-                });
-
                 // Rhythm toggle controls
                 document.getElementById('rhythmQuarter').addEventListener('change', () => this.updateEnabledRhythms());
                 document.getElementById('rhythmEighth').addEventListener('change', () => this.updateEnabledRhythms());
@@ -4037,13 +4477,13 @@ class CopyCatLessons {
                         }
 
                         this.updateNoteDisplay();
-                        this.updateOptionsIndicator();
+                        this.updateKeyboardModeBar();
                     });
                 });
 
                 // Sound FX control
                 document.getElementById('muteCheeringSound').addEventListener('change', () => {
-                    this.updateOptionsIndicator();
+                    this.updateKeyboardModeBar();
                 });
 
                 // Custom note controls
@@ -4282,7 +4722,7 @@ class CopyCatLessons {
                 }
 
                 // Update the options indicator
-                this.updateOptionsIndicator();
+                this.updateKeyboardModeBar();
                 this.updateRhythmCards();
             }
 
@@ -4315,7 +4755,7 @@ class CopyCatLessons {
             updateNoteDisplay() {
                 const memory=this.isMemoryMode();
                 const manual=memory && this.challengeNotes!==null;
-                const allowed = this.isLessonMode() ? new Set(Array.from(document.querySelectorAll('.light'),key=>key.dataset.note)) :
+                const allowed = (this.callResponseMode || this.isLessonMode()) ? new Set(Array.from(document.querySelectorAll('.light'),key=>key.dataset.note)) :
                     new Set(this.getAvailableNotesForLevel(this.currentLevel));
                 const container=document.getElementById('pianoKeyboard');
                 if(!container)return;
@@ -4561,7 +5001,7 @@ class CopyCatLessons {
             saveCustomNotes() {
                 this.customNoteSelectionMode = false;
                 this.updateNoteDisplay();
-                this.updateOptionsIndicator();
+                this.updateKeyboardModeBar();
 
                 // Update the custom scale container visibility
                 const customContainer = document.getElementById('customScaleContainer');
@@ -5153,7 +5593,7 @@ class CopyCatLessons {
                 let delay=0;
                 this.gameSequence.forEach((item,index)=>{
                     this.schedule(()=>{
-                        const visual=this.effectiveCpuLightsMode()==='on'?true:(this.showCpuNoteLight(index)?'first-only':false);
+                        const visual=['on','fade'].includes(this.effectiveCpuLightsMode())?true:(this.showCpuNoteLight(index)?'first-only':false);
                         this.playSequenceItem(item,visual);
                     },Math.max(0,callStartAt+delay-performance.now()));
                     delay+=beatDuration;
@@ -5202,6 +5642,8 @@ class CopyCatLessons {
                     this.currentTapCount=0;
                     this.cpuFinishedAt=callStartAt+delay;
                     this.playerFirstInputAt=null;
+                    const beat=60000/this.getRoundBpm();
+                    this.armFadeHints(this.gameSequence.map((item,i)=>({at:i*beat,pitches:[48+item.lightIndex],duration:beat})));
                     this.updateDisplay();
                     this.updateControls();
                 };
@@ -5396,6 +5838,7 @@ class CopyCatLessons {
                     this.showGentleNoteMessage();
                 }
                 this.pitchAttempts++;this.pitchCorrect++;
+                if(this.currentSequenceIndex===0)this.startFadeHints();
                 if(this.currentSequenceIndex===0&&this.currentTapCount===0&&this.playerFirstInputAt===null)
                     this.playerFirstInputAt=now;
                 const key=document.getElementById(`light-${lightIndex}`);
@@ -6331,201 +6774,6 @@ class CopyCatLessons {
             }
 
             // Show options modal
-            showOptionsModal() {
-                // Create modal overlay
-                const overlay = document.createElement('div');
-                overlay.style.cssText = `
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0, 0, 0, 0.8);
-                    display: flex;
-                    justify-content: center;
-                    align-items: flex-start;
-                    padding: 20px 0;
-                    z-index: 10000;
-                    backdrop-filter: blur(10px);
-                    overflow-y: auto;
-                `;
-
-                // Create modal content
-                const modal = document.createElement('div');
-                modal.style.cssText = `
-                    background: linear-gradient(135deg, #ffeaa7, #fab1a0);
-                    border-radius: 20px;
-                    padding: 20px;
-                    text-align: center;
-                    color: #2d3436;
-                    border: 3px solid white;
-                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-                    max-width: 500px;
-                    width: 90%;
-                    max-height: 90vh;
-                    overflow-y: auto;
-                    overflow-x: hidden;
-                    scrollbar-width: thin;
-                    scrollbar-color: #8b5cf6 #f1f5f9;
-                `;
-
-                // Add scrollbar styles for webkit browsers
-
-                modal.classList.add('modal-with-scroll');
-
-                // Title
-                const title = document.createElement('div');
-                title.textContent = '⚙️ Game Options';
-                title.style.cssText = `
-                    font-size: 2rem;
-                    font-weight: bold;
-                    margin-bottom: 20px;
-                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-                `;
-
-                // Copy the hidden rhythm controls
-                const rhythmSection = document.querySelector('.rhythm-controls').cloneNode(true);
-                rhythmSection.style.display = 'block';
-                rhythmSection.style.margin = '20px 0';
-                rhythmSection.style.background = 'rgba(255, 255, 255, 0.7)';
-
-                // Create sound FX section (extracted from scale controls)
-                const soundFxSection = document.createElement('div');
-                soundFxSection.style.cssText = `
-                    display: block;
-                    margin: 20px 0;
-                    background: rgba(255, 255, 255, 0.7);
-                    border-radius: 10px;
-                    padding: 15px;
-                `;
-                soundFxSection.innerHTML = `
-                    <h4 style="margin-bottom: 15px; color: #2d3436;">🔊 Audio Options:</h4>
-                    <div style="display: flex; justify-content: center;">
-                        <label style="display: flex; align-items: center; background: rgba(255,255,255,0.8); padding: 10px 15px; border-radius: 10px; cursor: pointer; transition: all 0.2s;">
-                            <input type="checkbox" id="modalMuteCheeringSound" ${document.getElementById('muteCheeringSound').checked ? 'checked' : ''} style="margin-right: 8px;">
-                            <span>🔊 Sound FX</span>
-                        </label>
-                    </div>
-                `;
-
-                // Add game mode section
-                const gameModeSection = document.createElement('div');
-                gameModeSection.style.cssText = `
-                    display: block;
-                    margin: 20px 0;
-                    background: rgba(255, 255, 255, 0.7);
-                    border-radius: 10px;
-                    padding: 15px;
-                `;
-                const customChecked = document.querySelector('input[name="scaleType"][value="custom"]').checked;
-                gameModeSection.innerHTML = `
-                    <h4 style="margin-bottom: 15px; color: #2d3436;">🎮 Game Modes:</h4>
-                    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                        <label title="Repeat the growing phrase. Selected rhythms join by rounds 1–4." style="display: flex; align-items: center; background: rgba(255,255,255,0.8); padding: 10px 15px; border-radius: 10px; cursor: pointer; transition: all 0.2s;">
-                            <input type="radio" name="gameMode" value="adventure" ${this.gameMode === 'adventure' ? 'checked' : ''} style="margin-right: 8px;">
-                            <span>Random</span>
-                        </label>
-                        <label style="display: flex; align-items: center; background: rgba(255,255,255,0.8); padding: 10px 15px; border-radius: 10px; cursor: pointer; transition: all 0.2s;">
-                            <input type="radio" name="gameMode" value="pitch-training" ${this.gameMode === 'pitch-training' ? 'checked' : ''} style="margin-right: 8px;">
-                            <span>🎯 Pitch Training</span>
-                        </label>
-                        <label style="display: flex; align-items: center; background: rgba(255,255,255,0.8); padding: 10px 15px; border-radius: 10px; cursor: pointer; transition: all 0.2s;">
-                            <input type="radio" name="gameMode" value="call-response" ${this.gameMode === 'call-response' ? 'checked' : ''} style="margin-right: 8px;">
-                            <span>👥 2 Player</span>
-                        </label>
-                        <label class="midi-mode-option"><input type="radio" name="gameMode" value="melody" ${this.gameMode==='melody'?'checked':''}> Melody</label>
-                        <label class="midi-mode-option"><input type="radio" name="gameMode" value="song" ${this.gameMode==='song'?'checked':''}> Song</label>
-                        <label class="midi-mode-option"><input type="radio" name="gameMode" value="scales" ${this.gameMode==='scales'?'checked':''}> Scales</label>
-                        <label class="midi-mode-option"><input type="radio" name="gameMode" value="chords" ${this.gameMode==='chords'?'checked':''}> Chords</label>
-                        <label class="midi-mode-option"><input type="radio" name="gameMode" value="adventure-midi" ${this.gameMode==='adventure-midi'?'checked':''}> Adventure (MIDI)</label>
-
-                    </div>
-                `;
-
-                // Add event listeners for immediate modal exit when selecting My Own Notes
-                const modalGameModeRadios = gameModeSection.querySelectorAll('input[name="gameMode"]');
-                modalGameModeRadios.forEach(radio => {
-                    radio.addEventListener('change', () => {
-                        if (radio.value === 'custom' && radio.checked) {
-                            // Immediately close modal and enable custom note selection
-                            this.syncOptionsFromModal(modal);
-                            document.body.removeChild(overlay);
-                            this.updateOptionsIndicator();
-                        }
-                    });
-                });
-
-                // Close button
-                const closeBtn = document.createElement('button');
-                closeBtn.textContent = '✅ Save & Close';
-                closeBtn.style.cssText = `
-                    background: linear-gradient(45deg, #00b894, #55a3ff);
-                    color: white;
-                    border: none;
-                    padding: 15px 30px;
-                    border-radius: 25px;
-                    font-size: 1.1rem;
-                    font-weight: bold;
-                    cursor: pointer;
-                    transition: transform 0.2s;
-                    margin-top: 20px;
-                `;
-
-                closeBtn.onclick = () => {
-                    // Copy values back to original inputs
-                    this.syncOptionsFromModal(modal);
-                    document.body.removeChild(overlay);
-                    this.updateOptionsIndicator();
-                };
-
-                // New User button
-                const newUserBtn = document.createElement('button');
-                newUserBtn.textContent = '👤 New User';
-                newUserBtn.style.cssText = `
-                    background: linear-gradient(45deg, #fd79a8, #e84393);
-                    color: white;
-                    border: none;
-                    padding: 12px 20px;
-                    border-radius: 25px;
-                    font-size: 1rem;
-                    font-weight: bold;
-                    cursor: pointer;
-                    transition: transform 0.2s;
-                    margin-top: 20px;
-                    margin-right: 10px;
-                `;
-
-                newUserBtn.onclick = () => {
-                    document.body.removeChild(overlay);
-                    this.startNewUser();
-                };
-
-                // Button container for better layout
-                const buttonContainer = document.createElement('div');
-                buttonContainer.style.cssText = `
-                    display: flex;
-                    gap: 10px;
-                    justify-content: center;
-                    flex-wrap: wrap;
-                    margin-top: 20px;
-                `;
-
-                buttonContainer.appendChild(newUserBtn);
-                buttonContainer.appendChild(closeBtn);
-
-                modal.appendChild(title);
-                modal.appendChild(rhythmSection);
-                modal.appendChild(soundFxSection);
-                modal.appendChild(gameModeSection);
-                modal.appendChild(buttonContainer);
-                overlay.appendChild(modal);
-                overlay.classList.add('game-overlay');
-                document.body.appendChild(overlay);
-
-                // Sync current values to modal
-                this.syncOptionsToModal(modal);
-            }
-
             // Show help modal
             showHelpModal() {
                 // Create modal overlay
@@ -6643,214 +6891,8 @@ class CopyCatLessons {
             }
 
             // Sync options from modal back to original inputs
-            syncOptionsFromModal(modal) {
-                // Rhythm options
-                const modalRhythms = modal.querySelectorAll('.rhythm-controls input[type="checkbox"]');
-                modalRhythms.forEach(checkbox => {
-                    const originalCheckbox = document.getElementById(checkbox.id);
-                    if (originalCheckbox) {
-                        originalCheckbox.checked = checkbox.checked;
-                    }
-                });
-
-                // Sound FX option
-                const modalSoundFx = modal.querySelector('#modalMuteCheeringSound');
-                if (modalSoundFx) {
-                    const originalSoundFx = document.getElementById('muteCheeringSound');
-                    if (originalSoundFx) {
-                        originalSoundFx.checked = modalSoundFx.checked;
-                    }
-                }
-
-                // Note selection options
-                const modalScaleRadios = modal.querySelectorAll('input[name="modalScaleType"]');
-                modalScaleRadios.forEach(radio => {
-                    if (radio.checked) {
-                        const originalRadio = document.querySelector(`input[name="scaleType"][value="${radio.value}"]`);
-                        if (originalRadio) {
-                            originalRadio.checked = true;
-                        }
-                    }
-                });
-
-                // Update game mode from modal radio buttons
-                const modalGameModeRadios = modal.querySelectorAll('input[name="gameMode"]');
-                modalGameModeRadios.forEach(radio => {
-                    if (radio.checked) {
-                        if (radio.value === 'custom') {
-                            // Custom notes mode - enable interactive note selection
-                            this.gameMode = 'normal';
-                            this.pitchTrainingMode = false;
-                            this.callResponseMode = false;
-
-                            // Set scale type to custom and enable selection mode
-                            const customRadio = document.querySelector('input[name="scaleType"][value="custom"]');
-                            if (customRadio) customRadio.checked = true;
-                            const progressiveRadio = document.querySelector('input[name="scaleType"][value="progressive"]');
-                            if (progressiveRadio) progressiveRadio.checked = false;
-
-                            // Enable custom note selection mode for interactive keyboard
-                            this.usingCustomScale = true;
-                            this.customNoteSelectionMode = true;
-
-                            // Hide custom container checkboxes, show interactive selection
-                            const customContainer = document.getElementById('customScaleContainer');
-                            customContainer.style.display = 'none';
-
-                            // Update display and show save button
-                            this.updateNoteDisplay();
-
-                        } else {
-                            // Other game modes
-                            this.gameMode = radio.value;
-                            switch (radio.value) {
-                                case 'adventure':
-                                case 'normal':
-                                    this.pitchTrainingMode = false;
-                                    this.callResponseMode = false;
-                                    // Set scale type to progressive
-                                    const progressiveRadio = document.querySelector('input[name="scaleType"][value="progressive"]');
-                                    if (progressiveRadio) progressiveRadio.checked = true;
-                                    const customRadio = document.querySelector('input[name="scaleType"][value="custom"]');
-                                    if (customRadio) customRadio.checked = false;
-
-                                    // Ensure we're not in custom selection mode
-                                    this.usingCustomScale = false;
-                                    this.customNoteSelectionMode = false;
-                                    this.hideSaveCustomNotesButton();
-                                    break;
-                                case 'pitch-training':
-                                    this.pitchTrainingMode = true;
-                                    this.callResponseMode = false;
-                                    break;
-                                case 'call-response':
-                                    this.pitchTrainingMode = false;
-                                    this.callResponseMode = true;
-                                    break;
-                                case 'melody': case 'song': case 'scales': case 'chords': case 'adventure-midi':
-                                    this.pitchTrainingMode = false;
-                                    this.callResponseMode = false;
-                                    this.usingCustomScale = false;
-                                    this.customNoteSelectionMode = false;
-                                    this.hideSaveCustomNotesButton();
-                                    document.querySelector('input[name="scaleType"][value="progressive"]').checked = true;
-                                    document.querySelector('input[name="scaleType"][value="custom"]').checked = false;
-                                    break;
-                            }
-                        }
-                    }
-                });
-
-                // Reset pitch training count
-                this.pitchTrainingListenCount = 0;
-
-                // Trigger change events to update game state
-                this.updateEnabledRhythms();
-
-                // Only update scale state if we're not in the middle of setting up custom note selection
-                if (!this.customNoteSelectionMode) {
-                    const scaleRadios = document.querySelectorAll('input[name="scaleType"]');
-                    scaleRadios.forEach(radio => {
-                        if (radio.checked) {
-                            this.usingCustomScale = radio.value === 'custom';
-                            const customContainer = document.getElementById('customScaleContainer');
-
-                            if (this.usingCustomScale && !this.customNoteSelectionMode) {
-                                // Using custom scale (from Options) - don't enter selection mode
-                                customContainer.style.display = 'none';
-                                // Hide save button if it exists from previous cycling
-                                this.hideSaveCustomNotesButton();
-                            } else if (!this.usingCustomScale) {
-                                // Exit custom note selection mode
-                                this.customNoteSelectionMode = false;
-                                customContainer.style.display = 'none';
-                                // Hide save button if it exists
-                                this.hideSaveCustomNotesButton();
-                            }
-
-                            this.updateNoteDisplay();
-                        }
-                    });
-                }
-
-                // MIDI lesson modes use the MIDI's own timing, not the Adventure rhythm boxes.
-                if (this.lesson) this.lesson.setMode();
-                // Update display and controls to reflect game mode changes
-                this.updateDisplay();
-                this.updateControls();
-            }
-
-            // Sync current values to modal inputs
-            syncOptionsToModal(modal) {
-                // Rhythm options
-                const originalRhythms = document.querySelectorAll('.rhythm-controls input[type="checkbox"]');
-                originalRhythms.forEach(checkbox => {
-                    const modalCheckbox = modal.querySelector(`#${checkbox.id}`);
-                    if (modalCheckbox) {
-                        modalCheckbox.checked = checkbox.checked;
-                    }
-                });
-
-                // Sound FX option
-                const originalSoundFx = document.getElementById('muteCheeringSound');
-                const modalSoundFx = modal.querySelector('#modalMuteCheeringSound');
-                if (originalSoundFx && modalSoundFx) {
-                    modalSoundFx.checked = originalSoundFx.checked;
-                }
-
-                // Note selection options
-                const originalScaleRadios = document.querySelectorAll('input[name="scaleType"]');
-                originalScaleRadios.forEach(radio => {
-                    const modalRadio = modal.querySelector(`input[name="modalScaleType"][value="${radio.value}"]`);
-                    if (modalRadio) {
-                        modalRadio.checked = radio.checked;
-                    }
-                });
-
-                // Sync current game mode to modal
-                const modalGameModeRadios = modal.querySelectorAll('input[name="gameMode"]');
-                const currentScaleType = document.querySelector('input[name="scaleType"]:checked')?.value;
-                modalGameModeRadios.forEach(radio => {
-                    if (radio.value === 'custom') {
-                        radio.checked = (this.gameMode === 'normal' && currentScaleType === 'custom');
-                    } else {
-                        radio.checked = (radio.value === this.gameMode);
-                    }
-                });
-            }
-
             // Update the options indicator display
             // Cycle through rhythm combinations during gameplay
-            cycleRhythms() {
-                this.currentRhythmComboIndex = (this.currentRhythmComboIndex + 1) % this.rhythmCombinations.length;
-                const newCombination = this.rhythmCombinations[this.currentRhythmComboIndex];
-
-                // Update enabled rhythms
-                this.enabledRhythms = [...newCombination];
-
-                // Update checkboxes to match
-                document.getElementById('rhythmQuarter').checked = newCombination.includes('quarter');
-                document.getElementById('rhythmEighth').checked = newCombination.includes('eighth');
-                document.getElementById('rhythmTriplet').checked = newCombination.includes('triplet');
-                document.getElementById('rhythmSixteenth').checked = newCombination.includes('sixteenth');
-
-                // Update options indicator
-                this.updateOptionsIndicator();
-
-                // Add pulse animation to rhythm tag
-                this.schedule(() => {
-                    const rhythmTag = document.querySelector('.rhythm-tag');
-                    if (rhythmTag) {
-                        rhythmTag.classList.add('pulse');
-                        this.schedule(() => rhythmTag.classList.remove('pulse'), 600);
-                    }
-                }, 50);
-
-                // Show feedback
-                this.showRhythmChangeMessage(newCombination);
-            }
-
-            // Reset to quarter notes only (long press)
             resetToQuarterNotes() {
                 this.currentRhythmComboIndex = 0; // First combination is just quarter
                 this.enabledRhythms = ['quarter'];
@@ -6862,7 +6904,7 @@ class CopyCatLessons {
                 document.getElementById('rhythmSixteenth').checked = false;
 
                 // Update options indicator
-                this.updateOptionsIndicator();
+                this.updateKeyboardModeBar();
 
                 // Add pulse animation to rhythm tag
                 this.schedule(() => {
@@ -6878,161 +6920,6 @@ class CopyCatLessons {
             }
 
             // Show rhythm selection menu
-            showRhythmMenu() {
-                // Create modal overlay
-                const overlay = document.createElement('div');
-                overlay.style.cssText = `
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0, 0, 0, 0.8);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 10000;
-                    backdrop-filter: blur(10px);
-                `;
-
-                // Create modal content
-                const modal = document.createElement('div');
-                modal.style.cssText = `
-                    background: linear-gradient(135deg, #667eea, #764ba2);
-                    border-radius: 20px;
-                    padding: 30px;
-                    text-align: center;
-                    color: white;
-                    border: 3px solid white;
-                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-                    max-width: 400px;
-                    width: 90%;
-                `;
-
-                // Title
-                const title = document.createElement('div');
-                title.textContent = '🎵 Select Rhythms 🎵';
-                title.style.cssText = `
-                    font-size: 2rem;
-                    font-weight: bold;
-                    margin-bottom: 25px;
-                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-                    font-family: 'Comic Sans MS', sans-serif;
-                `;
-
-                // Rhythm options container
-                const rhythmContainer = document.createElement('div');
-                rhythmContainer.style.cssText = `
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 15px;
-                    margin-bottom: 25px;
-                `;
-
-                // Define rhythm options
-                const rhythmOptions = [
-                    { id: 'rhythmQuarter', symbol: '♩', name: 'Quarter', description: 'Steady beat' },
-                    { id: 'rhythmEighth', symbol: '♫', name: 'Eighth', description: 'Twice as fast' },
-                    { id: 'rhythmTriplet', symbol: '³', name: 'Triplet', description: 'Three per beat' },
-                    { id: 'rhythmSixteenth', symbol: '♬', name: 'Sixteenth', description: 'Very fast' }
-                ];
-
-                // Create rhythm option buttons
-                rhythmOptions.forEach(rhythm => {
-                    const rhythmButton = document.createElement('div');
-                    const isSelected = document.getElementById(rhythm.id).checked;
-
-                    rhythmButton.style.cssText = `
-                        background: ${isSelected ? 'linear-gradient(45deg, #00b894, #00cec9)' : 'rgba(255, 255, 255, 0.2)'};
-                        border: 2px solid ${isSelected ? '#00b894' : 'rgba(255, 255, 255, 0.5)'};
-                        border-radius: 15px;
-                        padding: 20px 10px;
-                        cursor: pointer;
-                        transition: all 0.2s ease;
-                        font-family: 'Comic Sans MS', sans-serif;
-                        color: white;
-                        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-                    `;
-
-                    rhythmButton.innerHTML = `
-                        <div style="font-size: 2.5rem; margin-bottom: 8px;">${rhythm.symbol}</div>
-                        <div style="font-size: 1.1rem; font-weight: bold; margin-bottom: 5px;">${rhythm.name}</div>
-                        <div style="font-size: 0.9rem; opacity: 0.9;">${rhythm.description}</div>
-                    `;
-
-                    // Add hover effects
-                    rhythmButton.onmouseover = () => {
-                        rhythmButton.style.transform = 'scale(1.05)';
-                        rhythmButton.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.3)';
-                    };
-                    rhythmButton.onmouseout = () => {
-                        rhythmButton.style.transform = 'scale(1)';
-                        rhythmButton.style.boxShadow = 'none';
-                    };
-
-                    // Toggle rhythm on click
-                    rhythmButton.onclick = () => {
-                        const checkbox = document.getElementById(rhythm.id);
-                        checkbox.checked = !checkbox.checked;
-
-                        // Update visual state
-                        const newSelected = checkbox.checked;
-                        rhythmButton.style.background = newSelected ? 'linear-gradient(45deg, #00b894, #00cec9)' : 'rgba(255, 255, 255, 0.2)';
-                        rhythmButton.style.borderColor = newSelected ? '#00b894' : 'rgba(255, 255, 255, 0.5)';
-
-                        // Update enabled rhythms and options indicator
-                        this.updateEnabledRhythms();
-                        this.updateOptionsIndicator();
-                    };
-
-                    rhythmContainer.appendChild(rhythmButton);
-                });
-
-                // Close button
-                const closeBtn = document.createElement('button');
-                closeBtn.textContent = '✅ Done';
-                closeBtn.style.cssText = `
-                    background: linear-gradient(45deg, #fd79a8, #e84393);
-                    color: white;
-                    border: none;
-                    padding: 15px 30px;
-                    border-radius: 25px;
-                    font-size: 1.1rem;
-                    font-weight: bold;
-                    cursor: pointer;
-                    transition: transform 0.2s;
-                    font-family: 'Comic Sans MS', sans-serif;
-                `;
-
-                closeBtn.onmouseover = () => {
-                    closeBtn.style.transform = 'scale(1.05)';
-                };
-                closeBtn.onmouseout = () => {
-                    closeBtn.style.transform = 'scale(1)';
-                };
-
-                closeBtn.onclick = () => {
-                    document.body.removeChild(overlay);
-                };
-
-                modal.appendChild(title);
-                modal.appendChild(rhythmContainer);
-                modal.appendChild(closeBtn);
-                overlay.appendChild(modal);
-                overlay.classList.add('game-overlay');
-                document.body.appendChild(overlay);
-
-                // Close on overlay click
-                overlay.onclick = (e) => {
-                    if (e.target === overlay) {
-                        document.body.removeChild(overlay);
-                    }
-                };
-            }
-
-            // Cycle through note options and game modes: Adventure → My Own Notes → Pitch Training → 2 Player
-            cycleNoteAndGameModes(){this.cycleKeyboardMode();}
-
             showNoteAndGameModeChangeMessage(mode) {
                 const message = document.createElement('div');
                 message.style.cssText = `
@@ -7110,19 +6997,12 @@ class CopyCatLessons {
                     }
 
                     this.updateNoteDisplay();
-                    this.updateOptionsIndicator();
+                    this.updateKeyboardModeBar();
                     this.showNoteOptionChangeMessage(newOption);
                 }
             }
 
             // Toggle sound FX
-            toggleSoundFX() {
-                const soundFXCheckbox = document.getElementById('muteCheeringSound');
-                soundFXCheckbox.checked = !soundFXCheckbox.checked;
-                this.updateOptionsIndicator();
-                this.showSoundFXToggleMessage(soundFXCheckbox.checked);
-            }
-
             // Toggle My Own Notes in Pitch Training or 2 Player mode
             toggleMyOwnNotesInMode(useCustomNotes) {
                 if (useCustomNotes) {
@@ -7139,7 +7019,7 @@ class CopyCatLessons {
 
                 // Update display and controls
                 this.updateNoteDisplay();
-                this.updateOptionsIndicator();
+                this.updateKeyboardModeBar();
 
                 // Show feedback message
                 const modeText = this.pitchTrainingMode ? 'Pitch Training' : '2 Player';
@@ -7429,7 +7309,7 @@ class CopyCatLessons {
                     });
                 }
                 if(this.lesson) this.lesson.setMode();
-                this.updateDisplay();this.updateControls();this.updateOptionsIndicator();
+                this.updateDisplay();this.updateControls();this.updateKeyboardModeBar();
                 this.updateTempoSelector();
                 this.updateRhythmCards();
             }
@@ -7442,6 +7322,25 @@ class CopyCatLessons {
             }
 
 
+            clearFadeHints(){
+                for(const hint of this.fadeHints||[]){hint.animation?.cancel();hint.element.remove();}
+                this.fadeHints=[];this.fadeHintsStarted=false;
+            }
+            armFadeHints(steps,speed=1){
+                this.clearFadeHints();if(this.effectiveCpuLightsMode()!=='fade'||!steps.length)return;
+                const origin=steps[0].at,ends=new Map();
+                for(const step of steps)for(const pitch of step.pitches)
+                    ends.set(pitch,Math.max(ends.get(pitch)||0,(step.at-origin+step.duration)/speed));
+                for(const [pitch,duration] of ends){
+                    const key=document.getElementById(`light-${pitch-48}`);if(!key)continue;
+                    const element=document.createElement('span');element.className='fade-note-hint';element.setAttribute('aria-hidden','true');key.appendChild(element);
+                    this.fadeHints.push({element,duration:Math.max(1,duration)});
+                }
+            }
+            startFadeHints(){
+                if(this.fadeHintsStarted)return;this.fadeHintsStarted=true;
+                for(const hint of this.fadeHints||[])hint.animation=hint.element.animate([{opacity:.8},{opacity:0}],{duration:hint.duration,fill:'forwards',easing:'linear'});
+            }
             effectiveCpuLightsMode(){
                 // Legacy Pitch Training 1-beat calls are automatically perfect pitch.
                 const chunk=this.memoryChunkSize;
@@ -7449,7 +7348,7 @@ class CopyCatLessons {
             }
             showCpuNoteLight(noteIndex,noteInChord=0,subdivision=0){
                 const mode=this.effectiveCpuLightsMode();
-                return mode==='on'||(mode==='first'&&noteIndex===0&&noteInChord===0&&subdivision===0);
+                return mode==='on'||mode==='fade'||(mode==='first'&&noteIndex===0&&noteInChord===0&&subdivision===0);
             }
             isMemoryMode(){return this.gameMode==='adventure'||this.gameMode==='pitch-training';}
             memoryStepSize(total){return this.memoryChunkSize==='all'?total:Math.max(1,Math.min(16,this.memoryChunkSize||1));}
@@ -7482,13 +7381,14 @@ class CopyCatLessons {
                 this.updateRhythmCards();
                 if(pieceBtn)pieceBtn.hidden=!lessonMode;
                 if(shuffleBtn)shuffleBtn.hidden=!lessonMode;
-                if(gearBtn){gearBtn.title='Keyboard options';gearBtn.setAttribute('aria-label',gearBtn.title);}
+                if(gearBtn){gearBtn.title='Settings';gearBtn.setAttribute('aria-label',gearBtn.title);}
                 const playerMirror=document.getElementById('keyboardPlayerInstrument');
                 const catMirror=document.getElementById('keyboardCpuInstrument');
                 const playerSource=document.getElementById('playerInstrument');
                 const catSource=document.getElementById(this.callResponseMode?'player2Instrument':'cpuInstrument');
                 const catLabel=document.getElementById('keyboardOtherVoiceLabel');
-                if(catLabel)catLabel.textContent=this.callResponseMode?'Player 2':'Cat';
+                if(catLabel)catLabel.textContent=this.callResponseMode?(this.player2Name||'Player 2'):'Keytar Kitty';
+                this.updateTurnDisplay();
                 if(playerMirror&&playerSource&&playerSource.options.length)playerMirror.value=playerSource.value;
                 if(catMirror&&catSource&&catSource.options.length){
                     if(catMirror.dataset.source!==catSource.id){
@@ -7496,14 +7396,14 @@ class CopyCatLessons {
                         catMirror.dataset.source=catSource.id;
                     }
                     catMirror.value=catSource.value;
-                    catMirror.setAttribute('aria-label',this.callResponseMode?'Player 2 General MIDI instrument':'Cat General MIDI instrument');
+                    catMirror.setAttribute('aria-label',this.callResponseMode?'Player 2 General MIDI instrument':'Keytar Kitty instrument');
                 }
                 if(!lessonMode&&!memoryMode)return;
                 if(pieceBtn&&lessonMode)pieceBtn.textContent=`PIECE · ${this.lesson?.selected?.title||'Choose MIDI'}`;
                 const lights=document.getElementById('keyboardLightMode');if(lights)lights.value=this.effectiveCpuLightsMode();
                 const practice=lessonMode?(this.lesson?.pendingPracticeMode??this.lesson?.practiceMode??'cumulative'):((this.pendingMemorySimonMode??this.memorySimonMode)?'cumulative':'continue');
                 const chunk=lessonMode?(this.lesson?.pendingChunkSize??this.lesson?.activeCommandChunkBeats??this.lesson?.chunkSize):(this.pendingMemoryChunkSize??this.memoryChunkSize);
-                if(practiceBtn){practiceBtn.hidden=!lessonMode&&!memoryMode;practiceBtn.textContent=practice.toUpperCase();practiceBtn.title=lessonMode?'Practice: CUMULATIVE → CONTINUE → NESTED':'Practice: CUMULATIVE → CONTINUE';practiceBtn.classList.toggle('toggle-on',practice!=='continue');practiceBtn.classList.toggle('toggle-off',practice==='continue');}
+                if(practiceBtn){practiceBtn.hidden=!lessonMode&&!memoryMode;practiceBtn.textContent=practice==='continue'?'CONTINUOUS':practice.toUpperCase();practiceBtn.title=lessonMode?'Practice: CUMULATIVE → CONTINUOUS → NESTED':'Practice: CUMULATIVE → CONTINUOUS';practiceBtn.classList.toggle('toggle-on',practice!=='continue');practiceBtn.classList.toggle('toggle-off',practice==='continue');}
                 if(shuffleBtn&&lessonMode){shuffleBtn.textContent=`SHUFFLE ${this.lesson?.random?'ON':'OFF'}`;shuffleBtn.classList.toggle('toggle-on',!!this.lesson?.random);shuffleBtn.classList.toggle('toggle-off',!this.lesson?.random);}
                 if(chunkBtn){chunkBtn.hidden=!lessonMode&&!memoryMode;const txt=this.gameMode==='pitch-training' && chunk===1 ? 'PERFECT PITCH' : (chunk==='all'||!Number.isFinite(chunk)?(lessonMode?'ENTIRE PIECE':'FULL ROUND'):`${chunk} ${chunk===1?'BEAT':'BEATS'}`);chunkBtn.textContent=txt==='PERFECT PITCH'?txt:`CHUNK ${txt}`;}
             }
@@ -7589,104 +7489,6 @@ class CopyCatLessons {
                 });
             }
 
-            updateOptionsIndicator() {
-                const indicator = document.getElementById('optionsIndicator');
-
-                // Get enabled rhythms
-                const enabledRhythms = [];
-                if (document.getElementById('rhythmQuarter').checked) enabledRhythms.push('♩');
-                if (document.getElementById('rhythmEighth').checked) enabledRhythms.push('♫');
-                if (document.getElementById('rhythmTriplet').checked) enabledRhythms.push('³');
-                if (document.getElementById('rhythmSixteenth').checked) enabledRhythms.push('♬');
-
-                // Get note mode and game mode combined
-                let noteAndGameMode;
-                if (this.isLessonMode()) {
-                    noteAndGameMode=this.gameMode[0].toUpperCase()+this.gameMode.slice(1)+' · MIDI';
-                } else if (this.gameMode === 'adventure') {
-                    noteAndGameMode = 'Random';
-                } else if (this.pitchTrainingMode) {
-                    noteAndGameMode = '🎯 Pitch Training';
-                } else if (this.callResponseMode) {
-                    noteAndGameMode = '👥 2 Player';
-                } else {
-                    const funLevels = document.querySelector('input[name="scaleType"][value="progressive"]').checked;
-                    noteAndGameMode = 'Random';
-                }
-
-                // Get other options
-                const soundFX = document.getElementById('muteCheeringSound').checked ? '🔊 Sound FX' : '🔇 Silent';
-
-                // Get game mode
-                const gameModeNames = {
-                    'adventure': 'Random',
-                    'normal': 'Random',
-                    'pitch-training': '🎯 Pitch Training',
-                    'call-response': '👥 Call & Response'
-                };
-                const gameMode = gameModeNames[this.gameMode] || 'Random';
-
-                // Update indicator
-                indicator.innerHTML = `
-                    <div class="option-tag rhythm-tag" data-option="rhythm">🎵 Rhythms: <span style="font-size: 1.3rem; color: #000000;">${enabledRhythms.join(' ')}</span></div>
-                    <div class="option-tag note-tag" data-option="notes">Notes: ${noteAndGameMode}</div>
-                    <div class="option-tag sound-tag" data-option="sound">${soundFX}</div>
-                `;
-
-                // Update the global My Own Notes checkbox
-                const globalCheckbox = document.getElementById('useMyOwnNotesGlobal');
-                const checkboxContainer = document.getElementById('myOwnNotesCheckboxContainer');
-                if (globalCheckbox && checkboxContainer) {
-                    // Set checkbox state
-                    globalCheckbox.checked = this.usingCustomScale;
-
-                    // Style based on current mode
-                    if (!this.pitchTrainingMode && !this.callResponseMode && !this.usingCustomScale) {
-                        // Adventure mode - grey out
-                        checkboxContainer.style.opacity = '0.5';
-                        checkboxContainer.style.cursor = 'not-allowed';
-                        globalCheckbox.disabled = true;
-                        checkboxContainer.style.background = 'rgba(200,200,200,0.7)';
-                        checkboxContainer.style.borderColor = '#ccc';
-                    } else {
-                        // Other modes - active
-                        checkboxContainer.style.opacity = '1';
-                        checkboxContainer.style.cursor = 'pointer';
-                        globalCheckbox.disabled = false;
-                        checkboxContainer.style.background = 'rgba(255,255,255,0.9)';
-                        checkboxContainer.style.borderColor = '#ddd';
-                    }
-                }
-
-                // Add event listeners to option tags
-                const rhythmTag = indicator.querySelector('.rhythm-tag');
-                const noteTag = indicator.querySelector('.note-tag');
-                const soundTag = indicator.querySelector('.sound-tag');
-
-                // Rhythm tag - show rhythm selection menu any time
-                if (rhythmTag) {
-                    rhythmTag.addEventListener('click', () => {
-                        this.showRhythmMenu();
-                    });
-                }
-
-                // Note tag - cycle through three modes only when stopped (skips Own Notes - that's Options only)
-                if (noteTag) {
-                    noteTag.addEventListener('click', () => {
-                        if (this.gameState === 'stopped') {
-                            this.cycleNoteAndGameModes();
-                        }
-                        // Do nothing during gameplay
-                    });
-                }
-
-                // Sound tag - always toggle
-                if (soundTag) {
-                    soundTag.addEventListener('click', () => {
-                        this.toggleSoundFX();
-                    });
-                }
-            }            // Start a new round with a fresh sequence for the current level
             startRound() {
                 // Play start round sound only if Sound FX is enabled
                 const soundFxEnabled = document.getElementById('muteCheeringSound').checked;
@@ -7729,25 +7531,7 @@ class CopyCatLessons {
             updateDisplay() {
                 document.getElementById('totalScore').textContent = this.totalScore.toLocaleString();
 
-                // Update player name display
-                const playerNameDisplay = document.getElementById('playerNameDisplay');
-                const currentPlayerName = document.getElementById('currentPlayerName');
-                if (this.playerName && this.gameStarted) {
-                    if (this.callResponseMode) {
-                        // Show both players in 2-player mode
-                        const player2Display = this.player2Name || 'Player 2';
-                        if (this.isPlayer1Turn) {
-                            currentPlayerName.textContent = `${this.playerName} vs ${player2Display} - ${this.playerName}'s Turn`;
-                        } else {
-                            currentPlayerName.textContent = `${this.playerName} vs ${player2Display} - ${player2Display}'s Turn`;
-                        }
-                    } else {
-                        currentPlayerName.textContent = this.playerName;
-                    }
-                    playerNameDisplay.style.display = 'block';
-                } else {
-                    playerNameDisplay.style.display = 'none';
-                }
+                this.updateTurnDisplay();
 
                 if (this.isLessonMode()) {
                     document.getElementById('stageLabel').textContent = this.gameMode==='adventure-midi'?'Adventure':this.gameMode[0].toUpperCase()+this.gameMode.slice(1);
@@ -7967,6 +7751,7 @@ class CopyCatLessons {
 
             // Update control buttons
             updateControls() {
+                this.updateTurnDisplay();
                 if (this.isLessonMode()) {
                     const listening=(this.gameState==='listening'||this.gameState==='waiting'&&this.lesson?.paused) && this.lesson?.active;
                     const listen=document.getElementById('listenAgainBtn');
@@ -8029,6 +7814,7 @@ class CopyCatLessons {
 
             // Clear all timeouts
             clearAllTimeouts() {
+                this.clearFadeHints();
                 for (const id of this.pendingTimers) window.clearTimeout(id);
                 this.pendingTimers.clear();
                 // Discard the light holds whose scheduled releases were cancelled.
@@ -8040,6 +7826,8 @@ class CopyCatLessons {
 
             // Clear all light effects
             clearAllLights() {
+                this.clearFadeHints();
+                this.lesson?.clearFingerings();
                 this.lightFlashStates = new WeakMap();
                 document.querySelectorAll('.light').forEach(light => {
                     light.classList.remove('active', 'playing');
@@ -8083,6 +7871,9 @@ class CopyCatLevelEditor {
         if(!this.root||this.root.hidden)return;
         if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();this.close();return;}
         if(e.target.closest('input,select,textarea'))return;
+        if(e.ctrlKey&&!e.altKey&&!e.shiftKey&&/^(Digit|Numpad)[0-9]$/.test(e.code)){
+            e.preventDefault();e.stopImmediatePropagation();if(!e.repeat)this.assignFingering(Number(e.code.at(-1))||10);return;
+        }
         if((e.ctrlKey||e.metaKey)&&['KeyC','KeyV','KeyD','KeyZ','KeyA'].includes(e.code)){
             e.preventDefault();e.stopImmediatePropagation();
             if(e.code==='KeyC')this.copySelection();
@@ -8097,6 +7888,41 @@ class CopyCatLevelEditor {
             e.preventDefault();e.stopImmediatePropagation();this.project.subdiv=e.code==='Digit3'?3:e.code==='Digit5'?5:4;this.render();this.storeDraft();return;
         }
         if(e.code==='Space'){e.preventDefault();e.stopImmediatePropagation();this.playing?this.stopPreview():this.playPreview();}
+    }
+    mainTrack(){return this.project.tracks.find(t=>!t.control&&!t.drums);}
+    syncFingerings(){
+        const main=this.mainTrack();
+        for(const t of this.project.tracks.filter(t=>t.control)){
+            t.notes=t.notes.filter(n=>n.targetId===undefined||main?.notes.some(note=>note.id===n.targetId));
+            for(const n of t.notes){
+                const target=main?.notes.find(note=>note.id===n.targetId);if(!target)continue;
+                n.start=target.start;n.dur=target.dur;n.targetPitch=target.pitch;
+            }
+        }
+    }
+    assignFingering(number){
+        const main=this.mainTrack(),selected=main?.notes.filter(n=>this.selection.has(n.id))||[];
+        if(!selected.length){this.status('Select a note in the main call/response track to assign fingering.');return;}
+        let control=this.project.tracks.find(t=>t.control);
+        if(!control&&this.project.tracks.length>=8){this.status('A CONTROL track is needed. All eight track slots are occupied.');return;}
+        this.stopPreview();this.history();
+        if(!control){control=this.newTrack(Math.max(...this.project.tracks.map(t=>t.id))+1,true);this.project.tracks.push(control);}
+        this.syncFingerings();
+        let id=Math.max(0,...this.project.tracks.flatMap(t=>t.notes.map(n=>n.id)));
+        for(const note of selected){
+            const peers=main.notes.filter(n=>Math.abs(n.start-note.start)<.01).sort((a,b)=>a.pitch-b.pitch);
+            const markers=control.notes.filter(n=>n.pitch>=60&&n.pitch<=69&&Math.abs(n.start-note.start)<.01).sort((a,b)=>a.pitch-b.pitch);
+            // Bind existing hand-authored chord flags before assigning one key.
+            const free=peers.filter(n=>!markers.some(m=>m.targetPitch===n.pitch));let index=0;
+            for(const marker of markers){
+                const target=Number.isInteger(marker.targetPitch)?peers.find(n=>n.pitch===marker.targetPitch):free[index++];
+                if(target){marker.targetId=target.id;marker.targetPitch=target.pitch;}
+            }
+            control.notes=control.notes.filter(n=>n.targetId!==note.id);
+            control.notes.push({id:++id,pitch:59+number,start:note.start,dur:note.dur,vel:96,targetId:note.id,targetPitch:note.pitch});
+        }
+        control.low=Math.min(control.low,60);control.high=Math.max(control.high,69);
+        this.render();this.storeDraft();this.status(`${CopyCatMIDI.fingerLabel(59+number)} assigned to ${selected.length} main-track note${selected.length===1?'':'s'}.`);
     }
     escape(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
     beatTicks(){return this.ppq*4/this.project.denom;}
@@ -8146,7 +7972,7 @@ class CopyCatLevelEditor {
             const tracks=[...groups.values()].map(notes=>{
                 const first=notes[0],control=CopyCatMIDI.isControlTrackName(parsed.trackNames[first.track]);
                 const t=this.newTrack(id++,control);t.channel=first.channel;t.sourceTrack=first.track;t.name=parsed.trackNames[first.track];t.program=first.program;t.drums=first.channel===9;
-                t.notes=notes.map(n=>({id:++nid,pitch:n.pitch,start:n.startTick*scale,dur:Math.max(1,((n.endTick??n.startTick+parsed.ppq)-n.startTick)*scale),vel:n.velocity}));
+                t.notes=notes.map(n=>({id:++nid,pitch:n.pitch,targetPitch:n.fingerTarget,start:n.startTick*scale,dur:Math.max(1,((n.endTick??n.startTick+parsed.ppq)-n.startTick)*scale),vel:n.velocity}));
                 t.low=Math.max(0,Math.min(...notes.map(n=>n.pitch))-2);t.high=Math.min(127,Math.max(t.low+24,...notes.map(n=>n.pitch+2)));
                 t.events=data.events.filter(e=>e.track===first.track && (e.bytes[0]>=240?tracksMetaOwner(first.track,first.channel):(e.bytes[0]&15)===first.channel)).map(e=>({...e,tick:e.tick*scale,prio:1}));return t;
             });
@@ -8154,6 +7980,12 @@ class CopyCatLevelEditor {
             const meter=data.meters.filter(m=>m.tick===0).at(-1),tempo=data.tempos.filter(t=>t.tick===0).at(-1);
             this.project={...this.defaultProject(),title:entry.title,category:entry.mode,number:entry.number,tempo:60000000/tempo.tempo,meter:meter.numerator,denom:meter.denominator,tracks,
                 events:data.events.filter(e=>!used.has(e.track)).map(e=>({...e,tick:e.tick*scale,prio:0}))};
+            const main=this.mainTrack();
+            for(const t of tracks.filter(t=>t.control))for(const marker of t.notes){
+                if(!Number.isInteger(marker.targetPitch))continue;
+                const target=main?.notes.find(n=>n.pitch===marker.targetPitch&&Math.abs(n.start-marker.start)<.01);
+                if(target)marker.targetId=target.id;
+            }
             this.project.bars=Math.max(1,Math.ceil(Math.max(...tracks.flatMap(t=>t.notes.map(n=>n.start+n.dur)))/this.barTicks()));
             this.sourceEntry={id:entry.id,name:entry.name};this.selection.clear();this.cursorTick=0;this.undoStack=[];this.render();this.storeDraft();this.status('Editing '+entry.name);
         }catch(e){this.status('Could not edit current MIDI: '+e.message);}
@@ -8182,6 +8014,7 @@ class CopyCatLevelEditor {
     close(){this.stopPreview();if(this.root)this.root.hidden=true;this.storeDraft();}
     status(msg){const el=this.root?.querySelector('#cc-e-status-text');if(el)el.textContent=msg;}
     render(){
+        this.syncFingerings();
         if(!this.root)return;
         const oldScroll=[...this.root.querySelectorAll('.cc-e-scroll')].map(el=>[el.scrollLeft,el.scrollTop]);
         const p=this.project;
@@ -8204,7 +8037,7 @@ class CopyCatLevelEditor {
             <button data-action="erase" class="${tool==='erase'?'cc-e-on':''}">⌫ Erase</button>
             <button data-action="undo" title="Undo last edit">↶ Undo</button>
             <button data-action="preview" class="cc-e-primary">▶ Play</button>
-            <button data-action="stop">■ Stop</button>
+            <button data-action="stop">■ Stop</button><button data-action="record">● Record</button><label>Record channel <select id="cc-e-record-track">${p.tracks.map(t=>`<option value="${t.id}">${t.control?"CONTROL":"Channel "+(t.id+1)}</option>`).join("")}</select></label><select id="cc-e-record-mode" aria-label="Loop recording"><option value="stack">Stack takes</option><option value="overwrite">Overwrite each loop</option></select>
             <button data-action="loop" class="${p.loopEnabled?'cc-e-on':''}" aria-pressed="${!!p.loopEnabled}">Loop ${p.loopEnabled?'ON':'OFF'}</button>
             <button data-action="test" class="cc-e-primary">TEST IN GAME</button>
             <button data-action="load-current">Edit current MIDI</button>
@@ -8215,13 +8048,23 @@ class CopyCatLevelEditor {
         </div><div class="cc-e-body"><aside class="cc-e-sidebar">
             <button class="cc-e-add" data-action="add">＋ Channel</button>
             <button class="cc-e-add" data-action="add-control">＋ CONTROL</button>
-            <div class="cc-e-side-note"><b>${p.tracks.length}/8 tracks</b><p>Ctrl-drag (or Select tool) selects notes. Shift adds to the selection. Loop uses selected notes or the cursor bar; drag its cyan ends in the ruler. Ctrl+C/V copies/pastes at the ruler cursor; Ctrl+D appends selected bars. Tap grid to draw. Drag the right edge to change duration; drag left/right for time or up/down for velocity (1–127). Shift+drag vertically changes pitch. Right-click to erase.</p><p>Drag the top/bottom edges of each piano roll to expand its pitch range.</p><p>[3] triplets · [5] quintuplets · [4] sixteenths. Space = preview. ESC closes.</p><p>CONTROL is silent. Its C0 note duration changes ADVENTURE chunk length.</p></div>
+            <div class="cc-e-side-note"><b>${p.tracks.length}/8 tracks</b><p>Ctrl-drag (or Select tool) selects notes. Shift adds to the selection. Loop uses selected notes or the cursor bar; drag its cyan ends in the ruler. Ctrl+1–0 assigns left pinky through right pinky on selected main-track notes (Ctrl+6 = R1 thumb). Ctrl+C/V copies/pastes at the ruler cursor; Ctrl+D appends selected bars. Tap grid to draw. Drag the right edge to change duration; drag left/right for time or up/down for velocity (1–127). Shift+drag vertically changes pitch. Right-click to erase.</p><p>Drag the top/bottom edges of each piano roll to expand its pitch range.</p><p>[3] triplets · [5] quintuplets · [4] sixteenths. Space = preview. ESC closes.</p><p>CONTROL is silent (C0=MIDI 24). C0 sets chunk length; adjacent C#0 notes set a repeating split. D0: short pulses toggle NESTED, long lines enable CONTINUOUS. C1: countdown note, then solo-length note. D#0–B0 encode the level gradient.</p></div>
             </aside><div class="cc-e-rolls" id="cc-e-rolls">${p.tracks.map(t=>this.rollHtml(t)).join('')}</div></div>
             <div class="cc-e-status"><span id="cc-e-status-text">${this.escape(this.fileName())} · ${p.subdiv*p.meter} cells per bar · 480 PPQ · ready</span><span>CTRL + ALT + SHIFT + L, then ]</span></div>`;
         this.root.querySelectorAll('.cc-e-scroll').forEach((el,i)=>{if(oldScroll[i]){el.scrollLeft=oldScroll[i][0];el.scrollTop=oldScroll[i][1];}});
         this.root.querySelectorAll('.cc-e-playhead').forEach(el=>{el.style.display='block';el.style.left=(68+this.cursorTick/this.stepTicks()*this.cellWidth)+'px';});
     }
+    controlColors(){
+        const meters=[{tick:0,numerator:this.project.meter,denominator:this.project.denom}];
+        for(const e of [...(this.project.events||[]),...this.project.tracks.flatMap(t=>t.events||[])]){
+            if(e.bytes[0]===255&&e.bytes[1]===88)meters.push({tick:e.tick,numerator:e.bytes[3],denominator:2**e.bytes[4]});
+        }
+        const notes=this.project.tracks.filter(t=>t.control).flatMap(t=>t.notes).map(n=>({pitch:n.pitch,atMs:n.start,
+            colorValue:CopyCatMIDI.colorByte(n.start,n.start+n.dur,this.ppq,meters)}));
+        return CopyCatMIDI.backgroundColors(notes).colors.map(rgb=>'#'+rgb.map(v=>v.toString(16).padStart(2,'0')).join(''));
+    }
     rollHtml(t){
+        if(t.control)this.controlPreviewColors=this.controlColors();
         const bh=this.barPixels(),width=this.gridPixels(),n=this.project.bars;
         const bars=Array.from({length:n},(_,i)=>`<span class="cc-e-barlabel" style="left:${i*bh}px">${i+1}</span>`).join('');
         const rows=[];
@@ -8229,7 +8072,7 @@ class CopyCatLevelEditor {
             const c=(pitch%12)===0;
             const black=[1,3,6,8,10].includes(pitch%12);
             const notes=t.notes.filter(v=>v.pitch===pitch).map(note=>this.noteHtml(note,t)).join('');
-            rows.push(`<div class="cc-e-row ${c?'cc-e-crow':''}" data-pitch="${pitch}"><div class="cc-e-key ${black?'cc-e-black':''} ${c?'cc-e-c':''}" data-audition="${pitch}" data-track="${t.id}">${this.displayNoteName(pitch,t)}</div><div class="cc-e-row-grid" data-pitch="${pitch}" data-track="${t.id}" style="width:${width}px;--cellpx:${this.cellWidth}px;--barpx:${bh}px">${notes}</div></div>`);
+            rows.push(`<div class="cc-e-row ${c?'cc-e-crow':''}" data-pitch="${pitch}"><div class="cc-e-key ${black?'cc-e-black':''} ${c?'cc-e-c':''}" data-audition="${pitch}" data-track="${t.id}" title="${t.control?this.escape(this.displayNoteName(pitch,t)+' · '+CopyCatMIDI.controlInfo(pitch).join(' — ')):''}" style="${t.control?'font-size:9px':''}">${t.control?this.escape(CopyCatMIDI.controlInfo(pitch)[0]):this.displayNoteName(pitch,t)}</div><div class="cc-e-row-grid" data-pitch="${pitch}" data-track="${t.id}" style="width:${width}px;--cellpx:${this.cellWidth}px;--barpx:${bh}px">${notes}</div></div>`);
         }
         return `<div class="cc-e-roll" data-track="${t.id}"><div class="cc-e-roll-head"><b>${t.control?'CONTROL':t.drums?'DRUMS':`CH ${this.project.tracks.indexOf(t)+1}`}</b>
             ${t.control?'<small>Silent MIDI command channel · C0 sets chunk length</small>':
@@ -8268,8 +8111,13 @@ class CopyCatLevelEditor {
         const x=Math.round(note.start/this.stepTicks()*this.cellWidth*100)/100;
         const w=Math.max(8,Math.round(note.dur/this.stepTicks()*this.cellWidth*100)/100);
         const hue=t.control?'#ffbb59':t.drums?'#3dc5e5':['#62d845','#fbaf1d','#ad6afa','#36bff4','#ee648c','#6dd4a3','#d2bb54'][this.project.tracks.indexOf(t)%7];
-        return `<div class="cc-e-note ${t.control?'cc-e-control':''} ${this.selection.has(note.id)?'cc-e-selected':''}" data-note="${note.id}" data-track="${t.id}" title="${this.escape(this.displayNoteName(note.pitch,t))} · Velocity ${note.vel||96} · ${Math.round(note.start)}–${Math.round(note.start+note.dur)} ticks" style="left:${x}px;width:${w}px;background:${this.velocityColor(hue,note.vel)}">${w>=40?this.displayNoteName(note.pitch,t):''}<span class="cc-e-note-tail"></span></div>`;
+        const info=t.control?CopyCatMIDI.controlInfo(note.pitch):null;
+        const color=t.control&&note.pitch>=27&&note.pitch<=35?(this.controlPreviewColors||this.controlColors())[Math.floor((35-note.pitch)/3)]:null;
+        const title=this.displayNoteName(note.pitch,t)+(info?' · '+info[0]+' — '+info[1]:' · Velocity '+(note.vel||96))+(color?' · '+color.toUpperCase():'');
+        const bright=color&&parseInt(color.slice(1,3),16)*.299+parseInt(color?.slice(3,5)||'0',16)*.587+parseInt(color?.slice(5,7)||'0',16)*.114>145;
+        return `<div class="cc-e-note ${t.control?'cc-e-control':''} ${this.selection.has(note.id)?'cc-e-selected':''}" data-note="${note.id}" data-track="${t.id}" title="${this.escape(title)}" style="left:${x}px;width:${w}px;background:${color||this.velocityColor(hue,note.vel)};${color?'color:'+(bright?'#111':'#fff')+';':''}">${w>=40?this.escape(info?info[0]:this.displayNoteName(note.pitch,t)):''}<span class="cc-e-note-tail"></span></div>`;
     }
+
     velocityColor(hex,velocity=96){
         const v=(Math.max(1,Math.min(127,velocity))-1)/126;
         const rgb=hex.slice(1).match(/../g).map(c=>parseInt(c,16));
@@ -8284,7 +8132,7 @@ class CopyCatLevelEditor {
     }
     history(){this.undoStack.push(JSON.stringify(this.project));if(this.undoStack.length>35)this.undoStack.shift();}
     undo(){const saved=this.undoStack.pop();if(saved){this.project=JSON.parse(saved);this.render();this.storeDraft();}}
-    change(e){if(this.playing)this.stopPreview();const id=e.target.id,p=this.project;let rebuild=false;
+    change(e){if(this.recording)this.stopRecording();if(this.playing)this.stopPreview();const id=e.target.id,p=this.project;let rebuild=false;
         switch(id){
             case 'cc-e-type':p.category=e.target.value;break;
             case 'cc-e-number':p.number=Math.max(1,Math.min(999,Math.round(Number(e.target.value)||1)));break;
@@ -8311,6 +8159,7 @@ class CopyCatLevelEditor {
         if(a==='undo')this.undo();
         if(a==='preview')this.playPreview();
         if(a==='stop')this.stopPreview();
+        if(a==='record')this.startRecording();
         if(a==='loop')this.toggleLoop();
         if(a==='save')this.saveLevel(false);
         if(a==='replace')this.saveLevel(true);
@@ -8331,7 +8180,7 @@ class CopyCatLevelEditor {
     pointerDown(e){
         if(e.button===1)return;
         const key=e.target.closest('[data-audition]');
-        if(key){this.game.resumeAudio?.();this.game.playGMNote(Number(key.dataset.audition),{role:'backing',program:this.project.tracks.find(t=>t.id===Number(key.dataset.track))?.program||0,durationMs:220});return;}
+        if(key){if(this.project.tracks.find(t=>t.id===Number(key.dataset.track))?.control)return;this.game.resumeAudio?.();this.game.playGMNote(Number(key.dataset.audition),{role:'backing',program:this.project.tracks.find(t=>t.id===Number(key.dataset.track))?.program||0,durationMs:220});return;}
         const edge=e.target.closest('.cc-e-edge');
         if(edge){e.preventDefault();this.history();this.drag={kind:'edge',track:Number(edge.dataset.track),edge:edge.dataset.edge,y:e.clientY,pitch:0};return;}
         const loopEdge=e.target.closest('[data-loop-edge]');
@@ -8371,6 +8220,7 @@ class CopyCatLevelEditor {
             this.drag={kind:'create',track:tid,id,mouseX:e.clientX,mouseY:e.clientY,start,dur,pitch};
             this.game.resumeAudio?.();if(!t.control)this.game.playGMNote(pitch,{role:'backing',program:t.program,drums:t.drums,durationMs:120});
         }
+        if(!this.selection.has(id)){this.selection.clear();this.selection.add(id);}
         this.redrawRoll(tid);this.storeDraft();
     }
     pointerMove(e){
@@ -8397,6 +8247,7 @@ class CopyCatLevelEditor {
         }
         const note=t.notes.find(n=>n.id===d.id);if(!note)return;
         const step=this.stepTicks(),dx=Math.round((e.clientX-d.mouseX)/this.cellWidth)*step;
+        if(t.control&&(dx||d.pitchDrag&&Math.abs(d.mouseY-e.clientY)>=this.rowHeight/2)){delete note.targetId;delete note.targetPitch;}
         const limit=this.project.bars*this.barTicks();
         if(d.kind==='create'||d.kind==='resize'){
             note.dur=Math.max(step,Math.min(limit-note.start,(d.kind==='create'?dx+step:dx+d.dur)));
@@ -8413,7 +8264,7 @@ class CopyCatLevelEditor {
         }
         this.redrawRoll(t.id);
     }
-    pointerUp(e){if(!this.drag)return;const d=this.drag;d.box?.remove();this.drag=null;this.storeDraft();if(d.kind==='loop'&&d.wasPlaying){this.cursorTick=this.loopRange().start;this.playPreview();}}
+    pointerUp(e){if(!this.drag)return;const d=this.drag;d.box?.remove();this.drag=null;this.syncFingerings();for(const t of this.project.tracks.filter(t=>t.control))this.redrawRoll(t.id);this.storeDraft();if(d.kind==='loop'&&d.wasPlaying){this.cursorTick=this.loopRange().start;this.playPreview();}}
     syncScroll(e){const target=e.target;if(!target.classList?.contains('cc-e-scroll')||this.scrollSync)return;
         this.scrollSync=true;for(const s of this.root.querySelectorAll('.cc-e-scroll'))if(s!==target)s.scrollLeft=target.scrollLeft;this.scrollSync=false;
     }
@@ -8431,12 +8282,13 @@ class CopyCatLevelEditor {
         return [...CopyCatLevelEditor.chunk('MTrk'),...CopyCatLevelEditor.u32(body.length),...body];
     }
     exportMidi(){
+        this.syncFingerings();
         const p=this.project,beat=480*4/p.denom,endTick=p.bars*p.meter*beat;
         const micros=Math.floor(60000000/p.tempo);
         const lead=[{tick:0,prio:0,bytes:CopyCatLevelEditor.meta(3,CopyCatLevelEditor.chunk(p.title))},
             {tick:0,prio:0,bytes:CopyCatLevelEditor.meta(81,[(micros>>16)&255,(micros>>8)&255,micros&255])},
             {tick:0,prio:0,bytes:CopyCatLevelEditor.meta(88,[p.meter,Math.log2(p.denom),24,8])}];
-        const retained=e=>!(e.tick===0&&(e.bytes[0]&240)===192)&&!(e.bytes[0]===255 && ([3,4].includes(e.bytes[1])||e.tick===0&&[81,88].includes(e.bytes[1])));
+        const retained=e=>!(e.bytes[0]===255&&e.bytes[1]===127&&e.bytes[2]===6&&e.bytes[3]===125&&e.bytes[4]===67&&e.bytes[5]===70&&e.bytes[6]===1)&&!(e.tick===0&&(e.bytes[0]&240)===192)&&!(e.bytes[0]===255 && ([3,4].includes(e.bytes[1])||e.tick===0&&[81,88].includes(e.bytes[1])));
         lead.push(...(p.events||[]).filter(retained));
         const tracks=[CopyCatLevelEditor.midiTrack(lead)];
         const used=new Set(p.tracks.filter(t=>t.channel!==undefined).map(t=>t.channel));
@@ -8453,6 +8305,8 @@ class CopyCatLevelEditor {
                 const pitch=Math.max(0,Math.min(127,Math.round(n.pitch)));
                 const start=Math.max(0,Math.min(endTick-1,Math.round(n.start)));
                 const end=Math.max(start+1,Math.min(endTick,Math.round(start+n.dur)));
+                if(t.control&&pitch>=60&&pitch<=69&&Number.isInteger(n.targetPitch))events.push({tick:start,prio:1,
+                    bytes:CopyCatLevelEditor.meta(127,[125,67,70,1,pitch,n.targetPitch])});
                 events.push({tick:start,prio:3,bytes:[0x90|ch,pitch,Math.min(127,n.vel||96)]});
                 events.push({tick:end,prio:2,bytes:[0x80|ch,pitch,0]});
             }
@@ -8478,6 +8332,83 @@ class CopyCatLevelEditor {
             this.status(`${name} downloaded and added to CopyCat's level index. Use Export index to publish the manifest.json file to your website.`);
         }catch(e){this.status('Save failed: '+e.message);}
     }
+
+    hearUnlock(pitch,command,velocity){
+        if(this.game.gameState!=='stopped'||this.root?.hidden===false){this.unlockNotes=[];return;}
+        const now=performance.now(),on=command===0x90&&velocity>0;
+        if(on){
+            const expected=[64,64,64,60,64,67,55];let notes=this.unlockNotes||[];
+            if(pitch!==expected[notes.length])notes=[];
+            if(pitch===expected[notes.length])notes.push({pitch,at:now});
+            this.unlockNotes=notes;
+        }else if((command===0x80||command===0x90)&&this.unlockNotes?.length===7&&pitch===55){
+            const notes=this.unlockNotes,units=[1,2,2,1,2,4],deltas=units.map((u,i)=>(notes[i+1].at-notes[i].at)/u);
+            const sorted=[...deltas].sort((a,b)=>a-b),unit=(sorted[2]+sorted[3])/2;
+            this.unlockNotes=[];
+            if(unit>0&&deltas.every(d=>Math.abs(d/unit-1)<.4)&&Math.abs((now-notes[6].at)/(4*unit)-1)<.45)this.open();
+        }
+    }
+    async startRecording(){
+        if(this.recording){this.stopRecording();return;}
+        const track=this.project.tracks.find(t=>t.id===Number(this.root.querySelector('#cc-e-record-track').value));
+        if(!this.game.midiInPort){this.status('Connect a MIDI keyboard in the game settings first.');return;}
+        this.stopPreview();this.history();
+        const range=this.project.loopEnabled?this.loopRange():{start:this.cursorTick,end:this.project.bars*this.barTicks()};
+        if(range.end<=range.start)return;
+        const beat=60000/this.project.tempo;
+        const rec=this.recording={track,range,step:this.stepTicks(),ms:beat/this.ppq,beat,loop:this.project.loopEnabled,overwrite:this.root.querySelector('#cc-e-record-mode').value==='overwrite',held:new Map(),lap:-1,origin:performance.now()+4*beat,timers:[]};
+        await this.game.resumeAudio();if(this.recording!==rec)return;
+        rec.origin=performance.now()+4*beat;
+        for(let i=0;i<4;i++)rec.timers.push(setTimeout(()=>{if(this.recording!==rec)return;this.status('Record in '+(4-i));this.game.playGMNote(76,{role:'player1',program:115,durationMs:65,velocity:80});},i*beat));
+        const frame=()=>{
+            if(this.recording!==rec)return;
+            const elapsed=(performance.now()-rec.origin)/rec.ms,length=range.end-range.start;
+            if(elapsed>=0){
+                const lap=Math.floor(elapsed/length);
+                if(!rec.loop&&lap>0){this.stopRecording();return;}
+                this.recordLap(lap);
+                this.cursorTick=range.start+elapsed%length;
+                this.root.querySelectorAll('.cc-e-playhead').forEach(el=>{el.style.left=(68+this.cursorTick/rec.step*this.cellWidth)+'px';});
+            }
+            rec.frame=requestAnimationFrame(frame);
+        };frame();
+    }
+    recordLap(lap){
+        const rec=this.recording;if(!rec||lap===rec.lap)return;
+        if(rec.lap>=0)for(const pitch of [...rec.held.keys()])this.finishRecordedNote(pitch,rec.range.end);
+        rec.lap=lap;
+        if(rec.overwrite){rec.track.notes=rec.track.notes.filter(n=>n.start+n.dur<=rec.range.start||n.start>=rec.range.end);this.redrawRoll(rec.track.id);}
+        this.status('Recording · '+(rec.overwrite?'Overwrite':'Stack')+' · Stop to finish');
+    }
+    recordInput(pitch,command,velocity){
+        const r=this.recording;if(!r)return false;
+        if(command!==0x80&&command!==0x90)return false;
+        const elapsed=(performance.now()-r.origin)/r.ms;
+        if(elapsed<0)return false;
+        const length=r.range.end-r.range.start;
+        if(!r.loop&&elapsed>=length){this.stopRecording();return false;}
+        this.recordLap(Math.floor(elapsed/length));
+        const tick=r.range.start+elapsed%length;this.cursorTick=tick;
+        if(command===0x90&&velocity>0){
+            this.finishRecordedNote(pitch,tick);
+            r.held.set(pitch,{start:Math.max(r.range.start,Math.min(r.range.end-r.step,Math.round(tick/r.step)*r.step)),velocity});
+        }else this.finishRecordedNote(pitch,tick);
+        return false;
+    }
+    finishRecordedNote(pitch,tick){
+        const r=this.recording,n=r?.held.get(pitch);if(!n)return;r.held.delete(pitch);
+        const end=Math.min(r.range.end,Math.max(n.start+r.step,Math.round(tick/r.step)*r.step));
+        const id=1+Math.max(0,...this.project.tracks.flatMap(t=>t.notes.map(n=>n.id)));
+        r.track.notes.push({id,pitch,start:n.start,dur:end-n.start,vel:n.velocity});
+        this.redrawRoll(r.track.id);this.storeDraft();
+    }
+    stopRecording(){
+        const r=this.recording;if(!r)return;
+        for(const pitch of [...r.held.keys()])this.finishRecordedNote(pitch,this.cursorTick);
+        this.recording=null;for(const id of r.timers)clearTimeout(id);cancelAnimationFrame(r.frame);
+        this.storeDraft();this.status('Recording saved in this project. Use Save new version to export MIDI.');
+    }
+
     previewSchedule(fn,at,generation){
         const id=setTimeout(()=>{this.audioTimers.delete(id);if(this.playing&&generation===this.previewGeneration)fn();},Math.max(0,at-performance.now()));
         this.audioTimers.add(id);return id;
@@ -8540,6 +8471,7 @@ class CopyCatLevelEditor {
         };this.previewFrame=requestAnimationFrame(paint);
     }
     stopPreview(){
+        this.stopRecording();
         this.playing=false;this.previewGeneration++;
         for(const id of this.audioTimers)clearTimeout(id);this.audioTimers.clear();this.releasePreviewNotes();
         if(this.previewFrame)cancelAnimationFrame(this.previewFrame);this.previewFrame=null;

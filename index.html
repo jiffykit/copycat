@@ -1719,21 +1719,39 @@ class CopyCatLessons {
     }
     async loadDailyChallenge(request){
         const status=this.$('dailyLoadStatus'),label=this.$('dailyChallengeDate');
-        const now=new Date(),date=now.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+        const today=new Date(),yesterday=new Date(today);
+        yesterday.setDate(yesterday.getDate()-1);
+        const filenameFor=date=>{
+            const day=String(date.getDate()).padStart(2,'0');
+            const month=String(date.getMonth()+1).padStart(2,'0');
+            const year=String(date.getFullYear()).slice(-2);
+            return day+month+year+'.mid';
+        };
+        const todayFile=filenameFor(today),yesterdayFile=filenameFor(yesterday);
         try{
-            let response;
+            const fetchMidi=filename=>fetch(new URL(filename,document.baseURI),{cache:'no-store'});
+            let challengeDay=today,filename=todayFile,response;
             try{
-                response=await fetch(new URL('TODAY.mid',document.baseURI),{cache:'no-store'});
+                response=await fetchMidi(filename);
+                if(request!==this.startRequest || !this.isMode())return false;
+                if(response.status===404 || response.status===410){
+                    challengeDay=yesterday;
+                    filename=yesterdayFile;
+                    response=await fetchMidi(filename);
+                }
             }catch(error){
-                throw new Error(location.protocol==='file:'?'Open this game through localhost or your website so the browser can load TODAY.mid automatically.':'Could not reach TODAY.mid. Press Start Game to retry.');
+                throw new Error(location.protocol==='file:'?'Open this game through localhost or your website to load the daily MIDI.':`Could not reach ${filename}. Press Start Game to retry.`);
             }
-            if(!response.ok)throw new Error('TODAY.mid is unavailable. Press Start Game to retry.');
+            if(response.status===404 || response.status===410)
+                throw new Error(`No daily challenge found. Tried ${todayFile} and ${yesterdayFile}.`);
+            if(!response.ok)throw new Error(`Could not load ${filename} (HTTP ${response.status}). Press Start Game to retry.`);
             const buffer=await response.arrayBuffer();
             if(request!==this.startRequest || !this.isMode())return false;
-            if(buffer.byteLength>8*1024*1024)throw new Error('TODAY.mid exceeds 8 MB.');
+            if(buffer.byteLength>8*1024*1024)throw new Error(`${filename} exceeds 8 MB.`);
+            const date=challengeDay.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
             const previous=this.selected;
             const oldBuffer=previous?.source?.buffer;
-            if(previous?.daily && this.dailyLoadedDay===now.toDateString() && oldBuffer?.byteLength===buffer.byteLength){
+            if(previous?.daily && previous.name===filename && oldBuffer?.byteLength===buffer.byteLength){
                 const oldBytes=new Uint8Array(oldBuffer);
                 if(new Uint8Array(buffer).every((byte,i)=>byte===oldBytes[i])){
                     status.hidden=true;
@@ -1741,9 +1759,9 @@ class CopyCatLessons {
                 }
             }
             CopyCatMIDI.fromArrayBuffer(buffer,'adventure-midi');
-            const entry={name:'TODAY.mid',mode:'adventure-midi',number:1,title:'Daily Challenge · '+date,id:'daily-'+now.toDateString(),source:{buffer,origin:'daily',daily:true},daily:true};
+            const entry={name:filename,mode:'adventure-midi',number:1,title:'Daily Challenge · '+date,id:'daily-'+filename,source:{buffer,origin:'daily',daily:true},daily:true};
             this.entries.clear();this.entries.set(entry.id,entry);this.selected=entry;
-            this.dailyArtVersion=Date.now();this.dailyLoadedDay=now.toDateString();this.dailyProgress={prefix:0,completed:false};
+            this.dailyArtVersion=Date.now();this.dailyProgress={prefix:0,completed:false};
             this.piece=null;this.steps=[];this.lastAccuracy=null;this.lastRhythmMessage='';this.update();
             label.textContent='DAILY CHALLENGE · '+date;
             status.hidden=true;
@@ -2308,7 +2326,7 @@ class CopyCatLessons {
                 if(!this.active||session!==this.playSession)return;
                 this.game.showGetReadyModal(()=>{if(this.active&&session===this.playSession)this.playPrefix();},this.piece,this.effectiveSpeed(),true);
             },0);
-        }catch(e){if(loadingRequest!==this.startRequest)return;this.active=false;this.game.gameState='stopped';this.game.switchToPreGameUI();this.game.updateControls();const status=this.$('dailyLoadStatus');status.textContent=`Could not start TODAY.mid: ${e.message}`;status.hidden=false;}
+        }catch(e){if(loadingRequest!==this.startRequest)return;this.active=false;this.game.gameState='stopped';this.game.switchToPreGameUI();this.game.updateControls();const status=this.$('dailyLoadStatus');status.textContent=`Could not start ${entry.name}: ${e.message}`;status.hidden=false;}
     }
     // Return the end of the next *time-based* chunk rather than adding a fixed
     // number of note events. A beat may contain any number of notes, including
@@ -4418,7 +4436,7 @@ class CopyCatLessons {
                 }
                 if(this.setupIndex===1)return document.getElementById('gmStatus').textContent;
                 const count=this.lesson?.entries.size||0;
-                return count?'Today’s challenge is ready.':'Today’s challenge loads automatically from TODAY.mid.';
+                return count?'Today’s challenge is ready.':'Press Play to load the daily challenge.';
             }
 
             renderSetup() {

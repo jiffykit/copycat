@@ -332,7 +332,7 @@ body:not(.lesson-mode) #lessonOctaveLabel,body:not(.lesson-mode) #lessonOctaveLo
 .keyboard-settings-shell .midi-panel[hidden],.keyboard-settings-shell .lesson-panel[hidden]{display:none!important}
 @media(max-width:650px){.keyboard-settings-shell{top:10px;padding:12px;gap:12px}.keyboard-settings-shell .midi-panel,.keyboard-settings-shell .lesson-panel{padding:10px}.keyboard-quick-menu{width:min(340px,calc(100vw - 16px));max-height:65dvh}}
 
-.daily-brand{font-size:.46em;letter-spacing:.18em;display:inline-block;margin-left:.5em;color:#ffd36c;vertical-align:middle}.daily-date{white-space:nowrap}.daily-stars{font-size:1.15em;letter-spacing:.08em;color:#ffd36c}.daily-build #keyboardPieceBtn,.daily-build #keyboardPracticeBtn,.daily-build #keyboardShuffleBtn,.daily-build #keyboardChunkBtn,.daily-build .keyboard-voices,.daily-build #helpBtn,.daily-build #lessonPanel{display:none!important}.daily-build .lesson-import,.daily-build .lesson-actions,.daily-build #lessonPart,.daily-build #lessonList{display:none!important}.daily-touch #audioSettingsBtn,.daily-touch #keyboardSettingsPanel{display:none!important}
+.daily-brand{font-size:.46em;letter-spacing:.18em;display:inline-block;margin-left:.5em;color:#ffd36c;vertical-align:middle}.daily-date{white-space:nowrap}.daily-stars{font-size:1.15em;letter-spacing:.08em;color:#ffd36c}.daily-build #keyboardPieceBtn,.daily-build #keyboardPracticeBtn,.daily-build #keyboardShuffleBtn,.daily-build #keyboardChunkBtn,.daily-build .keyboard-voices,.daily-build #helpBtn,.daily-build #lessonPanel{display:none!important}.daily-build .lesson-import,.daily-build .lesson-actions,.daily-build #lessonPart,.daily-build #lessonList{display:none!important}
 #dailyTour{width:min(25rem,90vw);box-sizing:border-box;padding:1.6rem;border:2px solid #ffd36c;border-radius:18px;background:#192a60;color:white}
 #dailyTour::backdrop{background:#10162ed9}#dailyTour h2{margin:.5em 0}#dailyTour p{line-height:1.5;margin:0 0 1.4em}#tourStep{color:#ffd36c}
 </style>
@@ -488,7 +488,7 @@ body:not(.lesson-mode) #lessonOctaveLabel,body:not(.lesson-mode) #lessonOctaveLo
                 <label class="midi-field gm-select"><span>Cat instrument</span><select id="cpuInstrument" aria-label="Keytar Kitty instrument"><option value="file">Follow MIDI file (Piano if unset)</option></select></label>
                 <label class="midi-field gm-select"><span>Player 1 instrument</span><select id="playerInstrument" aria-label="Player one General MIDI instrument"></select></label>
                 <label class="midi-field gm-select"><span>Player 2 instrument</span><select id="player2Instrument" aria-label="Player two General MIDI instrument"></select></label>
-                <div class="gm-bank-tools"><label class="lesson-pick">Choose downloaded SoundFont<input id="gmSoundFont" type="file" accept=".sf2" aria-label="Browse your device for an SF2 SoundFont"></label><label class="midi-field gm-select"><span>Saved fonts</span><select id="gmSavedSoundFont" aria-label="Previously loaded SoundFonts"><option value="">No saved SoundFont</option></select></label><span id="gmStatus" role="status" aria-live="polite">Checking for a native GM output…</span><span id="gmHelp"><a href="https://github.com/mrbumpy409/GeneralUser-GS/raw/refs/heads/main/GeneralUser-GS.sf2" target="_blank" rel="noopener noreferrer">Download GeneralUser GS (.sf2, about 31 MB)</a> · <a href="https://www.schristiancollins.com/generaluser" target="_blank" rel="noopener noreferrer">Creator &amp; license</a><br>Save it in Downloads. Then press “Choose downloaded SoundFont” and select GeneralUser-GS.sf2. No special folder or installation needed. CopyCat remembers it here when browser storage is available. You can keep playing while it downloads.</span></div>
+                <div class="gm-bank-tools"><label class="lesson-pick">Connect SoundFont now<input id="gmSoundFont" type="file" accept=".sf2" aria-label="Browse your device for an SF2 SoundFont"></label><label class="midi-field gm-select"><span>Saved fonts</span><select id="gmSavedSoundFont" aria-label="Previously loaded SoundFonts"><option value="">No saved SoundFont</option></select></label><span id="gmStatus" role="status" aria-live="polite">Checking for a native GM output…</span><span id="gmHelp" style="order:-1;flex-basis:100%"><a href="https://github.com/mrbumpy409/GeneralUser-GS/raw/refs/heads/main/GeneralUser-GS.sf2" target="_blank" rel="noopener noreferrer">Download GeneralUser GS (.sf2, about 31 MB)</a> · <a href="https://www.schristiancollins.com/generaluser" target="_blank" rel="noopener noreferrer">Creator &amp; license</a><br>Save GeneralUser-GS.sf2 in Downloads. Return here, tap “Connect SoundFont now”, then select it from Downloads. No special folder or installation needed. CopyCat remembers it here when browser storage is available. You can keep playing while it downloads.</span></div>
                 <label class="midi-checkbox"><input type="checkbox" id="midiThru"> MIDI Thru</label>
                 <label class="midi-checkbox"><input type="checkbox" id="metronomeEnabled"> Gentle metronome</label>
                 <label class="metro-volume" for="metronomeVolume">Click volume <input id="metronomeVolume" type="range" min="0" max="100" value="60" aria-label="Metronome volume"></label>
@@ -623,18 +623,18 @@ class CopyCatGM {
         if(role==='cpu')return this.game.cpuInstrument==='drums' || (this.game.cpuInstrument==='file' && !!note?.drums);
         return this.game?.[role==='player2'?'player2Instrument':'playerInstrument']==='drums';
     }
-    play(note,{role='cpu',program=0,drums=false,presetName='',durationMs=220,velocity=96}={}){
+    play(note,{role='cpu',program=0,drums=false,presetName='',durationMs=220,velocity=96,when=0}={}){
         if(!this.game.onboardEnabled || !this.game.audioContext || durationMs<=0)return;
         const audio=this.game.audioContext;
         // Named MIDI tracks only choose SF2 presets when Cat follows the file.
         // Explicit Cat/Player 1/Player 2 choices always win; backing stays file-assigned.
         const useFileName=role==='backing' || (role==='cpu' && this.game.cpuInstrument==='file');
         if(!useFileName)presetName='';
-        const result=this.bank ? this.sampleNote(note,{program,drums,presetName,durationMs,velocity}) : null;
+        const result=this.bank ? this.sampleNote(note,{program,drums,presetName,durationMs,velocity,when}) : null;
         if(result)return result;
-        return this.fallback(note,{role,program,drums,durationMs,velocity});
+        return this.fallback(note,{role,program,drums,durationMs,velocity,when});
     }
-    sampleNote(pitch,{program,drums,presetName,durationMs,velocity}){
+    sampleNote(pitch,{program,drums,presetName,durationMs,velocity,when}){
         const audio=this.game.audioContext;
         if(!audio)return null;
         const zones=this.bank.find(program,pitch,velocity,drums,presetName);
@@ -662,7 +662,7 @@ class CopyCatGM {
             src.loopEnd=Math.min(frames/sample.rate,(sample.loopEnd-sample.start)/sample.rate);
         }
         const gain=audio.createGain();
-        const t=audio.currentTime,hold=Math.max(.025,durationMs/1000);
+        const t=Math.max(audio.currentTime,when||0),hold=Math.max(.025,durationMs/1000);
         const attack=Math.max(.003,Math.min(.25,zone.attack||.006));
         const release=Math.max(.03,Math.min(1.3,zone.release||.17));
         const atten=Math.pow(10,-Math.max(0,zone.attenuation||0)/200);
@@ -678,16 +678,16 @@ class CopyCatGM {
         src.onended=()=>{this.voices.delete(voice);src.disconnect();gain.disconnect();};
         return voice;
     }
-    fallback(pitch,{program=0,drums=false,durationMs=240,velocity=96}){
+    fallback(pitch,{program=0,drums=false,durationMs=240,velocity=96,when=0}){
         // Per-family GM-inspired fallback for offline/file: URLs without an SF2.
         // Instrument names correspond to GM; fidelity is limited without samples.
-        const a=this.game.audioContext,t=a.currentTime,hold=Math.max(.035,durationMs/1000);
+        const a=this.game.audioContext,t=Math.max(a.currentTime,when),hold=Math.max(.035,durationMs/1000);
         const gain=a.createGain(), family=program>>3;
         const perc=drums||family===14;
         const osc=a.createOscillator();
         const f=440*Math.pow(2,(pitch-69)/12);
         if(perc){
-            osc.type=countIn?'square':'triangle';osc.frequency.setValueAtTime(pitch===36||pitch===35?135:440,t);
+            osc.type='triangle';osc.frequency.setValueAtTime(pitch===36||pitch===35?135:440,t);
             osc.frequency.exponentialRampToValueAtTime(pitch<46?60:220,t+.09);
         }else{
             osc.type=([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15][family]%4===0?'sine':
@@ -1359,6 +1359,7 @@ class CopyCatMetronome {
     }
     stop(){
         this.running=false;this.finaleClock=false;
+        window.clearTimeout(this.clickTimer);
         if(this.timer!==null){window.clearTimeout(this.timer);this.timer=null;}
         if(this.flashTimer!==null){window.clearTimeout(this.flashTimer);this.flashTimer=null;}
         this.indicate(null);
@@ -1444,6 +1445,7 @@ class CopyCatMetronome {
                 const interval=60000/Math.max(1,bpm);
                 this.beats.length=boundary+1;this.beats[boundary]=at;
                 this.beatMs=interval;this.tempo=bpm;
+                window.clearTimeout(this.clickTimer);
                 if(this.timer!==null)window.clearTimeout(this.timer);
                 this.tick();
             }
@@ -1557,6 +1559,7 @@ class CopyCatMetronome {
     // One grace adjustment per answer, shared by lesson and generated modes.
     anchorPlayer(responseBeatIndex,at=performance.now()){
         const g=this.game,lesson=g.isLessonMode()?g.lesson:null,owner=lesson||g;
+        if(lesson?.selected?.daily)return false; // Keep the band on its MIDI clock through late responses.
         if(g.callResponseMode||g.gameState!=='listening'||owner.responseStartClaimed)return false;
         const gate=owner.responseGateAt;
         const beat=lesson?(lesson.piece?.beatMs||500)/(lesson.callSpeed||1):60000/g.getRoundBpm();
@@ -1572,7 +1575,8 @@ class CopyCatMetronome {
         owner.responseGateAt+=delta;
         if(Number.isFinite(owner.responseCycleEndAt))owner.responseCycleEndAt+=delta;
         if(this.running&&Number.isInteger(responseBeatIndex)){
-            if(this.timer!==null)window.clearTimeout(this.timer);
+            window.clearTimeout(this.clickTimer);
+        if(this.timer!==null)window.clearTimeout(this.timer);
             this.origin+=delta;
             this.callBeatOneIndex=responseBeatIndex;
             this.index=responseBeatIndex+1;
@@ -1598,22 +1602,25 @@ class CopyCatMetronome {
         if(!this.running||!this.enabled||(this.finaleClock&&this.index>=this.beats.length))return;
         const due=this.origin+this.beatAt(this.index);
         const delay=Math.max(0,due-performance.now());
+        this.clickTimer=window.setTimeout(()=>{
+            if(this.running&&this.enabled)this.click(this.beatNumber(this.index)===1,false,this.volume,due);
+        },Math.max(0,delay-80));
         this.timer=window.setTimeout(()=>{
             this.timer=null;if(!this.running||!this.enabled)return;
             const beat=this.beatNumber(this.index),meter=this.beatMeter(this.index);
             this.indicate(beat,meter);
-            this.click(beat===1);this.index++;this.tick();
+            this.index++;this.tick();
         },delay);
     }
-    click(accent=false,countIn=false,volume=this.volume){
+    click(accent=false,countIn=false,volume=this.volume,due=performance.now()){
         if(!countIn&&this.game.callCountdownToast)return;
         if(!countIn && this.game.lesson?.active && !this.game.bandMuted && this.game.lessonHasDrums())return;
         const audio=this.game.audioContext;
         if(!audio||audio.state!=='running')return;
         // Re-timing on a beat boundary must not produce two audible clicks.
-        if(performance.now()-this.lastClickAt<22)return;
+        if(Math.abs(due-this.lastClickAt)<22)return;
         try{
-            const now=audio.currentTime,osc=audio.createOscillator(),gain=audio.createGain();
+            const now=audio.currentTime+Math.max(0,due-performance.now())/1000,osc=audio.createOscillator(),gain=audio.createGain();
             osc.type='triangle';
             osc.frequency.setValueAtTime(countIn?(accent?1760:1320):(accent?1175:915),now);
             osc.frequency.exponentialRampToValueAtTime(accent?650:550,now+0.055);
@@ -1623,7 +1630,7 @@ class CopyCatMetronome {
             gain.gain.exponentialRampToValueAtTime(.0001,now+0.066);
             osc.connect(gain);gain.connect(this.game.masterGain||audio.destination);
             osc.start(now);osc.stop(now+0.072); // One oscillator, less than 100ms.
-            this.lastClickAt=performance.now();
+            this.lastClickAt=due;
             // Microphone capture continues through clicks; never hide the
             // student's on-beat attack behind an output-triggered mute window.
         }catch(error){console.warn('Metronome click unavailable:',error);}
@@ -2468,7 +2475,7 @@ class CopyCatLessons {
             const loopBeats=this.piece?.backgroundLoopBeats||0;
             if(loopBeats>0)offset=(offset+delta*width*this.backgroundBeatsPerMs(now)*0.5/loopBeats)%tileWidth;
             layer.style.transform=`translate3d(${-offset}px,0,0)`;
-            this.sceneryFrame=requestAnimationFrame(paint);
+            if(loopBeats>0)this.sceneryFrame=requestAnimationFrame(paint);
         };paint(previous);
     }
     applyLevelBackground(){
@@ -2650,9 +2657,11 @@ class CopyCatLessons {
             const offset=timeMap?timeMap(start):Math.max(0,(start-baseAt)/effectiveSpeed);
             const duration=timeMap?Math.max(1,timeMap(end)-offset):Math.max(35,end-start)/effectiveSpeed;
             const onsetAt=clockStartAt+offset;
+            const source=game.getGMSoundSource();
+            const ahead=game.audioContext && !game.midiOutPort && source!=='original' && source!=='native'?80:0;
             game.schedule(()=>{
-                if(!owned()||!this.active||game.bandMuted||session!==this.playSession||!allow(performance.now()))return;
-                const voice=game.playGMNote(n.pitch,{role:'backing',program:n.program,drums:n.drums,presetName:n.instrumentName,velocity:n.velocity,durationMs:duration});
+                if(!owned()||!this.active||game.bandMuted||session!==this.playSession||!allow(onsetAt))return;
+                const voice=game.playGMNote(n.pitch,{when:ahead?game.audioContext.currentTime+Math.max(0,onsetAt-performance.now())/1000:0,role:'backing',program:n.program,drums:n.drums,presetName:n.instrumentName,velocity:n.velocity,durationMs:duration});
                 this.bandVoices??=new Set();
                 if(voice){this.bandVoices.add(voice);const ended=voice.src?.onended;if(voice.src)voice.src.onended=(...args)=>{this.bandVoices.delete(voice);if(typeof ended==='function')ended.apply(voice.src,args);};}
                 // A response loop may sustain past the next Cat downbeat.
@@ -2670,6 +2679,7 @@ class CopyCatLessons {
                         };
                     }
                 }
+                if(!game.midiOutPort)return;
                 const channel=n.drums?9:n.channel;
                 const held={pitch:n.pitch,velocity:n.velocity,channel,active:true};
                 this.bandMidiHeld??=new Set();this.bandMidiHeld.add(held);
@@ -2682,7 +2692,7 @@ class CopyCatLessons {
                     }
                     if(this.active)game.sendMIDINote(n.pitch-48,false,n.velocity,'backing',channel);
                 },duration);
-            },Math.max(0,onsetAt-performance.now()));
+            },Math.max(0,onsetAt-performance.now()-ahead));
         }
     }
     releaseBandAudio(){
@@ -2874,23 +2884,34 @@ class CopyCatLessons {
         // quintuplets, ties and tempo changes; never quantize to fixed taps.
         for(const [stepIndex,step] of promptSteps.entries()) {
             if(job?.solo&&step.atMs<job.solo.soloAtMs-.01)continue;
+            const onset=clockStartAt+(finale?finale.callNotes[stepIndex].at:callOffset(step.atMs));
+            const source=game.getGMSoundSource();
+            const ahead=game.audioContext && !game.midiOutPort && source!=='original' && source!=='native'?80:0;
+            game.schedule(()=>{
+                if(!this.active || session!==this.playSession)return;
+                for(const [noteIndex,n] of step.notes.entries()){
+                    const index=n.pitch-48;
+                    const duration=finale?finale.callNotes[stepIndex].durations[noteIndex]:n.durationMs/effectiveSpeed;
+                    this.showFingerings([n],duration);
+                    if(game.showCpuNoteLight(stepIndex,noteIndex))game.flashKey(index,duration,'playing');
+                }
+            },Math.max(0,onset-performance.now()));
             game.schedule(()=>{
                 if(!this.active || session!==this.playSession)return;
                 for(const [noteIndex,n] of step.notes.entries()) {
                     const index=n.pitch-48;
                     const duration=finale?finale.callNotes[stepIndex].durations[noteIndex]:Math.max(1,n.durationMs/(this.callSpeed||effectiveSpeed));
-                    this.showFingerings([n],duration);
-                    if(game.showCpuNoteLight(stepIndex,noteIndex))game.flashKey(index,duration,'playing');
                     const program=game.gm?.roleProgram('cpu',n)??n.program??0;
                     const drums=game.gm?.roleDrums('cpu',n)??n.drums;
                     // Keep the backing tracks on their original channels and presets.
                     // GM drums require channel 10; manual melodic overrides must leave it.
                     const channel=drums?9:(n.channel===9?(game.gmPlayerChannels?.player1??14):n.channel);
-                    game.playGMNote(n.pitch,{role:'cpu',program,drums,presetName:n.instrumentName,durationMs:duration,velocity:n.velocity});
+                    game.playGMNote(n.pitch,{when:ahead?game.audioContext.currentTime+Math.max(0,onset-performance.now())/1000:0,role:'cpu',program,drums,presetName:n.instrumentName,durationMs:duration,velocity:n.velocity});
+                    if(!game.midiOutPort)continue;
                     game.sendMIDINote(index,true,n.velocity||96,'cpu',channel,program);
                     game.schedule(()=>{if(this.active)game.sendMIDINote(index,false,n.velocity||96,'cpu',channel);},finale?Math.max(0,clockStartAt+finale.callNotes[stepIndex].at+duration-performance.now()):duration);
                 }
-            },Math.max(0,clockStartAt+(finale?finale.callNotes[stepIndex].at:callOffset(step.atMs))-performance.now()));
+            },Math.max(0,onset-performance.now()-ahead));
         }
         const lastOnset=promptSteps.at(-1)?.atMs||baseAt;
         // MIDI onsets may include several notes within ONE beat and rests
@@ -4382,7 +4403,7 @@ class CopyCatLessons {
 
                 this.initializeSetup();
                 let setupDone=false;try{setupDone=localStorage.getItem('copycatSetupComplete')==='1';}catch(error){}
-                if(!COPYCAT_DAILY_BUILD&&!setupDone)this.openSetup();
+                if(!setupDone)this.openSetup();
                 else {this.playerName=this.playerName||'Player 1';this.gameStarted=true;this.updateDisplay();}
             }
 
@@ -4414,7 +4435,7 @@ class CopyCatLessons {
             openSetup() {
                 if(this.gameState!=='stopped')this.stopResetGame();
                 this.setKeyboardSettingsOpen(false);
-                this.setupIndex=0;this.setupNoteSeen=false;
+                this.setupIndex=COPYCAT_DAILY_MOBILE?1:0;this.setupNoteSeen=false;
                 document.getElementById('setupPlayerName').value=this.playerName||'';
                 document.getElementById('setupDialog').showModal();
                 this.renderSetup();
@@ -4444,7 +4465,7 @@ class CopyCatLessons {
                 const $=id=>document.getElementById(id),mount=$('setupMount'),step=this.setupIndex;
                 const steps=[
                     ['Connect your keyboard','You can use a MIDI keyboard or tap the keys on screen. You do not need to choose a MIDI channel.'],
-                    ['Check your sound','Press Test sound. Built-in tones work straight away. For realistic instruments, download a SoundFont, then choose that file below.'],
+                    ['Check your sound','Keytar Kitty highly recommends using this set of instruments. Download GeneralUser GS below, connect it, then tap Test sound.'],
                     ['Play with Keytar Kitty','Today’s melody comes with the game. Press Play for a quick tour.']
                 ];
                 $('setupStep').textContent=`${step+1} of 3`;
@@ -5230,7 +5251,7 @@ class CopyCatLessons {
                     Math.max(1,Math.min(16,Number(this.midiPrefs.memoryChunkSize)||2));
                 this.midiProgramState=new Map();
                 this.midiThru=!!this.midiPrefs.thru;
-                this.metronome.enabled=!!this.midiPrefs.metronome;this.bandMuted=!!this.midiPrefs.bandMuted;
+                this.metronome.enabled=this.midiPrefs.metronome!==false;this.bandMuted=!!this.midiPrefs.bandMuted;
                 this.metronome.volume=Number.isFinite(this.midiPrefs.metronomeVolume)?
                     Math.max(0,Math.min(1,this.midiPrefs.metronomeVolume)):0.60;
                 const tempos=this.italianTempoMarkings();
@@ -5301,6 +5322,7 @@ class CopyCatLessons {
                     const file=e.target.files?.[0];if(!file)return;
                     try{
                         if(!/\.sf2$/i.test(file.name))throw new Error('Please select an .sf2 file (SF3 is not supported).');
+                        document.getElementById('gmStatus').textContent='Loading '+file.name+'…';
                         const bytes=await file.arrayBuffer();
                         // Parse before writing so invalid SF2 files are never remembered.
                         this.gm.load(bytes);
@@ -5566,7 +5588,7 @@ class CopyCatLessons {
                 // Never emit invalid MIDI pitches, and never wrap onto another note.
                 return transposed>=0&&transposed<=127?transposed:pitch;
             }
-            playGMNote(pitch,{role='cpu',program=0,drums=false,presetName='',durationMs=220,velocity=96}={}){
+            playGMNote(pitch,{role='cpu',program=0,drums=false,presetName='',durationMs=220,velocity=96,when=0}={}){
                 if(this.microphoneDispatch && role!=='cpu' && role!=='backing')return;
                 pitch=this.transposeAudiblePitch(pitch,drums);
                 const f=440*Math.pow(2,(pitch-69)/12);
@@ -5574,10 +5596,10 @@ class CopyCatLessons {
                 if(source==='original'){this.playTone(f,durationMs);return;}
                 if(source==='native')return; // This same note is routed by sendMIDINote.
                 if(source==='basic'){
-                    if(this.onboardEnabled && this.audioContext)return this.gm?.fallback(pitch,{program,drums,durationMs,velocity});
+                    if(this.onboardEnabled && this.audioContext)return this.gm?.fallback(pitch,{program,drums,durationMs,velocity,when});
                     return;
                 }
-                return this.gm?.play(pitch,{role,program,drums,presetName,durationMs,velocity});
+                return this.gm?.play(pitch,{role,program,drums,presetName,durationMs,velocity,when});
             }
             sendMIDINote(index,on,velocity=104,role='cpu',channel=null,program=null){
                 if(this.microphoneDispatch && role!=='cpu' && role!=='backing')return;
@@ -7237,11 +7259,14 @@ class CopyCatLessons {
                 // tempo changes also retime every pending count and handoff.
                 beats.forEach((at,i)=>{
                     this.schedule(()=>{
+                        if(this.callCountdownToast===toast)this.metronome.click(i%Math.max(1,meter)===0,true,1,at);
+                    },Math.max(0,at-performance.now()-80));
+                    this.schedule(()=>{
                         if(this.callCountdownToast!==toast)return;
                         const remaining=beats.length-i;
                         toast.textContent=`CALL · Play in ${remaining}`;
                         if(this.firstKeyCountdown){const rect=this.countdownTargetKey.getBoundingClientRect();this.firstKeyCountdown.textContent=String(remaining);this.firstKeyCountdown.style.left=(rect.left+rect.width/2)+'px';this.firstKeyCountdown.style.top=rect.top+'px';}
-                        this.metronome.click(i%Math.max(1,meter)===0,true,1);
+
                     },at-performance.now());
                 });
                 this.schedule(()=>{

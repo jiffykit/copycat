@@ -55,7 +55,9 @@ button:focus-visible,select:focus-visible,input:focus-visible,.option-tag:focus-
 .piano-key { appearance:none; -webkit-appearance:none; padding:0; margin:0; position:absolute; top:0; border-radius:0 0 7px 7px; display:flex; justify-content:center; align-items:flex-end; overflow:hidden; cursor:pointer; touch-action:none; transition:none; transform:none!important; font-weight:700; }
 .piano-key.white { width:12.5%; height:100%; z-index:1; background:linear-gradient(180deg,#e9eaf1 0%,#fdfdff 58%,#d7d8df 100%); color:#27304b; border:1px solid #8c91a5; box-shadow:inset 0 -6px 6px #686e7930; }
 .piano-key.black { width:7.7%; height:64%; z-index:3; background:linear-gradient(100deg,#1e2442,#060914 60%,#30394f); color:#f3f6ff; border:1px solid #02030a; border-radius:0 0 6px 6px; box-shadow:2px 5px 6px #0009,inset 0 -3px 2px #5a6172; }
-.fade-note-hint {position:absolute;inset:0;background:var(--note-glow,#f2ae41);opacity:.8;pointer-events:none;border-radius:inherit}
+.piano-key.next-note-hint{background:var(--note-glow,#ffd165)!important;filter:none!important;color:#16213a;box-shadow:inset 0 -6px 0 #9a640d}
+.piano-key:has(>.key-response-count){flex-direction:column;align-items:center;justify-content:flex-end}
+.key-response-count{position:relative;z-index:1;color:inherit;opacity:.78;font-size:clamp(.7rem,1.5vw,1rem);font-weight:700;font-variant-numeric:tabular-nums;line-height:1.15;pointer-events:none}
 #keyLabelsBtn{width:12rem;flex:0 0 12rem;white-space:nowrap}
 .light-number { position:relative;z-index:1;display:block; padding-bottom:clamp(10px,2vw,21px); font-size:clamp(.61rem,1.35vw,.96rem); pointer-events:none; white-space:nowrap; }
 .black .light-number { padding-bottom:clamp(8px,2vw,15px); font-size:clamp(.54rem,1.1vw,.79rem); }
@@ -335,13 +337,16 @@ body:not(.lesson-mode) #lessonOctaveLabel,body:not(.lesson-mode) #lessonOctaveLo
 .daily-brand{font-size:.46em;letter-spacing:.18em;display:inline-block;margin-left:.5em;color:#ffd36c;vertical-align:middle}.daily-date{white-space:nowrap}.daily-stars{font-size:1.15em;letter-spacing:.08em;color:#ffd36c}.daily-build #keyboardPieceBtn,.daily-build #keyboardPracticeBtn,.daily-build #keyboardShuffleBtn,.daily-build #keyboardChunkBtn,.daily-build .keyboard-voices,.daily-build #helpBtn,.daily-build #lessonPanel{display:none!important}.daily-build .lesson-import,.daily-build .lesson-actions,.daily-build #lessonPart,.daily-build #lessonList{display:none!important}
 #dailyTour{width:min(25rem,90vw);box-sizing:border-box;padding:1.6rem;border:2px solid #ffd36c;border-radius:18px;background:#192a60;color:white}
 #dailyTour::backdrop{background:#10162ed9}#dailyTour h2{margin:.5em 0}#dailyTour p{line-height:1.5;margin:0 0 1.4em}#tourStep{color:#ffd36c}
+.ready-prompt{max-width:min(90vw,30rem);margin:auto}
+.ready-prompt::backdrop{background:#10162ebd}
+.ready-prompt button{margin-top:1rem;white-space:normal}
 </style>
 </head>
 
 <body>
 <div hidden><button id="helpBtn" type="button"></button><button id="keyboardPieceBtn" type="button"></button><button id="keyboardPracticeBtn" type="button"></button><button id="keyboardShuffleBtn" type="button"></button><button id="keyboardChunkBtn" type="button"></button></div>
     <div class="game-container">
-        <div class="top-toolbar" id="keyboardLessonBar"><button type="button" id="keyboardModeBtn" class="kbd-pill mode">SONG MODE</button><span id="dailyChallengeDate" class="kbd-pill daily-date">DAILY CHALLENGE</span><label class="keyboard-lights" for="keyboardLightMode">☼ Lights <select id="keyboardLightMode" aria-label="Keyboard hint lights"><option value="on">ON</option><option value="fade">FADE</option><option value="first">FIRST NOTE</option><option value="off">PERFECT PITCH</option></select></label><div class="keyboard-heading"><button type="button" id="keyboardRange" class="kbd-pill" aria-label="Key: C Major">C Major</button><div class="keyboard-tools"><select id="metronomeTempo" class="tempo-select" aria-label="Tempo marking" title="Select original MIDI tempo or an Italian tempo marking"><option value="original">Original MIDI</option></select><button type="button" id="quickMetronomeBtn" class="audio-settings-btn metro-quick" aria-label="Toggle metronome" aria-pressed="false" title="Metronome: off">♩</button></div></div><button type="button" id="audioSettingsBtn" class="audio-settings-btn" aria-label="MIDI settings" aria-expanded="false" title="MIDI settings">⚙</button></div>
+        <div class="top-toolbar" id="keyboardLessonBar"><button type="button" id="keyboardModeBtn" class="kbd-pill mode">SONG MODE</button><span id="dailyChallengeDate" class="kbd-pill daily-date">DAILY CHALLENGE</span><label class="keyboard-lights" for="keyboardLightMode">☼ Lights <select id="keyboardLightMode" aria-label="Keyboard hint lights"><option value="on">ON</option><option value="next">NEXT</option><option value="first">FIRST NOTE</option><option value="off">PERFECT PITCH</option></select></label><div class="keyboard-heading"><button type="button" id="keyboardRange" class="kbd-pill" aria-label="Key: C Major">C Major</button><div class="keyboard-tools"><select id="metronomeTempo" class="tempo-select" aria-label="Tempo marking" title="Select original MIDI tempo or an Italian tempo marking"><option value="original">Original MIDI</option></select><button type="button" id="quickMetronomeBtn" class="audio-settings-btn metro-quick" aria-label="Toggle metronome" aria-pressed="false" title="Metronome: off">♩</button></div></div><button type="button" id="audioSettingsBtn" class="audio-settings-btn" aria-label="MIDI settings" aria-expanded="false" title="MIDI settings">⚙</button></div>
         <header class="game-header">
                         <div class="brand"><img src="Copycat logo.png" alt="Copy-Cat" onload="this.nextElementSibling.hidden=true" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><h1>COPY<span>CAT</span><small class="daily-brand">DAILY</small></h1></div>
 
@@ -492,7 +497,7 @@ body:not(.lesson-mode) #lessonOctaveLabel,body:not(.lesson-mode) #lessonOctaveLo
                 <label class="midi-checkbox"><input type="checkbox" id="midiThru"> MIDI Thru</label>
                 <label class="midi-checkbox"><input type="checkbox" id="metronomeEnabled"> Gentle metronome</label>
                 <label class="metro-volume" for="metronomeVolume">Click volume <input id="metronomeVolume" type="range" min="0" max="100" value="60" aria-label="Metronome volume"></label>
-                <label class="midi-checkbox"><input id="firstKeyCountdownEnabled" type="checkbox" checked> Countdown above first key</label><span class="lesson-help">Response countdown: full-volume metronome clicks, accented on beat 1.</span>
+                <label class="midi-checkbox"><input id="firstKeyCountdownEnabled" type="checkbox" checked> Countdown on first key</label><span class="lesson-help">Response countdown: full-volume metronome clicks, accented on beat 1.</span>
             </div>
         </section>
         </details><details class="settings-group"><summary>Songs &amp; practice</summary>
@@ -609,6 +614,9 @@ class CopyCatGM {
         this.loadMessage='SoundFont GM ready · '+Math.round(buffer.byteLength/1024/1024*10)/10+' MB';
         return this.bank;
     }
+    static oscillatorGain(role){
+        return role==='cpu'||role==='player1'||role==='player2'?1.3:1;
+    }
     patchName(program){return CopyCatGM.names[program]||'Acoustic Grand Piano';}
     patch(program=0,source=0){
         const parsed=source==='file' ? Number(program) : Number(source);
@@ -678,7 +686,7 @@ class CopyCatGM {
         src.onended=()=>{this.voices.delete(voice);src.disconnect();gain.disconnect();};
         return voice;
     }
-    fallback(pitch,{program=0,drums=false,durationMs=240,velocity=96,when=0}){
+    fallback(pitch,{role='cpu',program=0,drums=false,durationMs=240,velocity=96,when=0}){
         // Per-family GM-inspired fallback for offline/file: URLs without an SF2.
         // Instrument names correspond to GM; fidelity is limited without samples.
         const a=this.game.audioContext,t=Math.max(a.currentTime,when),hold=Math.max(.035,durationMs/1000);
@@ -697,7 +705,7 @@ class CopyCatGM {
         const pluck=[0,1,2,3,4,5,12,13,14].includes(family)||perc;
         const attack=pluck?.003:.06;
         const tail=perc?.09:pluck?.15:.26;
-        const volume=(velocity/127)*(perc?.22:.12);
+        const volume=(velocity/127)*(perc?.22:.12)*CopyCatGM.oscillatorGain(role);
         gain.gain.setValueAtTime(.0001,t);
         gain.gain.linearRampToValueAtTime(volume,t+attack);
         if(pluck)gain.gain.exponentialRampToValueAtTime(volume*.4,t+Math.min(hold,.14));
@@ -1560,12 +1568,13 @@ class CopyCatMetronome {
     anchorPlayer(responseBeatIndex,at=performance.now()){
         const g=this.game,lesson=g.isLessonMode()?g.lesson:null,owner=lesson||g;
         if(lesson?.selected?.daily)return false; // Keep the band on its MIDI clock through late responses.
+        // Grace for a late first note is available in silent practice only.
+        if(this.running || lesson?.finale || (lesson?.active && !g.bandMuted && lesson.piece?.backingNotes?.length))return false;
         if(g.callResponseMode||g.gameState!=='listening'||owner.responseStartClaimed)return false;
         const gate=owner.responseGateAt;
         const beat=lesson?(lesson.piece?.beatMs||500)/(lesson.callSpeed||1):60000/g.getRoundBpm();
         const count=Math.max(1,lesson?.responseBeats||g.gameSequence?.length||1);
-        const span=this.running&&Number.isInteger(responseBeatIndex)?
-            this.beatAt(responseBeatIndex+count)-this.beatAt(responseBeatIndex):count*beat;
+        const span=count*beat;
         if(!Number.isFinite(at)||at<(owner.responseWindowAt??gate)||at>=gate+span)return false;
         owner.responseStartClaimed=true;
         // Ordinary timing tolerance stays scored against the original beat.
@@ -1574,15 +1583,6 @@ class CopyCatMetronome {
         if(delta<beat*.75)return false;
         owner.responseGateAt+=delta;
         if(Number.isFinite(owner.responseCycleEndAt))owner.responseCycleEndAt+=delta;
-        if(this.running&&Number.isInteger(responseBeatIndex)){
-            window.clearTimeout(this.clickTimer);
-        if(this.timer!==null)window.clearTimeout(this.timer);
-            this.origin+=delta;
-            this.callBeatOneIndex=responseBeatIndex;
-            this.index=responseBeatIndex+1;
-            this.indicate(1,this.beatMeter(responseBeatIndex));
-            this.tick();
-        }
         if(g.microphone){
             g.microphone.responseGate=owner.responseGateAt;
             const pattern=g.microphone.pattern;
@@ -1724,38 +1724,78 @@ class CopyCatLessons {
         this.restore();
         this.loadCacheAndWeb();
     }
+    async listedDailyFiles(signal){
+        // Standard web-server directory listings can skip long gaps in a single request.
+        const base=new URL('.',document.baseURI);
+        const response=await fetch(base,{cache:'no-store',signal});
+        if(!response.ok)return null;
+        const html=await response.text();
+        if(!/<(?:title|h1)[^>]*>\s*(?:Index of|Directory listing for|Directory of)\b/i.test(html.slice(0,2048)))return null;
+        const names=new Map();
+        const listing=new DOMParser().parseFromString(html,'text/html');
+        for(const link of listing.querySelectorAll('a[href]')){
+            let url;
+            try{url=new URL(link.getAttribute('href'),base);}catch{continue;}
+            if(url.origin!==base.origin || new URL('.',url).pathname!==base.pathname)continue;
+            const name=url.pathname.slice(base.pathname.length);
+            if(/^\d{6}\.mid$/i.test(name))names.set(name.toLowerCase(),name);
+        }
+        return names;
+    }
     async loadDailyChallenge(request){
         const status=this.$('dailyLoadStatus'),label=this.$('dailyChallengeDate');
-        const today=new Date(),yesterday=new Date(today);
-        yesterday.setDate(yesterday.getDate()-1);
-        const filenameFor=date=>{
-            const day=String(date.getDate()).padStart(2,'0');
-            const month=String(date.getMonth()+1).padStart(2,'0');
-            const year=String(date.getFullYear()).slice(-2);
-            return day+month+year+'.mid';
-        };
-        const todayFile=filenameFor(today),yesterdayFile=filenameFor(yesterday);
+        const today=new Date();
+        today.setHours(12,0,0,0);
+        const day=new Date(today);
+        this.dailyLookup?.abort();
+        const lookup=this.dailyLookup=new AbortController();
+        const filenameFor=date=>String(date.getDate()).padStart(2,'0')+
+            String(date.getMonth()+1).padStart(2,'0')+String(date.getFullYear()).slice(-2)+'.mid';
+        let filename=filenameFor(day);
         try{
-            const fetchMidi=filename=>fetch(new URL(filename,document.baseURI),{cache:'no-store'});
-            let challengeDay=today,filename=todayFile,response;
-            try{
-                response=await fetchMidi(filename);
-                if(request!==this.startRequest || !this.isMode())return false;
-                if(response.status===404 || response.status===410){
-                    challengeDay=yesterday;
-                    filename=yesterdayFile;
-                    response=await fetchMidi(filename);
+            let buffer=null,listed=null,misses=0;
+            // Each two-digit year is visited at most once. CopyCat dates start in the 2000s.
+            const firstYear=Math.max(2000,today.getFullYear()-99);
+            while(day.getFullYear()>=firstYear){
+                if(lookup.signal.aborted || request!==this.startRequest || !this.isMode())return false;
+                const datedName=filenameFor(day);
+                filename=listed?.get(datedName)??datedName;
+                if(!listed || listed.has(datedName)){
+                    let response;
+                    try{
+                        response=await fetch(new URL(filename,document.baseURI),{cache:'no-store',signal:lookup.signal});
+                    }catch(error){
+                        if(lookup.signal.aborted)throw error;
+                        throw new Error(location.protocol==='file:'?'Open this game through localhost or your website to load the daily MIDI.':`Could not reach ${filename}. Press Start Game to retry.`);
+                    }
+                    if(response.ok){
+                        const bytes=await response.arrayBuffer();
+                        // Some static hosts return their HTML landing page with a 200 for missing assets.
+                        const header=new TextDecoder().decode(bytes.slice(0,128)).trimStart();
+                        if(!header.startsWith('<')){
+                            if(bytes.byteLength>8*1024*1024)throw new Error(`${filename} exceeds 8 MB.`);
+                            buffer=bytes;
+                            break;
+                        }
+                    }else if(![403,404,410].includes(response.status)){
+                        throw new Error(`Could not load ${filename} (HTTP ${response.status}). Press Start Game to retry.`);
+                    }
+                    if(++misses===2){
+                        status.textContent='Looking for the most recent daily challenge…';status.hidden=false;
+                        try{listed=await this.listedDailyFiles(lookup.signal);}catch(error){if(lookup.signal.aborted)throw error;}
+                        if(listed){
+                            if(!listed.size)break;
+                            // The listing may supply a case-sensitive name the initial probes missed.
+                            day.setTime(today.getTime());
+                            continue;
+                        }
+                    }
                 }
-            }catch(error){
-                throw new Error(location.protocol==='file:'?'Open this game through localhost or your website to load the daily MIDI.':`Could not reach ${filename}. Press Start Game to retry.`);
+                day.setDate(day.getDate()-1);
             }
-            if(response.status===404 || response.status===410)
-                throw new Error(`No daily challenge found. Tried ${todayFile} and ${yesterdayFile}.`);
-            if(!response.ok)throw new Error(`Could not load ${filename} (HTTP ${response.status}). Press Start Game to retry.`);
-            const buffer=await response.arrayBuffer();
-            if(request!==this.startRequest || !this.isMode())return false;
-            if(buffer.byteLength>8*1024*1024)throw new Error(`${filename} exceeds 8 MB.`);
-            const date=challengeDay.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+            if(lookup.signal.aborted || request!==this.startRequest || !this.isMode())return false;
+            if(!buffer)throw new Error('No dated MIDI challenge is available yet.');
+            const date=day.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
             const previous=this.selected;
             const oldBuffer=previous?.source?.buffer;
             if(previous?.daily && previous.name===filename && oldBuffer?.byteLength===buffer.byteLength){
@@ -1775,9 +1815,11 @@ class CopyCatLessons {
             return true;
         }catch(error){
             if(request!==this.startRequest || !this.isMode())return false;
-            status.textContent=error.message;status.hidden=false;
+            if(!lookup.signal.aborted){status.textContent=error.message;status.hidden=false;}
             if(!this.selected?.daily)label.textContent='DAILY CHALLENGE';
             return false;
+        }finally{
+            if(this.dailyLookup===lookup)this.dailyLookup=null;
         }
     }
         progress(entry=this.selected){if(entry?.daily)return this.dailyProgress||{prefix:0,completed:false};return this._dailyOriginalProgress(entry);}
@@ -2198,6 +2240,8 @@ class CopyCatLessons {
         this.message('Saved manifest.json. Put it beside the matching MIDI files in your midi/ folder.');
     }
     setMode() {
+        this.dailyLookup?.abort();
+        this.$('dailyLoadStatus').hidden=true;
         const on=this.isMode();this.active=false;this.game.lessonModeActive=on;
         this.setPanelOpen(false);
         if(!on)this.game.audioOctaveShift=0;
@@ -2331,7 +2375,7 @@ class CopyCatLessons {
             const session=++this.playSession;
             this.game.schedule(()=>{
                 if(!this.active||session!==this.playSession)return;
-                this.game.showGetReadyModal(()=>{if(this.active&&session===this.playSession)this.playPrefix();},this.piece,this.effectiveSpeed(),true);
+                this.game.showOpeningCountIn(()=>{if(this.active&&session===this.playSession)this.playPrefix();},this.piece,this.effectiveSpeed());
             },0);
         }catch(e){if(loadingRequest!==this.startRequest)return;this.active=false;this.game.gameState='stopped';this.game.switchToPreGameUI();this.game.updateControls();const status=this.$('dailyLoadStatus');status.textContent=`Could not start ${entry.name}: ${e.message}`;status.hidden=false;}
     }
@@ -2603,7 +2647,7 @@ class CopyCatLessons {
         this.responseCycleEndAt=null;this.responseNextBeatIndex=null;
         this.stopBackgroundScroll();
         this.backgroundGeneration=(this.backgroundGeneration||0)+1;
-        this.game.clearFadeHints?.();
+        this.game.clearNextHint();
         this.clearFingerings();this.releaseBandAudio();this.stopResponseBacking();
         if(this.levelBackground!==undefined&&document.body.style.backgroundImage===this.levelBackground)document.body.style.backgroundImage=this.previousBackground||'';
         this.levelBackground=undefined;this.clearHeaderMessage();
@@ -2658,10 +2702,10 @@ class CopyCatLessons {
             const duration=timeMap?Math.max(1,timeMap(end)-offset):Math.max(35,end-start)/effectiveSpeed;
             const onsetAt=clockStartAt+offset;
             const source=game.getGMSoundSource();
-            const ahead=game.audioContext && !game.midiOutPort && source!=='original' && source!=='native'?80:0;
-            game.schedule(()=>{
-                if(!owned()||!this.active||game.bandMuted||session!==this.playSession||!allow(onsetAt))return;
-                const voice=game.playGMNote(n.pitch,{when:ahead?game.audioContext.currentTime+Math.max(0,onsetAt-performance.now())/1000:0,role:'backing',program:n.program,drums:n.drums,presetName:n.instrumentName,velocity:n.velocity,durationMs:duration});
+            const ahead=game.onboardLookahead(source);
+            game.schedule(due=>{
+                if(!owned()||!this.active||game.bandMuted||session!==this.playSession||!allow(due))return;
+                const voice=game.playGMNote(n.pitch,{when:ahead?game.audioContext.currentTime+Math.max(0,due-performance.now())/1000:0,role:'backing',program:n.program,drums:n.drums,presetName:n.instrumentName,velocity:n.velocity,durationMs:duration});
                 this.bandVoices??=new Set();
                 if(voice){this.bandVoices.add(voice);const ended=voice.src?.onended;if(voice.src)voice.src.onended=(...args)=>{this.bandVoices.delete(voice);if(typeof ended==='function')ended.apply(voice.src,args);};}
                 // A response loop may sustain past the next Cat downbeat.
@@ -2679,7 +2723,7 @@ class CopyCatLessons {
                         };
                     }
                 }
-                if(!game.midiOutPort)return;
+                if(!game.midiOutPort || (source!=='native' && source!=='original'))return;
                 const channel=n.drums?9:n.channel;
                 const held={pitch:n.pitch,velocity:n.velocity,channel,active:true};
                 this.bandMidiHeld??=new Set();this.bandMidiHeld.add(held);
@@ -2692,7 +2736,7 @@ class CopyCatLessons {
                     }
                     if(this.active)game.sendMIDINote(n.pitch-48,false,n.velocity,'backing',channel);
                 },duration);
-            },Math.max(0,onsetAt-performance.now()-ahead));
+            },onsetAt-performance.now(),ahead);
         }
     }
     releaseBandAudio(){
@@ -2886,7 +2930,7 @@ class CopyCatLessons {
             if(job?.solo&&step.atMs<job.solo.soloAtMs-.01)continue;
             const onset=clockStartAt+(finale?finale.callNotes[stepIndex].at:callOffset(step.atMs));
             const source=game.getGMSoundSource();
-            const ahead=game.audioContext && !game.midiOutPort && source!=='original' && source!=='native'?80:0;
+            const ahead=game.onboardLookahead(source);
             game.schedule(()=>{
                 if(!this.active || session!==this.playSession)return;
                 for(const [noteIndex,n] of step.notes.entries()){
@@ -2896,7 +2940,7 @@ class CopyCatLessons {
                     if(game.showCpuNoteLight(stepIndex,noteIndex))game.flashKey(index,duration,'playing');
                 }
             },Math.max(0,onset-performance.now()));
-            game.schedule(()=>{
+            game.schedule(due=>{
                 if(!this.active || session!==this.playSession)return;
                 for(const [noteIndex,n] of step.notes.entries()) {
                     const index=n.pitch-48;
@@ -2906,12 +2950,12 @@ class CopyCatLessons {
                     // Keep the backing tracks on their original channels and presets.
                     // GM drums require channel 10; manual melodic overrides must leave it.
                     const channel=drums?9:(n.channel===9?(game.gmPlayerChannels?.player1??14):n.channel);
-                    game.playGMNote(n.pitch,{when:ahead?game.audioContext.currentTime+Math.max(0,onset-performance.now())/1000:0,role:'cpu',program,drums,presetName:n.instrumentName,durationMs:duration,velocity:n.velocity});
-                    if(!game.midiOutPort)continue;
+                    game.playGMNote(n.pitch,{when:ahead?game.audioContext.currentTime+Math.max(0,due-performance.now())/1000:0,role:'cpu',program,drums,presetName:n.instrumentName,durationMs:duration,velocity:n.velocity});
+                    if(!game.midiOutPort || (source!=='native' && source!=='original'))continue;
                     game.sendMIDINote(index,true,n.velocity||96,'cpu',channel,program);
                     game.schedule(()=>{if(this.active)game.sendMIDINote(index,false,n.velocity||96,'cpu',channel);},finale?Math.max(0,clockStartAt+finale.callNotes[stepIndex].at+duration-performance.now()):duration);
                 }
-            },Math.max(0,onset-performance.now()-ahead));
+            },onset-performance.now(),ahead);
         }
         const lastOnset=promptSteps.at(-1)?.atMs||baseAt;
         // MIDI onsets may include several notes within ONE beat and rests
@@ -2989,9 +3033,9 @@ class CopyCatLessons {
             }
             this.inputStep=0;this.inputTimes=[];this.showResponseFingerings();
             this.startResponseBacking(session);
-            game.armFadeHints(this.currentPromptSteps.map(step=>({at:step.atMs,pitches:step.notes.map(n=>n.pitch),duration:Math.max(...step.notes.map(n=>n.durationMs))})),this.callSpeed||this.effectiveSpeed(),this.responseSourceBaseAt);
+
             if(finale){
-                game.schedule(()=>{if(this.active&&session===this.playSession)game.startFadeHints();},Math.max(0,responseAt-performance.now()));
+
                 this.armResponseFinish();
             }
             game.updateControls();this.update();
@@ -3013,10 +3057,10 @@ class CopyCatLessons {
         clearTimeout(this.responseFinishTimer);this.responseFinishTimer=null;
         this.responsePerformance=null;
     }
-    responseStepAt(at){
-        const steps=this.currentPromptSteps||[],performance=this.responsePerformance;
-        if(!performance||!steps.length)return 0;
-        const sourceAt=(this.responseSourceBaseAt??steps[0].atMs)+(at-performance.origin)*(this.callSpeed||1);
+    responseStepAt(at,origin=this.responsePerformance?.origin){
+        const steps=this.currentPromptSteps||[];
+        if(!Number.isFinite(origin)||!steps.length)return 0;
+        const sourceAt=(this.responseSourceBaseAt??steps[0].atMs)+(at-origin)*(this.callSpeed||1);
         let lo=0,hi=steps.length-1;
         while(lo<hi){const mid=(lo+hi)>>>1;
             if(sourceAt>(steps[mid].atMs+steps[mid+1].atMs)/2)lo=mid+1;else hi=mid;}
@@ -3223,7 +3267,6 @@ class CopyCatLessons {
             this.responsePerformance={origin:this.responseGateAt,
                 endAt:this.responseCycleEndAt??Math.max(now+span,this.responseGateAt+span),
                 notes:[],finished:false};
-            this.game.startFadeHints();
         }
         this.game.cancelResponseIdle(true);this.game.responseIdleAnswered=true;
         this.inputStep=this.responseStepAt(now);
@@ -3241,6 +3284,7 @@ class CopyCatLessons {
             this.nextResponseHintAt=performance.now()+3000;
             this.game.showToast('Keep the music going — find your next note.');
         }
+        this.game.refreshNextHint(pitch,now);
         this.showResponseFingerings();this.armResponseFinish();
     }
     requiredPassRate(){
@@ -3406,6 +3450,7 @@ class CopyCatLessons {
         // At the first handoff the old clock may already have clicked beat 1.
         // Never click it again. All remaining clicks are fixed, not retimed.
         const previous=metro.running&&metro.index>0?metro.origin+metro.beatAt(metro.index-1):-Infinity;
+        window.clearTimeout(metro.clickTimer);
         if(metro.timer!==null)clearTimeout(metro.timer);
         metro.timer=null;metro.origin=f.origin;metro.kind='lesson';metro.finaleClock=true;
         metro.beats=f.beats.map(b=>b.at);metro.beatNumbers=f.beats.map(b=>b.number);metro.beatMeters=f.beats.map(b=>b.meter);
@@ -4004,6 +4049,7 @@ class CopyCatLessons {
                     }else{
                         g.playerSequence.push({lightIndex,note:name,timestamp:Date.now()-(performance.now()-played.at)});
                         (this.responseNotes??=[]).push(played);
+                        g.refreshNextHint();
                         if(g.playerSequence.length>=g.player1Sequence.length){
                             clearTimeout(this.responseTimer);this.responseTimer=null;
                             g.compareCallResponse();
@@ -4024,6 +4070,7 @@ class CopyCatLessons {
                 }else if(this.pattern&&!this.pattern.completed){
                     g.metronome.anchorPlayer(g.responseGateBeatIndex,played.at);
                     this.pattern.notes.push(played);
+                    g.refreshNextHint(played.pitch,played.at);
                 }
             }
             squeak(now){
@@ -4478,6 +4525,7 @@ class CopyCatLessons {
                     move($('connectMidiBtn'));move($('midiInput').closest('label'));move($('midiOutput').closest('label'));move($('midiStatus'));
                 }else if(step===1){
                     move($('gmTestSound'));move($('onboardAudio').closest('label'));move($('gmSoundSource').closest('label'));move($('gmSoundFont').closest('.gm-bank-tools'));
+                    $('gmHelp').hidden=false;
                 }
                 const refresh=()=>{$('setupStatus').textContent=this.setupStatusText();};refresh();
                 this.setupObserver=new MutationObserver(refresh);
@@ -4980,11 +5028,11 @@ class CopyCatLessons {
 
             }
 
-            schedule(callback, milliseconds) {
+            schedule(callback, milliseconds, ahead=0) {
                 this.transportJobs??=new Map();
-                const job={callback,due:performance.now()+Math.max(0,milliseconds)};
-                const fire=()=>{this.pendingTimers.delete(job.id);this.transportJobs.delete(job.id);callback();};
-                job.fire=fire;job.id=window.setTimeout(fire,Math.max(0,milliseconds));
+                const job={callback,ahead,due:performance.now()+Math.max(0,milliseconds)};
+                const fire=()=>{this.pendingTimers.delete(job.id);this.transportJobs.delete(job.id);callback(job.due);};
+                job.fire=fire;job.id=window.setTimeout(fire,Math.max(0,milliseconds-ahead));
                 this.pendingTimers.add(job.id);this.transportJobs.set(job.id,job);
                 return job.id;
             }
@@ -5007,12 +5055,13 @@ class CopyCatLessons {
                 if(metro.running){
                     metro.origin=warp(metro.origin);metro.beats=metro.beats.map(t=>t*ratio);
                     metro.beatMs*=ratio;metro.tempo=lesson?after:this.getRoundBpm();
+                    window.clearTimeout(metro.clickTimer);
                     if(metro.timer!==null)clearTimeout(metro.timer);metro.tick();
                 }
                 for(const [id,job] of [...(this.transportJobs||[])]){
                     if(!this.pendingTimers.has(id)){this.transportJobs.delete(id);continue;}
                     clearTimeout(id);this.pendingTimers.delete(id);this.transportJobs.delete(id);
-                    job.due=warp(job.due);job.id=window.setTimeout(job.fire,Math.max(0,job.due-now));
+                    job.due=warp(job.due);job.id=window.setTimeout(job.fire,Math.max(0,job.due-now-job.ahead));
                     this.pendingTimers.add(job.id);this.transportJobs.set(job.id,job);
                     for(const owner of [this,lesson])if(owner)for(const key of
                         ['responseIdleTimer','slipTimer','partialRhythmTimer','sequenceTimeout','playerTimeout'])
@@ -5053,6 +5102,7 @@ class CopyCatLessons {
                     }
                     if(lesson.nextCallTimer!=null)lesson.queueNextCall();
                 }
+                this.refreshNextHint();
             }
 
             italianTempoMarkings() {
@@ -5236,10 +5286,11 @@ class CopyCatLessons {
                     if(event.key==='Escape'&&!shell.hidden){this.setKeyboardSettingsOpen(false);settingsButton.focus();}
                 });
                 this.midiPrefs=this.loadAudioPreferences();
-                this.lightsMode=['on','fade','first','off'].includes(this.midiPrefs.lightsMode)?this.midiPrefs.lightsMode:'on';
+                const savedLights=this.midiPrefs.lightsMode==='fade'?'next':this.midiPrefs.lightsMode;
+                this.lightsMode=['on','next','first','off'].includes(savedLights)?savedLights:'on';
                 const lightModeSelect=document.getElementById('keyboardLightMode');
                 lightModeSelect.value=this.lightsMode;
-                lightModeSelect.addEventListener('change',e=>{this.lightsMode=e.target.value;this.clearFadeHints();this.saveAudioPreferences();this.updateKeyboardModeBar();});
+                lightModeSelect.addEventListener('change',e=>{this.lightsMode=e.target.value;this.refreshNextHint();this.saveAudioPreferences();this.updateKeyboardModeBar();});
                 this.onboardEnabled=this.midiPrefs.onboard!==false;
                 this.useGeneralMIDI=this.midiPrefs.useGeneralMIDI!==false;
                 this.cpuInstrument=this.midiPrefs.cpuInstrument??'file';
@@ -5452,6 +5503,10 @@ class CopyCatLessons {
                 return /(?:microsoft\s+gs\s+wavetable|windows\s+midi\s+services.*(?:gm|synth)|microsoft.*(?:general\s+midi|midi\s+synth)|(?:apple\s+)?dls\s+synth|\bfluid\s*synth\b|\bvirtual\s*midisynth\b|\b(?:native|built.?in|system)\s+(?:gm|general\s+midi)\s+synth)/i.test(label);
             }
 
+            onboardLookahead(source=this.getGMSoundSource()){
+                return this.audioContext && source!=='native' && !(source==='original' && this.midiOutPort)?80:0;
+            }
+
             getGMSoundSource(){
                 if(!this.useGeneralMIDI)return 'original';
                 if(this.gmSoundSourceChoice==='basic')return 'basic';
@@ -5473,7 +5528,7 @@ class CopyCatLessons {
                 else if(this.midiRequestPending)status.textContent='Checking native MIDI output… Built-in sounds available';
                 else status.textContent='No usable native GM synth selected · using built-in tones';
                 const help=document.getElementById('gmHelp');
-                if(help)help.hidden=(source==='soundfont' || (source==='native' && this.looksLikeNativeGMSynth(this.midiOutPort)));
+                if(help)help.hidden=!(document.getElementById('setupDialog')?.open && this.setupIndex===1) && (source==='soundfont' || (source==='native' && this.looksLikeNativeGMSynth(this.midiOutPort)));
             }
 
             updateMIDIStatus(message) {
@@ -5528,6 +5583,7 @@ class CopyCatLessons {
             }
 
             selectMIDIInput(id,remember=false) {
+                if(this.midiInPort?.id!==id)this.readyMidiHeld?.clear();
                 if(this.midiInPort)this.midiInPort.onmidimessage=null;
                 for(const id of this.lesson?.responseHeld||[])
                     if(id.startsWith('midi:'))this.lesson.responseInput(Number(id.slice(5)),'midi',false);
@@ -5559,6 +5615,18 @@ class CopyCatLessons {
                 const [status, pitch, velocity] = event.data || [];
                 if(!Number.isInteger(pitch))return;
                 const command = status & 0xf0;
+                const noteOn=command===0x90 && velocity>0;
+                const noteOff=command===0x80 || (command===0x90 && !velocity);
+                const keyId=(status&15)*128+pitch;
+                if((this.readyGate || this.readyMidiHeld?.size) && (noteOn||noteOff)){
+                    if(noteOn){
+                        this.readyMidiHeld??=new Set();
+                        const first=this.readyMidiHeld.size===0;
+                        this.readyMidiHeld.add(keyId);
+                        if(first)this.readyGate?.advance();
+                    }else this.readyMidiHeld?.delete(keyId);
+                    return;
+                }
                 if(command!==0x80 && command!==0x90)return;
                 // All live MIDI pitches C1–C9 are audible, even outside the
                 // displayed octave or Cat's challenge pool. Never use the
@@ -5593,10 +5661,10 @@ class CopyCatLessons {
                 pitch=this.transposeAudiblePitch(pitch,drums);
                 const f=440*Math.pow(2,(pitch-69)/12);
                 const source=this.getGMSoundSource();
-                if(source==='original'){this.playTone(f,durationMs);return;}
+                if(source==='original'){this.playTone(f,durationMs,role,when);return;}
                 if(source==='native')return; // This same note is routed by sendMIDINote.
                 if(source==='basic'){
-                    if(this.onboardEnabled && this.audioContext)return this.gm?.fallback(pitch,{program,drums,durationMs,velocity,when});
+                    if(this.onboardEnabled && this.audioContext)return this.gm?.fallback(pitch,{role,program,drums,durationMs,velocity,when});
                     return;
                 }
                 return this.gm?.play(pitch,{role,program,drums,presetName,durationMs,velocity,when});
@@ -5840,7 +5908,7 @@ class CopyCatLessons {
                 window.addEventListener('blur', () => {
                     this.pointerNotes.clear();
                     this.pointerKeys?.clear();
-                    this.midiHeld?.clear();
+                    this.midiHeld?.clear();this.readyMidiHeld?.clear();
                     this.allMIDINotesOff();
                     document.querySelectorAll('.light.active').forEach(key => key.classList.remove('active'));
                 });
@@ -5876,7 +5944,7 @@ class CopyCatLessons {
             }
 
             // User feedback tone with proper duration matching the rhythm
-            playUserFeedbackTone(frequency, rhythmData) {
+            playUserFeedbackTone(frequency, rhythmData, when=0) {
                 if(this.microphoneDispatch)return;
                 if (!this.audioContext || !this.onboardEnabled) return;
                 if(this.useGeneralMIDI){
@@ -5902,7 +5970,7 @@ class CopyCatLessons {
                     // Create Shepard tone with multiple octaves - same as sequence playback
                     const octaves = [1, 2, 4, 8]; // Four octaves
                     const gains = [0.3, 0.4, 0.4, 0.3]; // Bell curve weighting
-                    const currentTime = this.audioContext.currentTime;
+                    const currentTime = Math.max(this.audioContext.currentTime,when);
 
                     octaves.forEach((octaveMultiplier, index) => {
                         const osc = this.audioContext.createOscillator();
@@ -5914,7 +5982,7 @@ class CopyCatLessons {
                         osc.type = 'sine';
 
                         // Envelope with proper decay length matching the rhythm
-                        const maxGain = gains[index] * 0.18; // Slightly louder for user feedback
+                        const maxGain = gains[index] * 0.12 * CopyCatGM.oscillatorGain('player1');
                         gain.gain.setValueAtTime(0, currentTime);
                         gain.gain.linearRampToValueAtTime(maxGain, currentTime + 0.01);
                         gain.gain.exponentialRampToValueAtTime(maxGain * 0.4, currentTime + noteDuration * 0.5);
@@ -5945,7 +6013,7 @@ class CopyCatLessons {
             }
 
             // Shepard tone generator with proper note durations
-            playTone(frequency, noteDurationMs) {
+            playTone(frequency, noteDurationMs, role='cpu', when=0) {
                 if (!this.audioContext || !this.onboardEnabled) return;
 
                 try {
@@ -5955,7 +6023,7 @@ class CopyCatLessons {
                     // Create Shepard tone with multiple octaves
                     const octaves = [1, 2, 4, 8]; // Four octaves
                     const gains = [0.3, 0.4, 0.4, 0.3]; // Bell curve weighting
-                    const currentTime = this.audioContext.currentTime;
+                    const currentTime = Math.max(this.audioContext.currentTime,when);
 
                     octaves.forEach((octaveMultiplier, index) => {
                         const osc = this.audioContext.createOscillator();
@@ -5967,7 +6035,7 @@ class CopyCatLessons {
                         osc.type = 'sine';
 
                         // Envelope with decay
-                        const maxGain = gains[index] * 0.12; // Reduced volume further
+                        const maxGain = gains[index] * 0.12 * CopyCatGM.oscillatorGain(role);
                         gain.gain.setValueAtTime(0, currentTime);
                         gain.gain.linearRampToValueAtTime(maxGain, currentTime + 0.01);
                         gain.gain.exponentialRampToValueAtTime(maxGain * 0.4, currentTime + noteDuration * 0.5);
@@ -6483,9 +6551,9 @@ class CopyCatLessons {
                 if(dialog.open)return;
                 const pages=[
                     ['Meet Keytar Kitty', 'Copy the melody that Keytar Kitty plays. You can use your MIDI keyboard or tap the keys on screen.'],
-                    ['Count in with Kitty', 'After “Ready? Set... CopyCat!” we count 4, 3, 2, 1. When you see CALL, listen. Kitty plays the first chunk of the song.'],
+                    ['Count in with Kitty', 'Tap, press a computer key, or play a MIDI note to move through Ready?, Steady?, and CopyCat! One more press on CopyCat! starts 4, 3, 2, 1. When you see CALL, listen. Kitty plays the first chunk of the song.'],
                     ['Your turn!', 'When Kitty hands the tune to you, play back what you remember. Some chunks are longer than others. Listen for the rhythm as well as the notes.'],
-                    ['Need a hint?', 'Try Lights on the top row. ON shows the notes, FADE lets the hints fade away, and FIRST NOTE gets you started. Feeling brave? PERFECT PITCH turns the hints off.'],
+                    ['Need a hint?', 'Try Lights on the top row. ON shows the notes, NEXT shows just the note or chord to play next, and FIRST NOTE gets you started. Feeling brave? PERFECT PITCH turns the hints off.'],
                     ['Keep the tune going', 'Play your way through the whole song. Some songs have a special ending. On the others, Kitty gets faster and faster. Can you keep up?']
                 ];
                 let index=0;
@@ -6582,9 +6650,10 @@ class CopyCatLessons {
 
                 // Handle different game modes
                 if (this.callResponseMode) {
-                    this.metronome.startAdventure(this.getRoundBpm());
-                    // In call & response mode, start with Player 1's turn
-                    this.startCallResponseTurn();
+                    this.showOpeningCountIn(()=>{
+                        this.metronome.startAdventure(this.getRoundBpm());
+                        this.startCallResponseTurn();
+                    });
                 } else {
                     // Normal mode or pitch training - start playing sequence
                     this.schedule(() => {
@@ -6596,13 +6665,13 @@ class CopyCatLessons {
                         }
 
                         // Show "Get Ready!" modal for 3 seconds, then start sequence
-                        this.showGetReadyModal(() => {
+                        this.showOpeningCountIn(() => {
                             if (this.pitchTrainingMode) {
                                 this.playSequenceWithPitchTraining();
                             } else {
                                 this.playSequence();
                             }
-                        },null,1,true);
+                        });
                     }, 300);
                 }
             }
@@ -6710,6 +6779,7 @@ class CopyCatLessons {
 
                 this.playerSequence = [];
                 this.microphone?.resetResponseNotes();
+                this.refreshNextHint();
 
                 this.responseIdleAnswered=false;this.armResponseIdle();
             }
@@ -6861,6 +6931,7 @@ class CopyCatLessons {
             }
 
             playSequence() {
+                this.clearNextHint();
                 const handoff=this.nextPatternHandoff;
                 this.nextPatternHandoff=null;
                 this.metronome.startAdventure(this.getRoundBpm());
@@ -6874,13 +6945,9 @@ class CopyCatLessons {
                 const beatDuration=60000/this.getRoundBpm();
                 const callStartAt=Number.isFinite(handoff?.at)?
                     Math.max(handoff.at,performance.now()):performance.now();
-                let delay=0;
+                const delay=this.gameSequence.length*beatDuration;
                 this.gameSequence.forEach((item,index)=>{
-                    this.schedule(()=>{
-                        const visual=['on','fade'].includes(this.effectiveCpuLightsMode())?true:(this.showCpuNoteLight(index)?'first-only':false);
-                        this.playSequenceItem(item,visual);
-                    },Math.max(0,callStartAt+delay-performance.now()));
-                    delay+=beatDuration;
+                    this.playSequenceItem(item,true,callStartAt+index*beatDuration,index);
                 });
                 // CPU -> player -> CPU is ONE continuous, unpadded beat cycle.
                 // Never ceil an 8-note response up to another 4-beat bar.
@@ -6929,7 +6996,6 @@ class CopyCatLessons {
                     this.cpuFinishedAt=this.responseGateAt;
                     this.playerFirstInputAt=null;
                     const beat=60000/this.getRoundBpm();
-                    this.armFadeHints(this.gameSequence.map((item,i)=>({at:i*beat,pitches:[48+item.lightIndex],duration:beat})));
                     this.updateDisplay();
                     this.updateControls();
                     if(this.playerInstrument==='microphone')
@@ -6940,24 +7006,34 @@ class CopyCatLessons {
             }
 
             // Play individual sequence item - subdivisions within one beat with proper timing
-            playSequenceItem(item, visual = true) {
-                if (this.gameState === 'stopped') return;
-                const taps = Math.max(1, item.rhythmData.taps);
-                const subdivisionMs = (60000 / this.getRoundBpm()) / taps;
-                const noteDurationMs = Math.max(150, subdivisionMs) * 0.6;
-                for (let i = 0; i < taps; i++) {
-                    this.schedule(() => {
-                        if (this.gameState === 'stopped') return;
-                        if (visual === true || (visual === 'first-only' && i === 0))
-                            this.flashKey(item.lightIndex, noteDurationMs, 'playing');
-                        if(this.useGeneralMIDI)this.playGMNote(48+item.lightIndex,{role:'cpu',program:this.gm.roleProgram('cpu'),drums:this.gm.roleDrums('cpu'),durationMs:noteDurationMs});
-                        else this.playUserFeedbackTone(this.notes[item.note], item.rhythmData);
-                        this.sendMIDINote(item.lightIndex, true);
-                        this.schedule(() => this.sendMIDINote(item.lightIndex, false), noteDurationMs);
-                    }, i * subdivisionMs);
+            playSequenceItem(item,visual=true,startAt=performance.now(),stepIndex=null){
+                if(this.gameState==='stopped')return;
+                const taps=Math.max(1,item.rhythmData.taps);
+                const subdivision=(60000/this.getRoundBpm())/taps;
+                const duration=Math.max(150,subdivision)*.6;
+                const source=this.getGMSoundSource(),ahead=this.onboardLookahead(source);
+                for(let i=0;i<taps;i++){
+                    const delay=startAt+i*subdivision-performance.now();
+                    this.schedule(due=>{
+                        if(this.gameState==='stopped')return;
+                        const when=ahead?this.audioContext.currentTime+Math.max(0,due-performance.now())/1000:0;
+                        if(this.useGeneralMIDI){
+                            this.playGMNote(48+item.lightIndex,{role:'cpu',program:this.gm.roleProgram('cpu'),
+                                drums:this.gm.roleDrums('cpu'),durationMs:duration,when});
+                        }else this.playUserFeedbackTone(this.notes[item.note],item.rhythmData,when);
+                        if(this.midiOutPort&&(source==='native'||source==='original')){
+                            this.sendMIDINote(item.lightIndex,true);
+                            this.schedule(()=>this.sendMIDINote(item.lightIndex,false),duration);
+                        }
+                    },delay,ahead);
+                    if(visual)this.schedule(()=>{
+                        if(this.gameState==='stopped')return;
+                        const show=stepIndex===null?(visual===true||i===0):
+                            this.effectiveCpuLightsMode()==='on'||(i===0&&this.showCpuNoteLight(stepIndex));
+                        if(show)this.flashKey(item.lightIndex,duration,'playing');
+                    },delay);
                 }
             }
-
 
             // Play sequence item audio only (no visual animation) - for pitch training mode
             playSequenceItemAudioOnly(item) {
@@ -7004,6 +7080,7 @@ class CopyCatLessons {
             // Handle light press - simplified validation with timing tolerance
             onLightPress(lightIndex, event, source = 'pointer', velocity = 100) {
                 if (event) { event.preventDefault(); event.stopPropagation(); }
+                if(this.readyGate)return;
                 this.resumeAudio();
                 if(this.gameState==='awaiting-continue'){
                     this.resumeAfterLifeLoss();return;
@@ -7127,7 +7204,6 @@ class CopyCatLessons {
                     this.showGentleNoteMessage();
                 }
                 this.pitchAttempts++;this.pitchCorrect++;
-                if(this.currentSequenceIndex===0)this.startFadeHints();
                 if(this.currentSequenceIndex===0&&this.currentTapCount===0&&this.playerFirstInputAt===null)
                     this.playerFirstInputAt=now;
                 const key=document.getElementById(`light-${lightIndex}`);
@@ -7170,6 +7246,7 @@ class CopyCatLessons {
                     tapCount:this.currentTapCount,startTime:this.currentItemStartTime,endTime:now,
                     tapTimes:[...this.currentItemTapTimes],midi:this.currentItemMidi,partial:partial||this.currentTapCount<taps});
                 this.currentSequenceIndex++;this.currentTapCount=0;this.currentItemTapTimes=[];
+                this.refreshNextHint();
                 if(this.currentSequenceIndex<this.gameSequence.length)return;
                 this.sequenceCompletionPending=true;this.isPlayerTurn=false;
                 const isAdventure=this.gameMode==='adventure';
@@ -7249,23 +7326,28 @@ class CopyCatLessons {
                 this.callCountdownToast=toast;
                 let enabled=true;try{enabled=localStorage.getItem('copycatFirstKeyCountdown')!=='false';}catch(_){}
                 if(enabled){
-                    const index=this.isLessonMode()?(this.lesson.currentPromptSteps?.[0]?.notes?.[0]?.pitch??48)-48:this.gameSequence?.[0]?.lightIndex;
-                    const key=document.getElementById(`light-${index}`);
-                    if(key){const marker=document.createElement('div');marker.style.cssText='position:fixed;z-index:10030;background:#ffe08a;color:#172245;border:2px solid white;border-radius:12px;padding:5px 12px;font-weight:900;font-size:24px;pointer-events:none;transform:translate(-50%,-100%)';
-                        document.body.appendChild(marker);this.firstKeyCountdown=marker;this.countdownTargetKey=key;}
+                    const pitch=this.lesson?.currentPromptSteps?.[0]?.notes?.[0]?.pitch;
+                    const index=this.isLessonMode()?(pitch==null?null:pitch-48):this.gameSequence?.[0]?.lightIndex;
+                    const key=index==null?null:document.getElementById(`light-${index}`);
+                    if(key){
+                        const marker=document.createElement('span');marker.className='key-response-count';
+                        marker.setAttribute('aria-hidden','true');
+                        key.insertBefore(marker,key.querySelector('.light-number'));
+                        this.firstKeyCountdown=marker;
+                    }
                 }
 
                 // Schedule against the same transport as the notes, so live
                 // tempo changes also retime every pending count and handoff.
                 beats.forEach((at,i)=>{
-                    this.schedule(()=>{
-                        if(this.callCountdownToast===toast)this.metronome.click(i%Math.max(1,meter)===0,true,1,at);
-                    },Math.max(0,at-performance.now()-80));
+                    this.schedule(due=>{
+                        if(this.callCountdownToast===toast)this.metronome.click(i%Math.max(1,meter)===0,true,1,due);
+                    },at-performance.now(),80);
                     this.schedule(()=>{
                         if(this.callCountdownToast!==toast)return;
                         const remaining=beats.length-i;
                         toast.textContent=`CALL · Play in ${remaining}`;
-                        if(this.firstKeyCountdown){const rect=this.countdownTargetKey.getBoundingClientRect();this.firstKeyCountdown.textContent=String(remaining);this.firstKeyCountdown.style.left=(rect.left+rect.width/2)+'px';this.firstKeyCountdown.style.top=rect.top+'px';}
+                        if(this.firstKeyCountdown)this.firstKeyCountdown.textContent=String(remaining);
 
                     },at-performance.now());
                 });
@@ -7302,6 +7384,7 @@ class CopyCatLessons {
                         this.responseStartTime = timestamp;
                     }
                     this.playerSequence.push(inputData);
+                    this.refreshNextHint();
 
                     // Check if Player 2 has matched the length of Player 1's sequence
                     if (this.playerSequence.length >= this.player1Sequence.length) {
@@ -7335,6 +7418,7 @@ class CopyCatLessons {
             compareCallResponse() {
                 if (this.callResponseResolved || this.gameState === 'stopped') return;
                 this.callResponseResolved = true;
+                this.clearNextHint();
                 this.isPlayerTurn = false;
                 this.gameState = 'playing';
                 clearTimeout(this.callResponseTimeout);
@@ -7765,43 +7849,81 @@ class CopyCatLessons {
             // Initial metronome-synchronised count-in (not repeated between calls).
             // Uses the piece's first time signature (e.g. 3/4 or 5/4), or 4/4
             // for Adventure. Optional click audio; visual count-in always appears.
-            showGetReadyModal(callback, piece=null, speed=1, opening=false) {
-                // Count in to the practice accent cycle for short chunks, not
-                // an unnecessary four beats. The MIDI meter itself is unchanged.
-                const chunk=this.isLessonMode() ?
-                    (this.lesson?.activeCommandChunkBeats??this.lesson?.chunkSize):
+            showOpeningCountIn(callback,piece=null,speed=1){
+                this.readyGate?.close();
+                this.metronome.stop();
+                const dialog=document.createElement('dialog');
+                dialog.className='getready-content ready-prompt';
+                dialog.setAttribute('aria-labelledby','copycatReadyTitle');
+                const title=document.createElement('strong');
+                title.id='copycatReadyTitle';
+                title.setAttribute('aria-live','polite');
+                const button=document.createElement('button');
+                button.type='button';button.className='btn primary';
+                const words=['Ready?', 'Steady?', 'CopyCat!'];
+                let page=0;
+                const draw=()=>{
+                    title.textContent=words[page];
+                    button.textContent=page===2?'Tap or press any key to start the count-in':'Tap or press any key to continue';
+                };
+                const close=()=>{
+                    window.removeEventListener('keydown',onKey,true);
+                    this.readyGate=null;
+                    dialog.close();dialog.remove();
+                };
+                const advance=()=>{
+                    if(!dialog.open)return;
+                    if(this.audioContext?.state==='suspended')void this.resumeAudio();
+                    if(++page<words.length){draw();return;}
+                    close();
+                    if(this.gameState!=='stopped')this.showGetReadyModal(callback,piece,speed,true);
+                };
+                const onKey=event=>{
+                    event.preventDefault();event.stopImmediatePropagation();
+                    if(!event.repeat)advance();
+                };
+                this.readyGate={advance,close};
+                button.addEventListener('click',advance);
+                dialog.addEventListener('click',event=>{if(event.target!==button)advance();});
+                dialog.addEventListener('cancel',event=>{
+                    event.preventDefault();close();this.stopResetGame();
+                });
+                dialog.append(title,button);
+                document.body.append(dialog);
+                draw();dialog.showModal();button.focus();
+                window.addEventListener('keydown',onKey,true);
+            }
+
+            showGetReadyModal(callback,piece=null,speed=1,opening=false){
+                const chunk=this.isLessonMode()?(this.lesson?.activeCommandChunkBeats??this.lesson?.chunkSize):
                     (this.isMemoryMode()?this.memoryChunkSize:null);
                 const meter=opening?4:CopyCatMIDI.chunkCycle(chunk,piece?.meter||4,this.splitChunksActive());
-                const interval=piece ? Math.max(60,(piece.beatMs||500)/speed) : 60000/Math.max(1,this.getRoundBpm());
+                const interval=piece?Math.max(60,(piece.beatMs||500)/speed):60000/Math.max(1,this.getRoundBpm());
                 this.metronome.stop();
                 document.querySelectorAll('.getready-count').forEach(el=>el.remove());
                 const overlay=document.createElement('div');overlay.className='game-overlay getready-count';
                 const card=document.createElement('div');card.className='getready-content';
-                const title=document.createElement('strong');title.textContent='GET READY';
-                const number=document.createElement('span');number.className='getready-number';number.textContent='·';
+                const title=document.createElement('strong');title.textContent='Count in';
+                const number=document.createElement('span');number.className='getready-number';
                 card.append(title,number);overlay.append(card);document.body.append(overlay);
                 const session=this.countInSession=(this.countInSession||0)+1;
-                if(opening){
-                    title.textContent='Ready?';number.hidden=true;number.style.display='none';
-                    ['Set...', 'CopyCat!'].forEach((word,index)=>this.schedule(()=>{
-                        if(session===this.countInSession && overlay.isConnected)title.textContent=word;
-                    },1000*(index+1)));
-                }
-                const lead=opening?3000:0;
-                for(let beat=1;beat<=meter;beat++) {
+                const active=()=>session===this.countInSession && overlay.isConnected && this.gameState!=='stopped';
+                const origin=performance.now();
+                for(let i=0;i<meter;i++){
+                    const at=origin+i*interval;
+                    this.schedule(due=>{
+                        if(active()&&this.metronome.enabled)this.metronome.click(i===0,true,this.metronome.volume,due);
+                    },at-performance.now(),80);
                     this.schedule(()=>{
-                        if(session!==this.countInSession || !overlay.isConnected || this.gameState==='stopped')return;
-                        if(opening){title.textContent='Count in';number.hidden=false;number.style.display='';}
-                        number.textContent=String(opening?5-beat:beat);
-                        number.classList.remove('pulse-beat');void number.offsetWidth;number.classList.add('pulse-beat');
-                        if(this.metronome.enabled){this.metronome.indicate(beat,meter);this.metronome.click(beat===1,true);}
-                    },lead+(beat-1)*interval);
+                        if(!active())return;
+                        number.textContent=String(opening?meter-i:i+1);
+                        if(this.metronome.enabled)this.metronome.indicate(i+1,meter);
+                    },at-performance.now());
                 }
                 this.schedule(()=>{
-                    if(session!==this.countInSession || !overlay.isConnected || this.gameState==='stopped')return;
-                    overlay.remove();
-                    if(callback)callback();
-                },lead+meter*interval);
+                    if(!active())return;
+                    overlay.remove();callback?.();
+                },origin+meter*interval-performance.now());
             }
 
             playCatCrashCluster() {
@@ -8124,7 +8246,7 @@ class CopyCatLessons {
 
                     // Show "Get Ready!" modal then start the sequence
                     this.schedule(() => {
-                        this.showGetReadyModal(() => {
+                        this.showOpeningCountIn(() => {
                             if (this.pitchTrainingMode) {
                                 this.playSequenceWithPitchTraining();
                             } else {
@@ -8736,33 +8858,74 @@ class CopyCatLessons {
             }
 
 
-            clearFadeHints(){
-                for(const hint of this.fadeHints||[]){hint.animation?.cancel();hint.element.remove();}
-                this.fadeHints=[];this.fadeHintsStarted=false;
+            clearNextHint(){
+                clearTimeout(this.nextHintTimer);
+                this.nextHintTimer=null;
+                for(const key of this.nextHintKeys||[])key.classList.remove('next-note-hint');
+                this.nextHintKeys=null;
+                this.hintChord=null;
             }
-            armFadeHints(steps,speed=1,baseAt=null){
-                this.clearFadeHints();if(this.effectiveCpuLightsMode()!=='fade'||!steps.length)return;
-                const origin=baseAt??steps[0].at,ends=new Map();
-                for(const step of steps)for(const pitch of step.pitches)
-                    ends.set(pitch,Math.max(ends.get(pitch)||0,(step.at-origin+step.duration)/speed));
-                for(const [pitch,duration] of ends){
-                    const key=document.getElementById(`light-${pitch-48}`);if(!key)continue;
-                    const element=document.createElement('span');element.className='fade-note-hint';element.setAttribute('aria-hidden','true');key.appendChild(element);
-                    this.fadeHints.push({element,duration:Math.max(1,duration)});
+
+            refreshNextHint(playedPitch=null,playedAt=performance.now()){
+                if(this.lightsMode!=='next'||this.gameState!=='listening'||!this.isPlayerTurn){
+                    if(this.nextHintKeys || this.nextHintTimer!=null)this.clearNextHint();
+                    return;
                 }
-            }
-            startFadeHints(){
-                if(this.fadeHintsStarted)return;this.fadeHintsStarted=true;
-                for(const hint of this.fadeHints||[])hint.animation=hint.element.animate([{opacity:.8},{opacity:0}],{duration:hint.duration,fill:'forwards',easing:'linear'});
+                clearTimeout(this.nextHintTimer);this.nextHintTimer=null;
+                let pitches=[],nextBoundary=null;
+                const now=performance.now();
+                if(this.isLessonMode()){
+                    const lesson=this.lesson,steps=lesson.currentPromptSteps||[];
+                    if(lesson.active&&!lesson.soloActive&&!lesson.paused&&steps.length){
+                        const origin=lesson.responsePerformance?.origin??lesson.responseGateAt;
+                        const index=lesson.responseStepAt(now,origin);
+                        const step=steps[index],next=steps[index+1];
+                        if(this.hintChord!==step){
+                            this.hintChord=step;this.hintPlayed=new Set();
+                        }
+                        if(playedPitch!==null && lesson.responseStepAt(playedAt,origin)===index)
+                            this.hintPlayed.add(playedPitch);
+                        const complete=step.notes.every(note=>this.hintPlayed.has(note.pitch));
+                        pitches=((complete?next:step)?.notes||[]).map(note=>note.pitch);
+                        if(next){
+                            const base=lesson.responseSourceBaseAt??steps[0].atMs;
+                            nextBoundary=origin+((step.atMs+next.atMs)/2-base)/(lesson.callSpeed||1);
+                        }
+                    }
+                }else if(this.callResponseMode){
+                    const item=!this.isPlayer1Turn && this.player1Sequence[this.playerSequence.length];
+                    if(item)pitches=[48+item.lightIndex];
+                }else{
+                    const items=this.gameSequence;
+                    let index=this.currentSequenceIndex;
+                    if(this.playerInstrument==='microphone' && items.length){
+                        const origin=this.responseGateAt,beat=60000/this.getRoundBpm();
+                        const slot=Math.min(items.length-1,Math.max(0,Math.floor((now-origin)/beat+.5)));
+                        const item=items[slot];
+                        if(this.hintChord!==item){this.hintChord=item;this.hintMicMatched=false;}
+                        if(playedPitch===48+item.lightIndex && Math.abs(playedAt-(origin+slot*beat))<=beat/2)
+                            this.hintMicMatched=true;
+                        index=slot+(this.hintMicMatched?1:0);
+                        if(slot+1<items.length)nextBoundary=origin+(slot+.5)*beat;
+                    }
+                    if(items[index]&&!this.sequenceCompletionPending)pitches=[48+items[index].lightIndex];
+                }
+                const keys=pitches.map(pitch=>document.getElementById(`light-${pitch-48}`)).filter(Boolean);
+                for(const old of this.nextHintKeys||[])if(!keys.includes(old))old.classList.remove('next-note-hint');
+                for(const key of keys)if(!this.nextHintKeys?.includes(key))key.classList.add('next-note-hint');
+                this.nextHintKeys=keys;
+                // Only the next visual transition is pending. The hint never schedules sound or input.
+                if(Number.isFinite(nextBoundary))
+                    this.nextHintTimer=setTimeout(()=>this.refreshNextHint(),Math.max(1,nextBoundary-now+1));
             }
             effectiveCpuLightsMode(){
                 // Legacy Pitch Training 1-beat calls are automatically perfect pitch.
                 const chunk=this.memoryChunkSize;
-                return this.gameMode==='pitch-training' && chunk===1 ? 'off' : (this.lightsMode||'on');
+                return this.gameMode==='pitch-training' && chunk===1 && this.lightsMode!=='next'?'off':(this.lightsMode||'on');
             }
             showCpuNoteLight(noteIndex,noteInChord=0,subdivision=0){
                 const mode=this.effectiveCpuLightsMode();
-                return mode==='on'||mode==='fade'||(mode==='first'&&noteIndex===0&&noteInChord===0&&subdivision===0);
+                return mode==='on'||(mode==='first'&&noteIndex===0&&noteInChord===0&&subdivision===0);
             }
             isMemoryMode(){return this.gameMode==='adventure'||this.gameMode==='pitch-training';}
             chunkMeter(){
@@ -9116,6 +9279,7 @@ class CopyCatLessons {
                 },Math.max(1,deadline-performance.now()));
             }
             updateControls() {
+                this.refreshNextHint();
                 if(this.gameState==='listening'&&this.isPlayerTurn)this.armResponseIdle();
                 else if(this.gameState!=='waiting')this.cancelResponseIdle();
                 this.updateTurnDisplay();
@@ -9181,10 +9345,11 @@ class CopyCatLessons {
 
             // Clear all timeouts
             clearAllTimeouts() {
+                this.readyGate?.close();
                 document.querySelectorAll('.getready-count').forEach(el=>el.remove());
                 this.clearCallCountdown();
                 this.cancelResponseIdle();
-                this.clearFadeHints();
+                this.clearNextHint();
                 for (const id of this.pendingTimers) window.clearTimeout(id);
                 this.pendingTimers.clear();this.transportJobs?.clear();this.phraseFailurePending=false;
                 // Discard the light holds whose scheduled releases were cancelled.
@@ -9196,7 +9361,7 @@ class CopyCatLessons {
 
             // Clear all light effects
             clearAllLights() {
-                this.clearFadeHints();
+                this.clearNextHint();
                 this.lesson?.clearFingerings();
                 this.lightFlashStates = new WeakMap();
                 document.querySelectorAll('.light').forEach(light => {

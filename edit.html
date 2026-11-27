@@ -3232,15 +3232,26 @@ class CopyCatLessons {
             const step=this.currentPromptSteps[this.inputStep];
             if(!step)return;
             const target=step.notes.find(n=>n.pitch===pitch);
-            this.game.playGMNote(pitch,{role:'player1',program:this.game.gm?.roleProgram('player1',target)??0,velocity,durationMs:220});
+            const speed=this.callSpeed||1;
+            this.game.playGMNote(pitch,{role:'player1',program:this.game.gm?.roleProgram('player1',target)??0,
+                velocity,durationMs:target?Math.max(1,target.durationMs/speed):220});
             if(!target)return;
             (this.guidedChord??=new Set()).add(pitch);
             if(step.notes.every(n=>this.guidedChord.has(n.pitch))){
                 this.guidedChord.clear();this.inputStep++;
                 if(this.inputStep===this.currentPromptSteps.length){
-                    this.responseCycleEndAt=performance.now();
-                    this.responsePerformance={guided:true,finished:true,notes:[]};
-                    this.finishPrefix();return;
+                    const tail=Math.max(...step.notes.map(note=>note.durationMs))/speed;
+                    const response=this.responsePerformance={guided:true,finished:false,notes:[]};
+                    const session=this.playSession;
+                    this.game.refreshNextHint();
+                    this.game.schedule(due=>{
+                        if(!this.active||this.paused||this.playSession!==session||this.responsePerformance!==response)return;
+                        this.responseCycleEndAt=due;
+                        if(this.finale)this.finale.origin=due-this.finaleExchange().endAt;
+                        response.finished=true;
+                        this.finishPrefix();
+                    },tail);
+                    return;
                 }
                 this.showResponseFingerings();
             }
@@ -7169,8 +7180,11 @@ class CopyCatLessons {
                     this.refreshNextHint();
                     if(this.currentSequenceIndex===this.gameSequence.length){
                         this.sequenceCompletionPending=true;this.isPlayerTurn=false;this.rhythmAccuracy=1;
-                        if(this.gameMode==='adventure' && this.adventureShown<this.adventureTargetSequence.length)this.advanceAdventureChain();
-                        else {if(this.gameMode==='adventure')this.awardAdventureRound();this.nextRound();}
+                        this.schedule(()=>{
+                            if(!this.sequenceCompletionPending||this.gameState==='stopped')return;
+                            if(this.gameMode==='adventure' && this.adventureShown<this.adventureTargetSequence.length)this.advanceAdventureChain();
+                            else {if(this.gameMode==='adventure')this.awardAdventureRound();this.nextRound();}
+                        },60000/this.getRoundBpm()/Math.max(1,item.rhythmData?.taps||1));
                     }
                     return;
                 }

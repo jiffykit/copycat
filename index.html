@@ -52,7 +52,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,.option-tag:focus-
 .audio-settings-btn { display:grid; place-items:center; width:36px; height:36px; flex:none; padding:0; border:1px solid #5e719d; background:#1c2954; color:#e8f0ff; border-radius:10px; font-size:1.48rem; line-height:1; cursor:pointer; }
 .audio-settings-btn:hover,.audio-settings-btn[aria-expanded="true"] { color:#1b2748; background:#f4ca72; border-color:#ffdb9b; }
 .notes-container { width:100%; height:var(--keyheight); position:relative; isolation:isolate; touch-action:none; user-select:none; -webkit-user-select:none; border-radius:7px; overflow:hidden; background:#050814; border:clamp(3px,.65vw,6px) solid #070d25; box-shadow:0 9px 0 #030711,0 16px 24px #0008; }
-.piano-key { appearance:none; -webkit-appearance:none; padding:0; margin:0; position:absolute; top:0; border-radius:0 0 7px 7px; display:flex; justify-content:center; align-items:flex-end; overflow:hidden; cursor:pointer; touch-action:none; transition:none; transform:none!important; font-weight:700; }
+.piano-key { -webkit-touch-callout:none;user-select:none;-webkit-user-select:none;appearance:none; -webkit-appearance:none; padding:0; margin:0; position:absolute; top:0; border-radius:0 0 7px 7px; display:flex; justify-content:center; align-items:flex-end; overflow:hidden; cursor:pointer; touch-action:none; transition:none; transform:none!important; font-weight:700; }
 .piano-key.white { width:12.5%; height:100%; z-index:1; background:linear-gradient(180deg,#e9eaf1 0%,#fdfdff 58%,#d7d8df 100%); color:#27304b; border:1px solid #8c91a5; box-shadow:inset 0 -6px 6px #686e7930; }
 .piano-key.black { width:7.7%; height:64%; z-index:3; background:linear-gradient(100deg,#1e2442,#060914 60%,#30394f); color:#f3f6ff; border:1px solid #02030a; border-radius:0 0 6px 6px; box-shadow:2px 5px 6px #0009,inset 0 -3px 2px #5a6172; }
 .piano-key.next-note-hint{background:var(--note-glow,#ffd165)!important;filter:none!important;color:#16213a;box-shadow:inset 0 -6px 0 #9a640d}
@@ -3019,7 +3019,7 @@ class CopyCatLessons {
             metro.origin+metro.beatAt(this.responseNextBeatIndex):responseAt+answerSpan;
         const finalBeatStart=finale?clockStartAt+finale.callClicks.at(-1):Number.isInteger(responseBeat) && responseBeat>0 && metro.enabled && metro.running ?
             metro.origin+metro.beatAt(responseBeat-1) : responseAt-beatDuration;
-        this.responseWindowAt=Math.max(clockStartAt+1,finalBeatStart);
+        this.responseWindowAt=game.quietNext()?responseAt:Math.max(clockStartAt+1,finalBeatStart);
         this.cpuFinishedAt=cpuEndAt;
         const openResponse=()=>{
             if(!this.active || session!==this.playSession || game.gameState==='listening')return;
@@ -3031,15 +3031,15 @@ class CopyCatLessons {
                 this.currentPromptSteps=finale.responseSteps;
                 this.responsePerformance={origin:responseAt,endAt:this.responseCycleEndAt,notes:[],finished:false};
             }
-            this.inputStep=0;this.inputTimes=[];this.showResponseFingerings();
-            this.startResponseBacking(session);
+            this.inputStep=0;this.guidedChord=new Set();this.inputTimes=[];this.showResponseFingerings();
+            if(!game.quietNext())this.startResponseBacking(session);
 
             if(finale){
 
                 this.armResponseFinish();
             }
             game.updateControls();this.update();
-            this.message(`Your turn · Copy ${promptSteps.length} ${promptSteps.length===1?'step':'steps'} at ${this.speed.toFixed(2)}×. Chords can be pressed together.`);
+            this.message(game.quietNext()?'Your turn · Take your time. Tap each lit note or chord.':`Your turn · Copy ${promptSteps.length} ${promptSteps.length===1?'step':'steps'} at ${this.speed.toFixed(2)}×. Chords can be pressed together.`);
             // The same gate is used by a keypress and by its scheduled timer:
             // neither can reset an answer already started by the other.
             this.armIdle();
@@ -3074,6 +3074,7 @@ class CopyCatLessons {
         return Math.max(55,Math.min(140,beat*.20));
     }
     armResponseFinish(){
+        if(this.game.quietNext())return;
         clearTimeout(this.responseFinishTimer);
         const response=this.responsePerformance,session=this.playSession;
         if(!response||response.finished)return;
@@ -3106,6 +3107,10 @@ class CopyCatLessons {
     }
     responseAccuracy(){
         const response=this.responsePerformance,steps=this.currentPromptSteps;
+        if(response.guided){
+            const expected=steps.reduce((sum,step)=>sum+step.notes.length,0);
+            return {pitch:1,timing:1,length:null,score:100,correct:expected,expected,extras:0};
+        }
         const speed=this.callSpeed||1,base=this.responseSourceBaseAt??steps[0].atMs;
         let expectedCount=0,extras=0,correct=0,pitchSum=0,timingSum=0,lengthSum=0;
         const beat=Math.max(35,(this.piece?.beatMs||500)/speed);
@@ -3119,7 +3124,6 @@ class CopyCatLessons {
         // exact target must still be reached within that note's own duration,
         // with no more than two wrong attacks before the correction.
         const midiInput=response.notes.length>0 &&
-            response.notes.some(note=>note.source==='midi') &&
             !response.notes.some(note=>note.source==='microphone');
         if(midiInput){
             const deadlineGrace=25;
@@ -3197,18 +3201,22 @@ class CopyCatLessons {
                 }
                 correct+=expected.length;
                 pitchSum+=expected.length;
-                for(const item of expected)
+                for(const item of expected){
                     timingSum+=CopyCatMIDI.midiOnsetCredit(item.hit.at-item.start,event.sixteenth);
+                    const duration=Math.max(1,item.target.durationMs/speed);
+                    const held=Math.max(0,(item.hit.endAt??response.endAt)-item.hit.at);
+                    lengthSum+=Math.max(0,1-Math.abs(held-duration)/duration);
+                }
             }
             extras+=unassigned.length;
             const count=Math.max(1,expectedCount+extras);
             const pitch=pitchSum/count,timing=timingSum/count;
-            const score=70*pitch+30*timing;
+            const length=lengthSum/count,score=70*pitch+20*timing+10*length;
             // A single unrecovered/wrong-by-deadline MIDI note is a failed
             // passage, not a high-scoring phrase with one harmless extra.
             const pitchFailed=correct<expectedCount || extras>0;
 
-            return {pitch,timing,length:null,correct,expected:expectedCount,extras,score,pitchFailed};
+            return {pitch,timing,length,correct,expected:expectedCount,extras,score,pitchFailed};
         }
         const groups=steps.map(()=>[]);
         for(const played of response.notes)groups[this.responseStepAt(played.at)].push(played);
@@ -3252,6 +3260,24 @@ class CopyCatLessons {
         }
         const now=source==='microphone'?(this.game.microphoneNoteAt??performance.now()):performance.now();
         if(now+1<this.responseWindowAt||!this.currentPromptSteps.length)return;
+        if(this.game.quietNext()){
+            const step=this.currentPromptSteps[this.inputStep];
+            if(!step)return;
+            const target=step.notes.find(n=>n.pitch===pitch);
+            this.game.playGMNote(pitch,{role:'player1',program:this.game.gm?.roleProgram('player1',target)??0,velocity,durationMs:220});
+            if(!target)return;
+            (this.guidedChord??=new Set()).add(pitch);
+            if(step.notes.every(n=>this.guidedChord.has(n.pitch))){
+                this.guidedChord.clear();this.inputStep++;
+                if(this.inputStep===this.currentPromptSteps.length){
+                    this.responseCycleEndAt=performance.now();
+                    this.responsePerformance={guided:true,finished:true,notes:[]};
+                    this.finishPrefix();return;
+                }
+                this.showResponseFingerings();
+            }
+            this.game.refreshNextHint();return;
+        }
         const first=this.currentPromptSteps[0];
         if(now<this.responseGateAt&&!first.notes.some(n=>n.pitch===pitch)){
             // Early pickup notes stay audible even before scoring opens.
@@ -3308,6 +3334,7 @@ class CopyCatLessons {
         const passed=daily?globalAccuracy+1e-8>=threshold:(this.game.playerInstrument==='microphone'?this.game.microphone.passes(accuracy,threshold):accuracy.pitch+1e-8>=threshold && accuracy.timing+1e-8>=threshold);
         const pct=value=>(value*100).toFixed(1)+'%';
         this.lastRhythmMessage=daily?`Pitch ${copycatDailyStars(accuracy.pitch)} · Rhythm ${copycatDailyStars(accuracy.timing)} · Daily ${copycatDailyStars(globalAccuracy)}`:`Accuracy ${accuracy.score.toFixed(1)}% · Notes ${pct(accuracy.pitch)} · Timing ${pct(accuracy.timing)}${accuracy.length==null?'':` · Length ${pct(accuracy.length)}`}`;
+        if(this.responsePerformance.guided)this.lastRhythmMessage="Pattern complete · All notes found";
         this.game.totalScore=Number(accuracy.score.toFixed(1));
         const weight=accuracy.expected+accuracy.extras;
         this.runAccuracySum=(this.runAccuracySum||0)+accuracy.score*weight;
@@ -4040,8 +4067,10 @@ class CopyCatLessons {
                 }
                 if(g.gameState!=='listening'||!g.isPlayerTurn)return;
                 g.cancelResponseIdle(true);g.responseIdleAnswered=true;
+                if(g.quietNext()&&!g.isLessonMode()&&!g.callResponseMode){g.handleNormalGamePress(played.pitch-48,'microphone');return;}
                 if(g.callResponseMode){
                     const lightIndex=played.pitch-48;
+                    if(g.quietNext()&&!g.isPlayer1Turn && g.player1Sequence[g.playerSequence.length]?.lightIndex!==lightIndex)return;
                     const key=document.getElementById(`light-${lightIndex}`);
                     const name=key?.dataset.note||`${['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'][((played.pitch%12)+12)%12]}${Math.floor(played.pitch/12)-1}`;
                     if(g.isPlayer1Turn){
@@ -4053,7 +4082,7 @@ class CopyCatLessons {
                         if(g.playerSequence.length>=g.player1Sequence.length){
                             clearTimeout(this.responseTimer);this.responseTimer=null;
                             g.compareCallResponse();
-                        }else if(!this.responseTimer){
+                        }else if(!g.quietNext()&&!this.responseTimer){
                             const calls=g.player1Sequence,intervals=calls.slice(1).map((n,i)=>n.timestamp-calls[i].timestamp);
                             const beat=Math.max(140,60000/g.getRoundBpm());
                             const duration=Math.max(beat,calls.at(-1).timestamp-calls[0].timestamp+beat);
@@ -5216,7 +5245,29 @@ class CopyCatLessons {
                 if(nextMuted)this.lesson?.releaseBandAudio();
                 this.toggleMetronome(nextOn);
             }
+            restartHintResponse(previous){
+                if(previous===this.quietNext() || this.gameState!=='listening' || !this.isPlayerTurn)return;
+                this.cancelResponseIdle(true);
+                if(this.callResponseMode){if(!this.isPlayer1Turn)this.startPlayer2Input();return;}
+                if(this.lesson?.paused||this.lesson?.soloActive)return;
+                this.clearAllTimeouts();
+                if(this.isLessonMode()){
+                    this.lesson.cancelIdle();this.lesson.resetResponsePerformance();
+                    this.lesson.playPrefix();
+                }else this.playSequence();
+            }
+            quietNext(){
+                return this.lightsMode==='next' && this.bandMuted && !this.metronome.enabled;
+            }
             updateMetronomeControls() {
+                const select=document.getElementById('keyboardLightMode');
+                const next=select?.querySelector('option[value="next"]');
+                if(next){
+                    next.hidden=next.disabled=!this.bandMuted||this.metronome.enabled;
+                    if(next.disabled && this.lightsMode==='next'){
+                        this.lightsMode=select.value='on';this.restartHintResponse(true);this.refreshNextHint();
+                    }
+                }
                 const active=this.metronome.enabled,muted=!!this.bandMuted,drums=this.lessonHasDrums();
                 document.getElementById('metronomeEnabled').checked=active;
                 const quick=document.getElementById('quickMetronomeBtn');
@@ -5290,7 +5341,7 @@ class CopyCatLessons {
                 this.lightsMode=['on','next','first','off'].includes(savedLights)?savedLights:'on';
                 const lightModeSelect=document.getElementById('keyboardLightMode');
                 lightModeSelect.value=this.lightsMode;
-                lightModeSelect.addEventListener('change',e=>{this.lightsMode=e.target.value;this.refreshNextHint();this.saveAudioPreferences();this.updateKeyboardModeBar();});
+                lightModeSelect.addEventListener('change',e=>{const was=this.quietNext();this.lightsMode=e.target.value;this.restartHintResponse(was);this.refreshNextHint();this.saveAudioPreferences();this.updateKeyboardModeBar();});
                 this.onboardEnabled=this.midiPrefs.onboard!==false;
                 this.useGeneralMIDI=this.midiPrefs.useGeneralMIDI!==false;
                 this.cpuInstrument=this.midiPrefs.cpuInstrument??'file';
@@ -5753,6 +5804,7 @@ class CopyCatLessons {
 
             initializeEventListeners() {
                 // Control buttons
+                document.addEventListener('contextmenu',event=>{if(event.target.closest?.('.piano-key'))event.preventDefault();});
                 document.getElementById('startBtn').addEventListener('click', () => this.startGame());
                 document.getElementById('stopResetBtn').addEventListener('click', () => this.stopResetGame());
                 document.getElementById('listenAgainBtn').addEventListener('click', () => this.listenAgain());
@@ -6980,7 +7032,7 @@ class CopyCatLessons {
                 // does not relabel beat 4 or move any metronome click.
                 const finalBeatStart=Number.isInteger(responseBeat) && responseBeat>0 && metro.enabled && metro.running ?
                     metro.origin+metro.beatAt(responseBeat-1) : responseAt-beatDuration;
-                this.responseWindowAt=Math.max(callStartAt+1,finalBeatStart);
+                this.responseWindowAt=this.quietNext()?responseAt:Math.max(callStartAt+1,finalBeatStart);
                 const callSerial=this.randomCallSerial=(this.randomCallSerial||0)+1;
                 const openResponse=()=>{
                     if(this.randomCallSerial!==callSerial||this.gameState!=='playing')return;
@@ -6998,7 +7050,7 @@ class CopyCatLessons {
                     const beat=60000/this.getRoundBpm();
                     this.updateDisplay();
                     this.updateControls();
-                    if(this.playerInstrument==='microphone')
+                    if(!this.quietNext() && this.playerInstrument==='microphone')
                         this.microphone?.beginPattern(callSerial,this.responseGateAt,beat,this.gameSequence.length);
                 };
                 this.openRandomResponseNow=openResponse;
@@ -7168,6 +7220,21 @@ class CopyCatLessons {
             // One correct pitch per beat remains essential; subdivision timing is
             // graded gently and cannot cost a life on its own.
             handleNormalGamePress(lightIndex,source) {
+                if(this.quietNext()){
+                    const item=this.gameSequence[this.currentSequenceIndex];
+                    if(!item||this.sequenceCompletionPending)return;
+                    this.playGMNote(48+lightIndex,{role:'player1',program:this.gm?.roleProgram('player1')??0,durationMs:220});
+                    if(lightIndex!==item.lightIndex)return;
+                    if(++this.currentTapCount<Math.max(1,item.rhythmData?.taps||1))return;
+                    this.currentTapCount=0;this.currentSequenceIndex++;
+                    this.refreshNextHint();
+                    if(this.currentSequenceIndex===this.gameSequence.length){
+                        this.sequenceCompletionPending=true;this.isPlayerTurn=false;this.rhythmAccuracy=1;
+                        if(this.gameMode==='adventure' && this.adventureShown<this.adventureTargetSequence.length)this.advanceAdventureChain();
+                        else {if(this.gameMode==='adventure')this.awardAdventureRound();this.nextRound();}
+                    }
+                    return;
+                }
                 const expected=this.gameSequence[this.currentSequenceIndex];
                 if(!expected||this.sequenceCompletionPending)return;
                 const now=this.microphoneNoteAt??performance.now();
@@ -7298,6 +7365,7 @@ class CopyCatLessons {
                     this.recordCallResponseInput(lightIndex, note, true); // true = is Player 1
                 } else {
                     // Player 2 is responding - record and compare
+                    if(this.quietNext() && this.player1Sequence[this.playerSequence.length]?.lightIndex!==lightIndex)return;
                     this.recordCallResponseInput(lightIndex, note, false,source); // false = is Player 2
                 }
 
@@ -7497,8 +7565,9 @@ class CopyCatLessons {
                 // Determine success
                 if(micGrade){pitchMatch=micGrade.pitch+1e-8>=(this.teacherPassRate??.75);
                     rhythmAccuracy=micGrade.timing;}
-                const success=micGrade?this.microphone.passes(micGrade,this.teacherPassRate??.75):
-                    pitchMatch && rhythmAccuracy+1e-8 >= (this.teacherPassRate??.75);
+                if(this.quietNext()){rhythmAccuracy=1;pitchMatch=true;}
+                const success=this.quietNext() || (micGrade?this.microphone.passes(micGrade,this.teacherPassRate??.75):
+                    pitchMatch && rhythmAccuracy+1e-8 >= (this.teacherPassRate??.75));
 
                 // Calculate pitch accuracy stats
                 let correctNotes = 0;
@@ -8872,25 +8941,12 @@ class CopyCatLessons {
                     return;
                 }
                 clearTimeout(this.nextHintTimer);this.nextHintTimer=null;
-                let pitches=[],nextBoundary=null;
+                let pitches=[];
                 const now=performance.now();
                 if(this.isLessonMode()){
                     const lesson=this.lesson,steps=lesson.currentPromptSteps||[];
                     if(lesson.active&&!lesson.soloActive&&!lesson.paused&&steps.length){
-                        const origin=lesson.responsePerformance?.origin??lesson.responseGateAt;
-                        const index=lesson.responseStepAt(now,origin);
-                        const step=steps[index],next=steps[index+1];
-                        if(this.hintChord!==step){
-                            this.hintChord=step;this.hintPlayed=new Set();
-                        }
-                        if(playedPitch!==null && lesson.responseStepAt(playedAt,origin)===index)
-                            this.hintPlayed.add(playedPitch);
-                        const complete=step.notes.every(note=>this.hintPlayed.has(note.pitch));
-                        pitches=((complete?next:step)?.notes||[]).map(note=>note.pitch);
-                        if(next){
-                            const base=lesson.responseSourceBaseAt??steps[0].atMs;
-                            nextBoundary=origin+((step.atMs+next.atMs)/2-base)/(lesson.callSpeed||1);
-                        }
+                        pitches=(steps[lesson.inputStep||0]?.notes||[]).map(n=>n.pitch);
                     }
                 }else if(this.callResponseMode){
                     const item=!this.isPlayer1Turn && this.player1Sequence[this.playerSequence.length];
@@ -8898,25 +8954,12 @@ class CopyCatLessons {
                 }else{
                     const items=this.gameSequence;
                     let index=this.currentSequenceIndex;
-                    if(this.playerInstrument==='microphone' && items.length){
-                        const origin=this.responseGateAt,beat=60000/this.getRoundBpm();
-                        const slot=Math.min(items.length-1,Math.max(0,Math.floor((now-origin)/beat+.5)));
-                        const item=items[slot];
-                        if(this.hintChord!==item){this.hintChord=item;this.hintMicMatched=false;}
-                        if(playedPitch===48+item.lightIndex && Math.abs(playedAt-(origin+slot*beat))<=beat/2)
-                            this.hintMicMatched=true;
-                        index=slot+(this.hintMicMatched?1:0);
-                        if(slot+1<items.length)nextBoundary=origin+(slot+.5)*beat;
-                    }
                     if(items[index]&&!this.sequenceCompletionPending)pitches=[48+items[index].lightIndex];
                 }
                 const keys=pitches.map(pitch=>document.getElementById(`light-${pitch-48}`)).filter(Boolean);
                 for(const old of this.nextHintKeys||[])if(!keys.includes(old))old.classList.remove('next-note-hint');
                 for(const key of keys)if(!this.nextHintKeys?.includes(key))key.classList.add('next-note-hint');
                 this.nextHintKeys=keys;
-                // Only the next visual transition is pending. The hint never schedules sound or input.
-                if(Number.isFinite(nextBoundary))
-                    this.nextHintTimer=setTimeout(()=>this.refreshNextHint(),Math.max(1,nextBoundary-now+1));
             }
             effectiveCpuLightsMode(){
                 // Legacy Pitch Training 1-beat calls are automatically perfect pitch.
@@ -9229,6 +9272,7 @@ class CopyCatLessons {
                 if(reset){this.responseIdleMisses=0;this.responseIdleAnswered=false;}
             }
             armResponseIdle(){
+                if(this.quietNext())return;
                 if(this.gameState!=='listening'||!this.isPlayerTurn||this.lesson?.soloActive||this.lesson?.finale)return;
                 if(document.getElementById('callResponseInstructionModal')?.style.display==='flex')return;
                 if(this.responseIdleTimer!=null||this.responseIdleAnswered)return;
